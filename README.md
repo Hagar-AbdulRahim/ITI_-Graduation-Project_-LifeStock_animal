@@ -1,6 +1,7 @@
 # 🐾 رعاية الماشية AI — Frontend Dashboard
 
 ## Stack
+
 - **React 19** + **Vite**
 - **Redux Toolkit** — state management
 - **React Router v7** — routing
@@ -68,13 +69,15 @@ npm run dev
 1. **في `services/dashboardService.js`** — اكتب الـ fetch calls الحقيقية (الملف جاهز وموثق)
 
 2. **في `store/slices/dashboardSlice.js`** — أضف `createAsyncThunk`:
+
 ```js
-export const fetchStats = createAsyncThunk("dashboard/fetchStats", async () => {
+export const fetchStats = createAsyncThunk('dashboard/fetchStats', async () => {
   return await dashboardService.fetchDashboardStats();
 });
 ```
 
 3. **في `pages/DashboardPage.jsx`** — استخدم `useEffect` لـ dispatch:
+
 ```js
 useEffect(() => {
   dispatch(fetchStats());
@@ -90,6 +93,7 @@ useEffect(() => {
 ## 📊 تغيير شكل الرسوم البيانية
 
 ### Bar Chart (`WeeklyHealthChart.jsx`)
+
 ```js
 // غيّر الـ THRESHOLD لتغيير اللون الوردي
 const THRESHOLD = 60;
@@ -99,6 +103,7 @@ fill={entry.score < THRESHOLD ? "#f9a8d4" : "#c5ddb8"}
 ```
 
 ### Donut Chart (`AnimalDistributionChart.jsx`)
+
 ```js
 // الألوان في mockData.js في كل item
 { name: "الأبقار", value: 744, color: "#3d6b47" }
@@ -109,8 +114,9 @@ fill={entry.score < THRESHOLD ? "#f9a8d4" : "#c5ddb8"}
 ## 🎨 Theme Colors
 
 ```css
---color-primary:       #2d5a1b  (dark green)
---color-primary-light: #3d6b47  (medium green)
---color-accent:        #c5ddb8  (pale green)
---color-bg:            #f5f2eb  (warm beige)
+--color-primary: #2d5a1b (dark green) --color-primary-light: #3d6b47
+  (medium green) --color-accent: #c5ddb8 (pale green) --color-bg: #f5f2eb
+  (warm beige);
 ```
+
+# ITI*-Graduation-Project*-LifeStock_animal
