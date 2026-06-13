@@ -80,6 +80,22 @@ const updateAnimalValidator = [
     .optional()
     .trim()
     .isLength({ max: 50 }).withMessage("رقم الوسم يجب ألا يتجاوز 50 حرف"),
+
+  // allow updating gender if needed
+  body("gender")
+    .optional()
+    .isIn(["male", "female"]).withMessage("الجنس يجب أن يكون male أو female"),
+
+  // birth_date can be corrected if entered wrong initially
+  body("birth_date")
+    .optional()
+    .isISO8601().withMessage("تاريخ الميلاد يجب أن يكون بصيغة YYYY-MM-DD")
+    .custom((value) => {
+      if (new Date(value) > new Date()) {
+        throw new Error("تاريخ الميلاد لا يمكن أن يكون في المستقبل");
+      }
+      return true;
+    }),
 ];
 
 // ── Param: MongoDB ObjectId ───────────────────────────────────────────────────

@@ -53,6 +53,19 @@ const updateFarmValidator = [
     .optional()
     .trim()
     .isLength({ max: 500 }).withMessage("الوصف يجب ألا يتجاوز 500 حرف"),
+
+  // allow updating GPS location
+  body("location.coordinates")
+    .optional()
+    .isArray({ min: 2, max: 2 }).withMessage("الإحداثيات يجب أن تكون [longitude, latitude]"),
+
+  body("location.coordinates[0]")
+    .optional()
+    .isFloat({ min: -180, max: 180 }).withMessage("خط الطول يجب أن يكون بين -180 و180"),
+
+  body("location.coordinates[1]")
+    .optional()
+    .isFloat({ min: -90, max: 90 }).withMessage("خط العرض يجب أن يكون بين -90 و90"),
 ];
 
 // ── Param: MongoDB ObjectId ───────────────────────────────────────────────────
