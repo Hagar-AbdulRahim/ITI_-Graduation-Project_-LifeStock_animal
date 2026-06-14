@@ -58,6 +58,7 @@ const HeroSection = () => {
               </svg>
             </button>
             <button
+              onClick={() => navigate('/farms')}
               className="flex items-center gap-2 font-semibold text-sm px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer"
               style={{ backgroundColor: '#ffffff', color: '#1F5C34', border: '2px solid #1F5C34' }}
               onMouseEnter={(e) => {
