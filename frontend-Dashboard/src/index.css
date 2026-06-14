@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #2d5a1b;
+  --color-primary-light: #3d6b47;
+  --color-accent: #c5ddb8;
+  --color-bg: #f5f2eb;
+  --color-surface: #ffffff;
+}
+
+* {
+  font-family: 'Cairo', sans-serif;
+}
+
+body {
+  background-color: var(--color-bg);
+  direction: rtl;
+}
+
+/* Smooth scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1cfc9; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+/* Recharts RTL fix */
+.recharts-wrapper { direction: ltr; }
