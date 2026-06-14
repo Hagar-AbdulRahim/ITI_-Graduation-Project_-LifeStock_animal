@@ -109,31 +109,17 @@ const Register = () => {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              <Input
-                id="fullName"
-                label="الاسم الكامل"
-                placeholder="أحمد محمد"
-                type="text"
-                className="w-full"
-                error={errors.fullName?.message}
-                {...register('fullName', {
-                  required: 'الاسم الكامل مطلوب',
-                })}
-              />
-
-              <Input
-                id="farmName"
-                label="اسم المزرعة / المنشأة"
-                placeholder="مزارع الخير"
-                type="text"
-                className="w-full"
-                error={errors.farmName?.message}
-                {...register('farmName', {
-                  required: 'اسم المزرعة مطلوب',
-                })}
-              />
-            </div>
+            <Input
+              id="fullName"
+              label="الاسم الكامل"
+              placeholder="أحمد محمد"
+              type="text"
+              className="w-full"
+              error={errors.fullName?.message}
+              {...register('fullName', {
+                required: 'الاسم الكامل مطلوب',
+              })}
+            />
 
             <Input
               id="email"
