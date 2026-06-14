@@ -1,10 +1,10 @@
 import React from 'react'
-import Navbar from '../components/ui/Navbar'
-import HeroSection from '../components/ui/HeroSection'
-import FeaturesGrid from '../components/ui/FeaturesGrid'
-import TestimonialSection from '../components/ui/TestimonialSection'
-import CTASection from '../components/ui/CTASection'
-import Footer from '../components/ui/Footer'
+import Navbar from '@/components/homeComponent/Navbar'
+import HeroSection from '@/components/homeComponent/HeroSection'
+import FeaturesGrid from '@/components/homeComponent/FeaturesGrid'
+import TestimonialSection from '@/components/homeComponent/TestimonialSection'
+import CTASection from '@/components/homeComponent/CTASection'
+import Footer from '@/components/homeComponent/Footer'
 
 const LandingPage = () => {
   return (

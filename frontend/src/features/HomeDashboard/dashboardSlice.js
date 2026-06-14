@@ -75,7 +75,7 @@ const initialState = {
 }
 
 const dashboardSlice = createSlice({
-  name: 'dashboard',
+  name: 'homeDashboard',
   initialState,
   reducers: {
     setHeroStats: (state, action) => {
@@ -91,8 +91,8 @@ const dashboardSlice = createSlice({
 })
 
 export const { setHeroStats, setFeatures, setTestimonials } = dashboardSlice.actions
-export const selectHeroStats = (state) => state.dashboard.heroStats
-export const selectFeatures = (state) => state.dashboard.features
-export const selectTestimonials = (state) => state.dashboard.testimonials
+export const selectHeroStats = (state) => state.homeDashboard.heroStats
+export const selectFeatures = (state) => state.homeDashboard.features
+export const selectTestimonials = (state) => state.homeDashboard.testimonials
 
 export default dashboardSlice.reducer

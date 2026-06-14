@@ -23,6 +23,7 @@ import AddMedicalRecordPage from '../pages/Animals/AddMedicalRecordPage';
 // Dashboard & Layout Pages
 import DashboardPage from '../pages/dashboard/DashboardPage';
 import MainLayout from '../layout/MainLayout';
+import LandingPage from '../pages/Home/LandingPage';
 
 // ComingSoon component for placeholder pages in the dashboard flow
 const ComingSoon = ({ title }) => (
@@ -36,8 +37,8 @@ const ComingSoon = ({ title }) => (
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Root redirection to Farms selection */}
-      <Route path="/" element={<Navigate to="/farms" replace />} />
+      {/* Root route renders LandingPage */}
+      <Route path="/" element={<LandingPage />} />
       
       {/* Auth Routes */}
       <Route path="/login" element={<Login />} />

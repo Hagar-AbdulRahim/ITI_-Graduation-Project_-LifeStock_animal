@@ -3,6 +3,7 @@ import authReducer from './authSlice';
 import animalReducer from './animalSlice';
 import farmReducer from './farmSlice';
 import dashboardReducer from './dashBoard/dashboardSlice';
+import homeDashboardReducer from '../features/HomeDashboard/dashboardSlice';
 
 export const store = configureStore({
     reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
         animal: animalReducer,
         farm: farmReducer,
         dashboard: dashboardReducer,
+        homeDashboard: homeDashboardReducer,
     },
 });
 
