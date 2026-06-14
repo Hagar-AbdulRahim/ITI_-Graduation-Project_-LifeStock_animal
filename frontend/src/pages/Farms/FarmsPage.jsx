@@ -182,7 +182,7 @@ const FarmsPage = () => {
               <FarmCard 
                 key={farm._id} 
                 farm={farm} 
-                onClick={() => navigate(`/farms/${farm._id}/animals`)} 
+                onClick={() => navigate(`/farms/${farm._id}`)} 
               />
             ))}
           </div>

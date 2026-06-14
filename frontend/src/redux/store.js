@@ -2,11 +2,14 @@ import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './authSlice';
 import animalReducer from './animalSlice';
 import farmReducer from './farmSlice';
+import dashboardReducer from './dashBoard/dashboardSlice';
 
 export const store = configureStore({
     reducer: {
         auth: authReducer,
         animal: animalReducer,
         farm: farmReducer,
+        dashboard: dashboardReducer,
     },
 });
+
