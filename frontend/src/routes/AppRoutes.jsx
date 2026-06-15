@@ -12,6 +12,7 @@ import VerifyOtp from '../pages/Auth/VerifyOtp';
 
 // Feature Pages
 import FarmsPage from '../pages/Farms/FarmsPage';
+// import FarmDetailsPage removed; details page merged into farm card
 import AddFarmPage from '../pages/Farms/AddFarmPage';
 import AnimalsListPage from '../pages/Animals/AnimalsListPage';
 import AnimalProfilePage from '../pages/AnimalProfilePage';
@@ -39,7 +40,7 @@ const AppRoutes = () => {
     <Routes>
       {/* Root route renders LandingPage */}
       <Route path="/" element={<LandingPage />} />
-      
+
       {/* Auth Routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
@@ -49,26 +50,26 @@ const AppRoutes = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
 
       {/* Standalone Protected Farm management routes */}
-      <Route 
-        path="/farms" 
+      <Route
+        path="/farms"
         element={
           <ProtectedRoute>
             <FarmsPage />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/farms/add" 
+      <Route
+        path="/farms/add"
         element={
           <ProtectedRoute>
             <AddFarmPage />
           </ProtectedRoute>
-        } 
+        }
       />
 
       {/* Nested Farm Dashboard Routes (all render inside MainLayout with Sidebar/Topbar) */}
-      <Route 
-        path="/farms/:farmId" 
+      <Route
+        path="/farms/:farmId"
         element={
           <ProtectedRoute>
             <MainLayout />
@@ -76,11 +77,12 @@ const AppRoutes = () => {
         }
       >
         {/* Farm overview dashboard */}
-        <Route index element={<DashboardPage />} />
-        
+          <Route index element={<DashboardPage />} />
+
+
         {/* Animals list within the farm dashboard */}
         <Route path="animals" element={<AnimalsListPage />} />
-        
+
         {/* Mock/ComingSoon subpages inside the dashboard */}
         <Route path="ai-assistant" element={<ComingSoon title="مساعد الذكاء الاصطناعي" />} />
         <Route path="diagnosis" element={<ComingSoon title="التشخيص" />} />
@@ -92,45 +94,45 @@ const AppRoutes = () => {
       </Route>
 
       {/* Standalone Animal subpages (with their own custom headers & back buttons) */}
-      <Route 
-        path="/animals/add" 
+      <Route
+        path="/animals/add"
         element={
           <ProtectedRoute>
             <AddAnimalPage />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/animals/edit/:id" 
+      <Route
+        path="/animals/edit/:id"
         element={
           <ProtectedRoute>
             <EditAnimalPage />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/animals/:id" 
+      <Route
+        path="/animals/:id"
         element={
           <ProtectedRoute>
             <AnimalProfilePage />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/animals/:id/vaccinations/add" 
+      <Route
+        path="/animals/:id/vaccinations/add"
         element={
           <ProtectedRoute>
             <AddVaccinationPage />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/animals/:id/medical-records/add" 
+      <Route
+        path="/animals/:id/medical-records/add"
         element={
           <ProtectedRoute>
             <AddMedicalRecordPage />
           </ProtectedRoute>
-        } 
+        }
       />
 
       {/* Fallback */}
