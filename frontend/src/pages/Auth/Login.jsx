@@ -160,7 +160,7 @@ const Login = () => {
                   size="large"
                   text="signin_with"
                   shape="pill"
-                  width="100%"
+
                   onSuccess={async (credentialResponse) => {
                     try {
                       const res = await axios.post(

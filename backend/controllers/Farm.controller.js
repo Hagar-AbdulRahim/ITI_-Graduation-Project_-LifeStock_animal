@@ -125,8 +125,8 @@ const deleteFarm = async (req, res) => {
       message: "تم حذف المزرعة وكل حيواناتها بنجاح",
     });
   } catch (err) {
-    console.error("deleteFarm error:", err);
-    return res.status(500).json({ success: false, message: "خطأ في الخادم" });
+    console.error("deleteFarm error:", err.stack || err);
+    return res.status(500).json({ success: false, message: "خطأ في الخادم", error: err.message });
   }
 };
 

@@ -36,3 +36,14 @@ export const farmService = {
     return response.data;
   },
 };
+
+// Named exports for individual service functions used throughout the app
+export const getMyFarms = farmService.getMyFarms;
+export const getFarmById = farmService.getFarmById;
+export const getFarmStats = farmService.getFarmStats;
+export const createFarm = farmService.createFarm;
+export const getFarmVaccinations = farmService.getFarmVaccinations;
+export const getFarmAlerts = farmService.getFarmAlerts;
+export const updateFarm = farmService.updateFarm;
+export const deleteFarm = farmService.deleteFarm;
+
