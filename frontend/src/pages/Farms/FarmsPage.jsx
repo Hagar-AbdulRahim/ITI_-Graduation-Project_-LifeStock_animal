@@ -65,14 +65,14 @@ const FarmCard = ({ farm }) => {
 
   return (
     <div
-      
+
       className="bg-white border border-gray-200 rounded-[20px] shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col font-cairo cursor-pointer group relative"
     >
       {/* Management button positioned at top */}
       <div className="absolute top-2 left-2 z-10">
         <button
           onClick={(e) => { e.stopPropagation(); navigate(`/farms/${farm._id}`); }}
-          className="text-xs py-0.5 px-1 bg-[#2a5c2a] text-white rounded hover:bg-[#1e4520]"
+          className="text-xs py-0.5 px-1 rounded bg-[var(--user-primary-green)] text-white hover:bg-[#1e4520]"
         >
           إدارة المزرعة
         </button>
@@ -128,7 +128,8 @@ const FarmCard = ({ farm }) => {
             تعديل
           </button>
           <button
-            onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(true); }}
+            type="button"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDeleteConfirm(true); }}
             className="text-xs py-0.5 px-1 bg-red-600 text-white rounded hover:bg-red-700"
           >
             حذف
@@ -241,7 +242,7 @@ const FarmsPage = () => {
               <FarmCard
                 key={farm._id}
                 farm={farm}
-                
+
               />
             ))}
           </div>

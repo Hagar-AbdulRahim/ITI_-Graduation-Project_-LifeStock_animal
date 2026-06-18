@@ -25,6 +25,8 @@ import AddMedicalRecordPage from '../pages/Animals/AddMedicalRecordPage';
 import DashboardPage from '../pages/dashboard/DashboardPage';
 import MainLayout from '../layout/MainLayout';
 import LandingPage from '../pages/Home/LandingPage';
+import AiAssistantPage from '../pages/AiAssistantPage';
+import DiagnosisPage from '../pages/DiagnosisPage';
 
 // ComingSoon component for placeholder pages in the dashboard flow
 const ComingSoon = ({ title }) => (
@@ -77,15 +79,15 @@ const AppRoutes = () => {
         }
       >
         {/* Farm overview dashboard */}
-          <Route index element={<DashboardPage />} />
+        <Route index element={<DashboardPage />} />
 
 
         {/* Animals list within the farm dashboard */}
         <Route path="animals" element={<AnimalsListPage />} />
 
         {/* Mock/ComingSoon subpages inside the dashboard */}
-        <Route path="ai-assistant" element={<ComingSoon title="مساعد الذكاء الاصطناعي" />} />
-        <Route path="diagnosis" element={<ComingSoon title="التشخيص" />} />
+        <Route path="ai-assistant" element={<AiAssistantPage />} />
+        <Route path="diagnosis" element={<DiagnosisPage />} />
         <Route path="image-analysis" element={<ComingSoon title="تحليل الصور" />} />
         <Route path="vaccinations" element={<ComingSoon title="التطعيمات" />} />
         <Route path="emergencies" element={<ComingSoon title="حالات الطوارئ" />} />
