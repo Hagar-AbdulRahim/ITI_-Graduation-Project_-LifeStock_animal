@@ -1,5 +1,7 @@
 const Animal = require("../models/animal");
-const Farm = require("../models/farm");
+const Farm   = require("../models/farm");
+const fs     = require("fs");
+const path   = require("path");
 
 // helper: verify farm belongs to the current user
 const userOwnsFarm = async (farmId, userId) => {
@@ -10,7 +12,7 @@ const userOwnsFarm = async (farmId, userId) => {
 // ── Create Animal ─────────────────────────────────────────────────────────────
 const createAnimal = async (req, res) => {
   try {
-    const { farm_id, species, gender, age_value, age_unit, weight_kg, breed, tag_number, health_status, notes } =
+    const { farm_id, tag_number, species, gender, age_value, age_unit, weight_kg, breed, notes } =
       req.body;
 
     // verify the farm belongs to the current user
@@ -19,20 +21,20 @@ const createAnimal = async (req, res) => {
       return res.status(404).json({ success: false, message: "المزرعة غير موجودة" });
     }
 
-    const image = req.file ? `/uploads/${req.file.filename}` : null;
+    // مسار الصورة لو تم رفعها عبر multer
+    const imagePath = req.file ? `/uploads/animals/${req.file.filename}` : null;
 
     const animal = await Animal.create({
       farm_id,
+      tag_number: tag_number.trim(), // exact value، بدون أي تعديل إضافي
       species,
       gender,
       age_value,
       age_unit,
-      health_status: health_status || "healthy",
       weight_kg: weight_kg || null,
       breed: breed || null,
-      tag_number: tag_number || null,
       notes: notes || null,
-      image,
+      image: imagePath,
     });
 
     // increment total_animals counter on the farm
@@ -44,7 +46,14 @@ const createAnimal = async (req, res) => {
       data: animal,
     });
   } catch (err) {
-
+    // duplicate key error من MongoDB نفسه — مش من كود إضافي يدوي
+    // ده بيضمن إن المقارنة exact match وملهاش علاقة بـ regex أو substring
+    if (err.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "يوجد حيوان بنفس هذا الرقم التعريفي (Tag Number) في هذه المزرعة",
+      });
+    }
     console.error("createAnimal error:", err);
     return res.status(500).json({ success: false, message: "خطأ في الخادم" });
   }
@@ -64,7 +73,7 @@ const getAnimalsByFarm = async (req, res) => {
     const filter = { farm_id: farmId, is_active: true };
     if (species)       filter.species       = species;
     if (health_status) filter.health_status = health_status;
-    if (gender)        filter.gender        = gender;
+    if (gender)         filter.gender         = gender;
 
     const animals = await Animal.find(filter).sort({ created_at: -1 });
 
@@ -91,7 +100,6 @@ const getAnimalById = async (req, res) => {
       return res.status(404).json({ success: false, message: "الحيوان غير موجود" });
     }
 
-    // verify the current user owns the farm this animal belongs to
     if (animal.farm_id.user_id.toString() !== req.user._id.toString()) {
       return res.status(403).json({ success: false, message: "غير مصرح" });
     }
@@ -106,7 +114,6 @@ const getAnimalById = async (req, res) => {
 // ── Update Animal ─────────────────────────────────────────────────────────────
 const updateAnimal = async (req, res) => {
   try {
-    // fetch animal with its farm to check ownership
     const existing = await Animal.findOne({ _id: req.params.id, is_active: true }).populate(
       "farm_id",
       "user_id"
@@ -120,14 +127,25 @@ const updateAnimal = async (req, res) => {
       return res.status(403).json({ success: false, message: "غير مصرح" });
     }
 
-    const allowedFields = ["weight_kg", "health_status", "notes", "breed", "tag_number", "gender", "age_value", "age_unit"];
+    const allowedFields = [
+      "tag_number", "species", "gender", "age_value", "age_unit",
+      "weight_kg", "health_status", "notes", "breed",
+    ];
     const updates = {};
     allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) updates[field] = req.body[field];
     });
 
+    // لو رفع صورة جديدة، نحدث المسار ونحذف القديمة
     if (req.file) {
-      updates.image = `/uploads/${req.file.filename}`;
+      updates.image = `/uploads/animals/${req.file.filename}`;
+
+      if (existing.image) {
+        const oldPath = path.join(__dirname, "..", existing.image);
+        fs.unlink(oldPath, (err) => {
+          if (err) console.warn("لم يتم حذف الصورة القديمة:", err.message);
+        });
+      }
     }
 
     const animal = await Animal.findByIdAndUpdate(
@@ -142,14 +160,18 @@ const updateAnimal = async (req, res) => {
       data: animal,
     });
   } catch (err) {
-
+    if (err.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "يوجد حيوان بنفس هذا الرقم التعريفي (Tag Number) في هذه المزرعة",
+      });
+    }
     console.error("updateAnimal error:", err);
     return res.status(500).json({ success: false, message: "خطأ في الخادم" });
   }
 };
 
 // ── Delete Animal ─────────────────────────────────────────────────────────────
-// findOneAndDelete triggers the cascade pre-hook in the model (deletes HealthCases + Vaccinations)
 const deleteAnimal = async (req, res) => {
   try {
     const existing = await Animal.findOne({ _id: req.params.id }).populate("farm_id", "user_id");
@@ -164,8 +186,22 @@ const deleteAnimal = async (req, res) => {
 
     await Animal.findOneAndDelete({ _id: req.params.id });
 
-    // decrement total_animals counter on the farm
-    await Farm.findByIdAndUpdate(existing.farm_id._id, { $inc: { total_animals: -1 } });
+    // حذف ملف الصورة من السيرفر لو موجود
+    if (existing.image) {
+      const imgPath = path.join(__dirname, "..", existing.image);
+      fs.unlink(imgPath, (err) => {
+        if (err) console.warn("لم يتم حذف ملف الصورة:", err.message);
+      });
+    }
+
+    // decrement total_animals counter on the farm — لا يقل عن صفر
+    await Farm.findByIdAndUpdate(existing.farm_id._id, {
+      $inc: { total_animals: -1 },
+    });
+    await Farm.updateOne(
+      { _id: existing.farm_id._id, total_animals: { $lt: 0 } },
+      { $set: { total_animals: 0 } }
+    );
 
     return res.status(200).json({
       success: true,

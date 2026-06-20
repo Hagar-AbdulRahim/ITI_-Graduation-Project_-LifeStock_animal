@@ -8,10 +8,8 @@ const authRoutes   = require("./routes/Auth.routes");
 const userRoutes   = require("./routes/user.routes");
 const farmRoutes   = require("./routes/Farm.routes");
 const animalRoutes = require("./routes/Animal.routes");
-const path = require("path");
 
 const app = express();
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 mongoose
   .connect(process.env.MONGO_URI)
