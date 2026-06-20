@@ -51,9 +51,37 @@ const CustomLabel = ({ cx, cy, total }) => (
 );
 
 export default function AnimalDistributionChart() {
-  // ← هنا مربوط بالـ Redux store
-  const data = useSelector((state) => state.dashboard.animalDistribution);
-  const total = data.reduce((acc, d) => acc + d.value, 0);
+  const mockData = useSelector((state) => state.dashboard.animalDistribution);
+  const farmStats = useSelector((state) => state.farm.farmStats);
+
+  let data = mockData;
+  
+  if (farmStats?.stats?.by_species && farmStats.stats.by_species.length > 0) {
+    const totalAnimals = farmStats.stats.total_animals || 1; // avoid div by 0
+    
+    const SPECIES_MAP = {
+      cattle: { name: 'الأبقار', color: '#3d6b47' },
+      sheep: { name: 'الأغنام', color: '#5b9bd5' },
+      goat: { name: 'الماعز', color: '#f59e0b' },
+      horse: { name: 'الخيول', color: '#7c4d8a' },
+      pig: { name: 'الخنازير', color: '#ef4444' }
+    };
+
+    data = farmStats.stats.by_species.map(item => {
+      const speciesInfo = SPECIES_MAP[item._id] || { name: item._id, color: '#9ca3af' };
+      return {
+        name: speciesInfo.name,
+        value: item.count,
+        percentage: Math.round((item.count / totalAnimals) * 100),
+        color: speciesInfo.color
+      };
+    });
+  } else if (farmStats) {
+     // If farmStats is loaded but no animals
+     data = [{ name: 'لا توجد بيانات', value: 1, percentage: 100, color: '#e5e7eb' }];
+  }
+
+  const total = farmStats?.stats ? (farmStats.stats.total_animals || 0) : data.reduce((acc, d) => acc + d.value, 0);
 
   return (
     <div className='bg-white rounded-2xl p-5 shadow-sm border border-stone-100 h-full'>

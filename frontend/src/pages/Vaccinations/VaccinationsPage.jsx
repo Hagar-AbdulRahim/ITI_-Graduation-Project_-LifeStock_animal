@@ -5,10 +5,26 @@ import {
   ChevronDown, RotateCcw, Activity
 } from 'lucide-react';
 import api from '../../services/api';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const VaccinationsPage = () => {
   const [vaccinations, setVaccinations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+
+  const handleAddVaccination = () => {
+    toast.success('يرجى اختيار الحيوان أولاً من القائمة لإضافة التطعيم', {
+      icon: 'ℹ️',
+      duration: 4000,
+      style: {
+        fontFamily: 'Cairo, sans-serif',
+        fontWeight: 'bold',
+        direction: 'rtl'
+      }
+    });
+    navigate('../animals');
+  };
 
   // Fetch data simulation
   useEffect(() => {
@@ -93,7 +109,10 @@ const VaccinationsPage = () => {
               تتبع وتحسين الصحة المناعية لقطيعك باستخدام الذكاء الاصطناعي
             </p>
           </div>
-          <button className="flex items-center gap-2 bg-[#154b23] hover:bg-[#0f3619] text-white px-5 py-3 rounded-xl font-bold transition-colors shadow-sm">
+          <button 
+            onClick={handleAddVaccination}
+            className="flex items-center gap-2 bg-[#154b23] hover:bg-[#0f3619] text-white px-5 py-3 rounded-xl font-bold transition-colors shadow-sm"
+          >
             <Plus className="w-5 h-5" />
             إضافة جدول تطعيم جديد
           </button>

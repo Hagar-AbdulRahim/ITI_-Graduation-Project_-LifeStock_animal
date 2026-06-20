@@ -6,10 +6,18 @@ const createAnimalValidator = [
     .notEmpty().withMessage("معرّف المزرعة مطلوب")
     .isMongoId().withMessage("معرّف المزرعة غير صحيح"),
 
-  body("name")
-    .trim()
-    .notEmpty().withMessage("اسم الحيوان مطلوب")
-    .isLength({ min: 1, max: 100 }).withMessage("الاسم يجب أن يكون بين 1 و100 حرف"),
+  body("age_value")
+    .notEmpty().withMessage("قيمة العمر مطلوبة")
+    .isNumeric().withMessage("العمر يجب أن يكون رقماً"),
+
+  body("age_unit")
+    .notEmpty().withMessage("وحدة العمر مطلوبة")
+    .isIn(["months", "years"]).withMessage("وحدة العمر يجب أن تكون أشهر أو سنوات"),
+
+  body("health_status")
+    .optional()
+    .isIn(["healthy", "sick", "critical", "deceased"])
+    .withMessage("الحالة الصحية غير صحيحة"),
 
   body("species")
     .notEmpty().withMessage("نوع الحيوان مطلوب")
@@ -20,15 +28,7 @@ const createAnimalValidator = [
     .notEmpty().withMessage("الجنس مطلوب")
     .isIn(["male", "female"]).withMessage("الجنس يجب أن يكون male أو female"),
 
-  body("birth_date")
-    .notEmpty().withMessage("تاريخ الميلاد مطلوب")
-    .isISO8601().withMessage("تاريخ الميلاد يجب أن يكون بصيغة YYYY-MM-DD")
-    .custom((value) => {
-      if (new Date(value) > new Date()) {
-        throw new Error("تاريخ الميلاد لا يمكن أن يكون في المستقبل");
-      }
-      return true;
-    }),
+
 
   body("weight_kg")
     .optional()
@@ -52,10 +52,13 @@ const createAnimalValidator = [
 
 // ── Update Animal ─────────────────────────────────────────────────────────────
 const updateAnimalValidator = [
-  body("name")
+  body("age_value")
     .optional()
-    .trim()
-    .isLength({ min: 1, max: 100 }).withMessage("الاسم يجب أن يكون بين 1 و100 حرف"),
+    .isNumeric().withMessage("العمر يجب أن يكون رقماً"),
+
+  body("age_unit")
+    .optional()
+    .isIn(["months", "years"]).withMessage("وحدة العمر يجب أن تكون أشهر أو سنوات"),
 
   body("weight_kg")
     .optional()
@@ -86,16 +89,7 @@ const updateAnimalValidator = [
     .optional()
     .isIn(["male", "female"]).withMessage("الجنس يجب أن يكون male أو female"),
 
-  // birth_date can be corrected if entered wrong initially
-  body("birth_date")
-    .optional()
-    .isISO8601().withMessage("تاريخ الميلاد يجب أن يكون بصيغة YYYY-MM-DD")
-    .custom((value) => {
-      if (new Date(value) > new Date()) {
-        throw new Error("تاريخ الميلاد لا يمكن أن يكون في المستقبل");
-      }
-      return true;
-    }),
+
 ];
 
 // ── Param: MongoDB ObjectId ───────────────────────────────────────────────────

@@ -35,8 +35,16 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function WeeklyHealthChart() {
   const dispatch = useDispatch()
-  const data = useSelector((state) => state.dashboard.weeklyTrends)
+  const mockData = useSelector((state) => state.dashboard.weeklyTrends);
+  const farmStats = useSelector((state) => state.farm.farmStats);
   const period = useSelector((state) => state.dashboard.trendPeriod)
+
+  const data = farmStats?.stats?.weekly_health_trends || mockData;
+
+  // لحساب متوسط النقاط
+  const averageScore = data.length > 0 
+    ? Math.round(data.reduce((acc, curr) => acc + curr.score, 0) / data.length)
+    : 0;
 
   // الحد الأدنى للـ score الطبيعي — تحته يتلوّن وردي
   const THRESHOLD = 60

@@ -10,7 +10,7 @@ const userOwnsFarm = async (farmId, userId) => {
 // ── Create Animal ─────────────────────────────────────────────────────────────
 const createAnimal = async (req, res) => {
   try {
-    const { farm_id, name, species, gender, birth_date, weight_kg, breed, tag_number, notes } =
+    const { farm_id, species, gender, age_value, age_unit, weight_kg, breed, tag_number, health_status, notes } =
       req.body;
 
     // verify the farm belongs to the current user
@@ -19,16 +19,20 @@ const createAnimal = async (req, res) => {
       return res.status(404).json({ success: false, message: "المزرعة غير موجودة" });
     }
 
+    const image = req.file ? `/uploads/${req.file.filename}` : null;
+
     const animal = await Animal.create({
       farm_id,
-      name,
       species,
       gender,
-      birth_date,
+      age_value,
+      age_unit,
+      health_status: health_status || "healthy",
       weight_kg: weight_kg || null,
       breed: breed || null,
       tag_number: tag_number || null,
       notes: notes || null,
+      image,
     });
 
     // increment total_animals counter on the farm
@@ -40,12 +44,7 @@ const createAnimal = async (req, res) => {
       data: animal,
     });
   } catch (err) {
-    if (err.code === 11000) {
-      return res.status(409).json({
-        success: false,
-        message: "يوجد حيوان بهذا الاسم في نفس المزرعة",
-      });
-    }
+
     console.error("createAnimal error:", err);
     return res.status(500).json({ success: false, message: "خطأ في الخادم" });
   }
@@ -121,12 +120,15 @@ const updateAnimal = async (req, res) => {
       return res.status(403).json({ success: false, message: "غير مصرح" });
     }
 
-    // gender and birth_date included so corrections are possible after creation
-    const allowedFields = ["name", "weight_kg", "health_status", "notes", "breed", "tag_number", "gender", "birth_date"];
+    const allowedFields = ["weight_kg", "health_status", "notes", "breed", "tag_number", "gender", "age_value", "age_unit"];
     const updates = {};
     allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) updates[field] = req.body[field];
     });
+
+    if (req.file) {
+      updates.image = `/uploads/${req.file.filename}`;
+    }
 
     const animal = await Animal.findByIdAndUpdate(
       req.params.id,
@@ -140,12 +142,7 @@ const updateAnimal = async (req, res) => {
       data: animal,
     });
   } catch (err) {
-    if (err.code === 11000) {
-      return res.status(409).json({
-        success: false,
-        message: "يوجد حيوان بهذا الاسم في نفس المزرعة",
-      });
-    }
+
     console.error("updateAnimal error:", err);
     return res.status(500).json({ success: false, message: "خطأ في الخادم" });
   }

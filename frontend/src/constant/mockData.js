@@ -14,28 +14,28 @@ export const DASHBOARD_STATS = [
   {
     id: 'total',
     label: 'إجمالي الحيوانات',
-    value: '١٬٢٤٠',
-    rawValue: 1240,
-    change: '+٤٪',
-    changeType: 'positive',
+    value: '٠',
+    rawValue: 0,
+    change: '٠٪',
+    changeType: 'neutral',
     icon: 'paw',
     color: 'green',
   },
   {
     id: 'sick',
     label: 'الحيوانات المريضة',
-    value: '١٢',
-    rawValue: 12,
-    change: '-٢٪',
-    changeType: 'negative',
+    value: '٠',
+    rawValue: 0,
+    change: '٠٪',
+    changeType: 'neutral',
     icon: 'medical',
     color: 'rose',
   },
   {
     id: 'vaccinations',
     label: 'التطعيمات القادمة',
-    value: '٤٥',
-    rawValue: 45,
+    value: '٠',
+    rawValue: 0,
     badge: 'الـ ٧ أيام القادمة',
     icon: 'syringe',
     color: 'blue',
@@ -43,8 +43,8 @@ export const DASHBOARD_STATS = [
   {
     id: 'emergencies',
     label: 'حالات الطوارئ',
-    value: '٢',
-    rawValue: 2,
+    value: '٠',
+    rawValue: 0,
     icon: 'alert',
     color: 'red',
     urgent: true,
@@ -53,69 +53,33 @@ export const DASHBOARD_STATS = [
 
 // -------- Donut Chart --------
 export const ANIMAL_DISTRIBUTION = [
-  { name: 'الأبقار', value: 744, percentage: 60, color: '#3d6b47' },
-  { name: 'الخيول', value: 310, percentage: 25, color: '#5b9bd5' },
-  { name: 'أخرى', value: 186, percentage: 15, color: '#7c4d8a' },
+  { name: 'لا توجد بيانات', value: 1, percentage: 100, color: '#e5e7eb' },
 ];
 
 // -------- Weekly Health Bar Chart --------
 export const WEEKLY_HEALTH_TRENDS = [
-  { day: 'الاثنين', score: 85, label: 'Mon' },
-  { day: 'الثلاثاء', score: 78, label: 'Tue' },
-  { day: 'الأربعاء', score: 92, label: 'Wed' },
-  { day: 'الخميس', score: 45, label: 'Thu' }, // anomaly — highlighted in pink
-  { day: 'الجمعة', score: 88, label: 'Fri' },
-  { day: 'السبت', score: 76, label: 'Sat' },
-  { day: 'الأحد', score: 70, label: 'Sun' },
+  { day: 'الاثنين', score: 0, label: 'Mon' },
+  { day: 'الثلاثاء', score: 0, label: 'Tue' },
+  { day: 'الأربعاء', score: 0, label: 'Wed' },
+  { day: 'الخميس', score: 0, label: 'Thu' },
+  { day: 'الجمعة', score: 0, label: 'Fri' },
+  { day: 'السبت', score: 0, label: 'Sat' },
+  { day: 'الأحد', score: 0, label: 'Sun' },
 ];
 
 // -------- AI Recommendations --------
 export const AI_RECOMMENDATIONS = [
   {
     id: 1,
-    priority: 'متوسطة',
-    priorityLevel: 'medium',
-    title: 'تعديل مزيج المعادن في العلف',
-    description:
-      'يشير تحليل الذكاء الاصطناعي إلى انخفاض طفيف في مستويات الكالسيوم في المرعى الشمالي الشرقي. يوصى بتعديل المزيج بنسبة ٥٪.',
-  },
-  {
-    id: 2,
-    priority: 'عالية',
-    priorityLevel: 'high',
-    title: 'عزل #4052 فوراً',
-    description:
-      'تم اكتشاف خلل حيوي. خطر محتمل لعدوى تنفسية في مرحلة مبكرة. ينصح بالحجر الصحي الفوري.',
-  },
+    priority: 'منخفضة',
+    priorityLevel: 'low',
+    title: 'مرحباً بك في المزرعة',
+    description: 'لا توجد بيانات كافية للذكاء الاصطناعي لتحليلها بعد. قم بإضافة حيواناتك الأولى للبدء.',
+  }
 ];
 
 // -------- Recent Activities --------
-export const RECENT_ACTIVITIES = [
-  {
-    id: 1,
-    type: 'vaccination',
-    text: 'اكتمل تطعيم الحمرة الخبيثة لـ القطيع ب',
-    time: 'اليوم، ٩:٤٥ صباحاً',
-    actor: 'د. سارة مِيلر',
-    icon: 'syringe',
-  },
-  {
-    id: 2,
-    type: 'alert',
-    text: 'تم رصد ارتفاع في الحرارة للمعرف: #4052',
-    time: 'اليوم، ٧:٢٠ صباحاً',
-    actor: 'مراقب الذكاء الاصطناعي',
-    icon: 'thermometer',
-  },
-  {
-    id: 3,
-    type: 'success',
-    text: 'تمت معالجة إدخال جديد: ١٢ عجلاً',
-    time: 'أمس، ٤:١٥ مساءً',
-    actor: 'جون كارتر',
-    icon: 'check',
-  },
-];
+export const RECENT_ACTIVITIES = [];
 
 // -------- Sidebar Navigation --------
 export const SIDEBAR_LINKS = [

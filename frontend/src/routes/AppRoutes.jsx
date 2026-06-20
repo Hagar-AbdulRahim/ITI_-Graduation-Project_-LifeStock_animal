@@ -27,6 +27,8 @@ import MainLayout from '../layout/MainLayout';
 import LandingPage from '../pages/Home/LandingPage';
 import AiAssistantPage from '../pages/AiAssistantPage';
 import DiagnosisPage from '../pages/DiagnosisPage';
+import ImageAnalysisPage from '../pages/ImageAnalysis/ImageAnalysisPage';
+import VaccinationsPage from '../pages/Vaccinations/VaccinationsPage';
 
 // ComingSoon component for placeholder pages in the dashboard flow
 const ComingSoon = ({ title }) => (
@@ -88,8 +90,8 @@ const AppRoutes = () => {
         {/* Mock/ComingSoon subpages inside the dashboard */}
         <Route path="ai-assistant" element={<AiAssistantPage />} />
         <Route path="diagnosis" element={<DiagnosisPage />} />
-        <Route path="image-analysis" element={<ComingSoon title="تحليل الصور" />} />
-        <Route path="vaccinations" element={<ComingSoon title="التطعيمات" />} />
+        <Route path="image-analysis" element={<ImageAnalysisPage />} />
+        <Route path="vaccinations" element={<VaccinationsPage />} />
         <Route path="emergencies" element={<ComingSoon title="حالات الطوارئ" />} />
         <Route path="library" element={<ComingSoon title="المكتبة" />} />
         <Route path="reports" element={<ComingSoon title="التقارير" />} />

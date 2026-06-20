@@ -143,7 +143,7 @@ const FarmCard = ({ farm }) => {
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full max-h-[80vh] overflow-y-auto border border-gray-200">
             <h3 className="text-lg font-bold mb-4">تعديل المزرعة</h3>
             <FarmForm
-              defaultValues={{ name: farm.name, governorate: farm.governorate, description: farm.description || '', lng: farm.location?.coordinates?.[0] || 31.2357, lat: farm.location?.coordinates?.[1] || 30.0444 }}
+              defaultValues={{ name: farm.name, governorate: farm.governorate, description: farm.description || '' }}
               onSubmit={handleUpdate}
               loading={loading?.farms}
               error={error?.farms}
@@ -178,7 +178,7 @@ const FarmsPage = () => {
     dispatch(fetchMyFarms());
   }, [dispatch]);
 
-  const displayFarms = farms.length > 0 ? farms : (error.farms ? [{ _id: 'dummy', name: 'مزرعة Green Pastures', governorate: 'الشرقية', description: 'مزرعة نموذجية لتربية الأبقار الحلوب وتسمين العجول باستخدام أحدث تقنيات الذكاء الاصطناعي.', total_animals: 1240 }] : []);
+  const displayFarms = farms || [];
 
   return (
     <div className="min-h-screen bg-[#f5f7f5] flex flex-col font-cairo" dir="rtl">
@@ -203,21 +203,9 @@ const FarmsPage = () => {
         </div>
 
         {/* Alerts / Loading */}
-        {loading.farms && displayFarms.length === 0 ? (
+        {loading.farms && displayFarms.length === 0 && (
           <div className="flex-1 flex items-center justify-center">
             <Loader2 className="w-8 h-8 text-[#2a5c2a] animate-spin" />
-          </div>
-        ) : error.farms && farms.length === 0 && (
-          <div className="bg-red-50 border border-red-100 rounded-2xl p-5 mb-8 flex items-start gap-4">
-            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-              <AlertCircle className="w-5 h-5 text-red-600" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-red-800 mb-1">توضيح بخصوص قاعدة البيانات</h3>
-              <p className="text-xs text-red-600 leading-relaxed font-medium">
-                بما أنه لا يوجد اتصال بقاعدة البيانات حالياً، قمنا بإنشاء مزرعة تجريبية (وهمية) بالأسفل لتتمكن من معاينة التصميم والتفاعل معه.
-              </p>
-            </div>
           </div>
         )}
 

@@ -2,7 +2,10 @@
 // ────────────────────────────────────────────────────────────
 // الصفحة الرئيسية — بتجمّع كل كمبوننتات الـ dashboard feature
 // ────────────────────────────────────────────────────────────
-import { useSelector } from 'react-redux'
+import { useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchFarmById, fetchFarmStats } from '../../redux/farmSlice';
 import { useInView } from '../../utils/useInView'
 
 import StatsCard from '../../features/dashboard/components/StatsCard'
@@ -10,10 +13,11 @@ import AnimalDistributionChart from '../../features/dashboard/components/AnimalD
 import WeeklyHealthChart from '../../features/dashboard/components/WeeklyHealthChart'
 import AIRecommendations from '../../features/dashboard/components/AIRecommendations'
 import RecentActivities from '../../features/dashboard/components/RecentActivities'
-import { FARM_INFO } from '../../constant/mockData'
 
 function PageHeader() {
   const { ref, inView } = useInView({ triggerOnce: true })
+  const currentFarm = useSelector(state => state.farm.currentFarm);
+  
   return (
     <div
       ref={ref}
@@ -30,7 +34,7 @@ function PageHeader() {
         </h1>
         <p className="text-sm text-stone-500 mt-0.5">
           المؤشرات الحيوية في الوقت الفعلي وروى مدعومة بالذكاء الاصطناعي لمزرعة{' '}
-          <span className="text-[#3d6b47] font-semibold">{FARM_INFO.name}</span>
+          <span className="text-[#3d6b47] font-semibold">{currentFarm ? currentFarm.name : '...'}</span>
           .
         </p>
       </div>
@@ -73,7 +77,19 @@ function PageHeader() {
 }
 
 export default function DashboardPage() {
+  const { farmId } = useParams();
+  const dispatch = useDispatch();
+  
   const stats = useSelector((state) => state.dashboard.stats)
+  const currentFarm = useSelector(state => state.farm.currentFarm);
+  const farmStats = useSelector(state => state.farm.farmStats);
+
+  useEffect(() => {
+    if (farmId) {
+      dispatch(fetchFarmById(farmId));
+      dispatch(fetchFarmStats(farmId));
+    }
+  }, [dispatch, farmId]);
 
   return (
     <div dir="rtl" className="max-w-7xl mx-auto">
@@ -82,9 +98,31 @@ export default function DashboardPage() {
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {stats.map((stat, i) => (
-          <StatsCard key={stat.id} stat={stat} index={i} />
-        ))}
+        {stats.map((stat, i) => {
+          const displayStat = { ...stat };
+          if (farmStats?.stats) {
+            if (stat.id === 'total') {
+              displayStat.value = farmStats.stats.total_animals?.toLocaleString('ar-EG') || '٠';
+              displayStat.rawValue = farmStats.stats.total_animals || 0;
+            } else if (stat.id === 'sick') {
+              const sickCount = farmStats.stats.by_health_status?.find(s => s._id === 'sick')?.count || 0;
+              const criticalCount = farmStats.stats.by_health_status?.find(s => s._id === 'critical')?.count || 0;
+              const totalSick = sickCount + criticalCount;
+              displayStat.value = totalSick?.toLocaleString('ar-EG') || '٠';
+              displayStat.rawValue = totalSick || 0;
+            } else if (stat.id === 'vaccinations') {
+              displayStat.value = farmStats.stats.upcoming_vaccinations?.toLocaleString('ar-EG') || '٠';
+              displayStat.rawValue = farmStats.stats.upcoming_vaccinations || 0;
+            } else if (stat.id === 'emergencies') {
+              displayStat.value = farmStats.stats.emergencies?.toLocaleString('ar-EG') || '٠';
+              displayStat.rawValue = farmStats.stats.emergencies || 0;
+            }
+          } else if (currentFarm && stat.id === 'total') {
+            displayStat.value = currentFarm.total_animals?.toLocaleString('ar-EG') || '٠';
+            displayStat.rawValue = currentFarm.total_animals || 0;
+          }
+          return <StatsCard key={stat.id} stat={displayStat} index={i} />;
+        })}
       </div>
 
       {/* Charts Row */}

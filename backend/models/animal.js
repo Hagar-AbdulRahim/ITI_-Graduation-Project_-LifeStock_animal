@@ -7,12 +7,19 @@ const animalSchema = new mongoose.Schema(
       ref: "Farm",
       required: true,
     },
-    name: {
+    age_value: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    age_unit: {
       type: String,
       required: true,
-      trim: true,
-      minlength: 1,
-      maxlength: 100,
+      enum: ["months", "years"],
+    },
+    image: {
+      type: String,
+      default: null,
     },
     tag_number: {
       type: String,
@@ -35,14 +42,7 @@ const animalSchema = new mongoose.Schema(
       required: true,
       enum: ["male", "female"],
     },
-    birth_date: {
-      type: Date,
-      required: true,
-      validate: {
-        validator: (v) => v <= new Date(),
-        message: "تاريخ الميلاد لا يمكن أن يكون في المستقبل",
-      },
-    },
+
     weight_kg: {
       type: Number,
       min: [0.1, "الوزن يجب أن يكون أكبر من صفر"],
@@ -69,17 +69,14 @@ const animalSchema = new mongoose.Schema(
   }
 );
 
-// ── Compound unique index: منع تكرار الاسم في نفس المزرعة ───────────────────
-// لو الحاج عبد الله حاول يضيف "مبروكة" تانية في نفس المزرعة → MongoDB بيرفض
-animalSchema.index({ farm_id: 1, name: 1 }, { unique: true });
+// ── Compound indexes ───────────────────
 animalSchema.index({ farm_id: 1, health_status: 1 }); // للـ Dashboard stats
 animalSchema.index({ farm_id: 1, species: 1 });
 
 // ── Virtual: عمر الحيوان بالأشهر ────────────────────────────────────────────
 animalSchema.virtual("age_months").get(function () {
-  if (!this.birth_date) return null;
-  const diff = Date.now() - this.birth_date.getTime();
-  return Math.floor(diff / (1000 * 60 * 60 * 24 * 30));
+  if (this.age_value === undefined) return null;
+  return this.age_unit === "years" ? this.age_value * 12 : this.age_value;
 });
 
 // ── Cascade: لو الحيوان اتحذف، احذف حالاته وتطعيماته ───────────────────────
