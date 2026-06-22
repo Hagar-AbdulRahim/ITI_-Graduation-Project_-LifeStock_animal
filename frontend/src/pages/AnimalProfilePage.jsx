@@ -77,7 +77,9 @@ export default function AnimalProfilePage() {
     })) || [],
     aiPrediction: 'الحالة مستقرة، يوصى بالمحافظة على جدول التطعيمات.',
     aiConfidence: '90%',
-    notes: a.notes || [],
+    notes: typeof a.notes === 'string' && a.notes.trim() !== ''
+      ? [{ author: 'ملاحظة النظام', role: 'تاريخ الإضافة', text: a.notes, time: '—' }]
+      : (Array.isArray(a.notes) ? a.notes : []),
     weightHistory: [410, 412, 415, 418, 419, a.weight_kg || 420],
   });
 

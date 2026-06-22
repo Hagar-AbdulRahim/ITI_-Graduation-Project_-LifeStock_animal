@@ -7,7 +7,7 @@ import {
   PawPrint, Syringe, HeartPulse, AlertTriangle,
   CalendarDays, Weight, Dna, Thermometer, X
 } from 'lucide-react';
-import { fetchFarmById, fetchFarmAnimals } from '../../redux/farmSlice';
+import { fetchFarmById, fetchFarmAnimals, fetchMyFarms } from '../../redux/farmSlice';
 
 // ─── TOP NAVBAR (Same as FarmDetailsPage) ──────────────────────────────────────
 const TopNavbar = () => {
@@ -219,7 +219,7 @@ const AnimalsListPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { farmAnimals, loading, error } = useSelector((state) => state.farm);
+  const { farmAnimals, loading, error, farms } = useSelector((state) => state.farm);
 
   const [filterSpecies, setFilterSpecies] = useState('all');
   const [filterStatus, setFilterStatus]   = useState('all');
@@ -227,13 +227,27 @@ const AnimalsListPage = () => {
   const [searchTerm, setSearchTerm]       = useState('');
 
   useEffect(() => {
-    if (farmId) {
-      dispatch(fetchFarmById(farmId));
-      dispatch(fetchFarmAnimals(farmId));
-    }
-  }, [dispatch, farmId]);
+    dispatch(fetchMyFarms());
+  }, [dispatch]);
 
-  const rawAnimals = farmAnimals || [];
+  useEffect(() => {
+    let actualFarmId = farmId;
+    if (farmId === 'dummy' || !farmId) {
+      if (farms && farms.length > 0) {
+        actualFarmId = farms[0]._id;
+      } else {
+        actualFarmId = null;
+      }
+    }
+    
+    if (actualFarmId) {
+      dispatch(fetchFarmById(actualFarmId));
+      dispatch(fetchFarmAnimals(actualFarmId));
+    }
+  }, [dispatch, farmId, farms]);
+
+  const rawAnimals = Array.isArray(farmAnimals) ? farmAnimals : (farmAnimals?.data || []);
+  console.log("Debug farmAnimals:", farmAnimals, rawAnimals);
 
   const displayAnimals = rawAnimals.filter((a) => {
     const matchSpecies = filterSpecies === 'all' || a.species === filterSpecies;

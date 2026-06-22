@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { ArrowRight, Save, X, Loader2, ImagePlus } from 'lucide-react';
 import { addNewAnimal } from '../../redux/animalSlice';
 import { fetchMyFarms } from '../../redux/farmSlice';
+import cowsFieldBg from '../../assets/images/cows-field-bg.jpg';
 
 // ─── Backend Animal Model (for reference) ─────────────────────────────────────
 // Required: farm_id, name, species (cattle|sheep|goat), gender (male|female), birth_date
@@ -38,14 +39,17 @@ const AddAnimalPage = () => {
 
   const onSubmit = async (data) => {
     const formData = new FormData();
-    formData.append('farm_id', data.farm_id);
+    const actualFarmId = (farmId && farmId !== 'dummy') ? farmId : (farms && farms.length > 0 ? farms[0]._id : null);
+    
+    if (actualFarmId) formData.append('farm_id', actualFarmId);
     formData.append('species', data.species);
     formData.append('gender', data.gender);
     formData.append('age_value', Number(data.age_value));
     formData.append('age_unit', data.age_unit);
     formData.append('health_status', data.health_status || 'healthy');
     
-    if (data.tag_number) formData.append('tag_number', data.tag_number.trim());
+    const finalTagNumber = data.tag_number ? data.tag_number.trim() : `TAG-${Math.floor(Math.random() * 1000000)}`;
+    formData.append('tag_number', finalTagNumber);
     if (data.breed) formData.append('breed', data.breed.trim());
     if (data.weight_kg) formData.append('weight_kg', Number(data.weight_kg));
     if (data.notes) formData.append('notes', data.notes.trim());
@@ -56,7 +60,7 @@ const AddAnimalPage = () => {
 
     try {
       await dispatch(addNewAnimal(formData)).unwrap();
-      navigate(farmId ? `/farms/${farmId}/animals` : '/farms');
+      navigate(actualFarmId ? `/farms/${actualFarmId}/animals` : '/farms');
     } catch (err) {
       // Error shown via Redux state
     }
@@ -71,7 +75,19 @@ const AddAnimalPage = () => {
   const labelCls = 'block text-[13px] font-bold text-gray-700 mb-2';
 
   return (
-    <div className="min-h-screen bg-[#f5f7f5] font-cairo" dir="rtl">
+    <div className="min-h-screen font-cairo relative" dir="rtl">
+      {/* ── Background Image ─────────────────────────────────────── */}
+      <div
+        className="fixed inset-0 z-0"
+        style={{
+          backgroundImage: `url(${cowsFieldBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      />
+      {/* ── Overlay ──────────────────────────────────────────────── */}
+      <div className="fixed inset-0 z-0 bg-black/40 backdrop-blur-[2px]" />
       {/* ── Sticky Header ─────────────────────────────────────────── */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-20 shadow-sm">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -95,7 +111,7 @@ const AddAnimalPage = () => {
         </div>
       </div>
 
-      <main className="max-w-3xl mx-auto px-6 py-8">
+      <main className="max-w-3xl mx-auto px-6 py-8 relative z-10">
         {/* Error Banner */}
         {error?.saving && (
           <div className="mb-5 p-4 bg-red-50 text-red-700 rounded-xl border border-red-100 text-sm font-medium flex items-center gap-2">
@@ -251,20 +267,7 @@ const AddAnimalPage = () => {
                 {errors.weight_kg && <p className="text-[11px] text-red-500 mt-1">{errors.weight_kg.message}</p>}
               </div>
 
-              {/* Farm Selection */}
-              <div>
-                <label className={labelCls}>المزرعة <span className="text-red-400">*</span></label>
-                <select
-                  {...register('farm_id', { required: 'المزرعة مطلوبة' })}
-                  className={`${inputCls(errors.farm_id)} bg-white`}
-                >
-                  <option value="">اختر المزرعة...</option>
-                  {farms?.map((farm) => (
-                    <option key={farm._id} value={farm._id}>{farm.name}</option>
-                  ))}
-                </select>
-                {errors.farm_id && <p className="text-[11px] text-red-500 mt-1">{errors.farm_id.message}</p>}
-              </div>
+
             </div>
           </div>
 

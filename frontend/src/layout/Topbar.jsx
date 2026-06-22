@@ -23,7 +23,6 @@ export default function Topbar() {
           <p className='text-sm font-semibold text-stone-800'>
             {user?.name || 'د. سارة ميار'}
           </p>
-          <p className='text-[11px] text-stone-400'>طبيبة بيطرية أولى</p>
         </div>
       </div>
 

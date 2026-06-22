@@ -83,7 +83,11 @@ export const addNewAnimal = createAsyncThunk(
       const result = await animalService.createAnimal(animalData);
       return result.data; // backend returns {success, message, data: animal}
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'فشل في إنشاء الحيوان');
+      const data = error.response?.data;
+      if (data?.errors) {
+        return rejectWithValue(data.errors.map(e => `${e.field}: ${e.message}`).join(' | '));
+      }
+      return rejectWithValue(data?.message || 'فشل في إضافة الحيوان');
     }
   }
 );
