@@ -9,44 +9,6 @@ import {
 } from 'lucide-react';
 import { fetchFarmById, fetchFarmAnimals } from '../../redux/farmSlice';
 
-// ─── TOP NAVBAR (Same as FarmDetailsPage) ──────────────────────────────────────
-const TopNavbar = () => (
-  <header className="bg-white h-20 border-b border-gray-100 px-8 flex items-center justify-between sticky top-0 z-20 font-cairo">
-    <div className="flex-1 max-w-xl">
-      <div className="relative flex items-center w-full max-w-md">
-        <Search className="w-4 h-4 text-gray-400 absolute right-4" />
-        <input
-          type="text"
-          placeholder="البحث برقم التعريف أو الاسم / السلالة..."
-          className="w-full bg-gray-50 border border-gray-100 rounded-full py-2.5 pr-11 pl-4 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-[#2a5c2a]/20 focus:border-[#2a5c2a] transition-all"
-        />
-      </div>
-    </div>
-
-    <div className="flex items-center gap-6">
-      <div className="flex items-center gap-4 text-gray-400">
-        <button className="hover:text-gray-600 transition-colors relative">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
-        <button className="hover:text-gray-600 transition-colors">
-          <HelpCircle className="w-5 h-5" />
-        </button>
-      </div>
-      <div className="h-8 w-px bg-gray-200"></div>
-      <div className="flex items-center gap-3">
-        <div className="text-left" dir="ltr">
-          <p className="text-sm font-bold text-gray-900">د. سارة ميار</p>
-          <p className="text-[11px] text-gray-500 font-medium">طبيبة بيطرية أولى</p>
-        </div>
-        <div className="w-10 h-10 rounded-full bg-indigo-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
-          <img src="https://i.pravatar.cc/150?u=sarah" alt="Dr Sarah" className="w-full h-full object-cover" />
-        </div>
-      </div>
-    </div>
-  </header>
-);
-
 // ─── HELPERS ───────────────────────────────────────────────────────────────────
 const SPECIES_MAP = {
   cattle: 'أبقار',
@@ -59,15 +21,12 @@ const SPECIES_MAP = {
 
 const GENDER_MAP = { male: 'ذكر', female: 'أنثى' };
 
-const calculateAge = (birthDate) => {
-  if (!birthDate) return '—';
-  const diffMs = Date.now() - new Date(birthDate);
-  const months = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30));
-  if (months < 1) return `${Math.floor(diffMs / (1000 * 60 * 60 * 24))} يوم`;
-  if (months < 12) return `${months} شهر`;
-  const years = Math.floor(months / 12);
-  const rem = months % 12;
-  return rem > 0 ? `${years}.${rem} سنة` : `${years} سنة`;
+const formatAge = (ageValue, ageUnit) => {
+  if (ageValue == null) return '—';
+  if (ageUnit === 'years') {
+    return `${ageValue} سنة`;
+  }
+  return `${ageValue} شهر`;
 };
 
 const getHealthStyle = (status) => {
@@ -104,7 +63,10 @@ const AnimalCard = ({ animal, onClick }) => {
     horse:  'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?auto=format&fit=crop&q=80&w=500&h=280',
     pig:    'https://images.unsplash.com/photo-1604848698030-c434ba08ece1?auto=format&fit=crop&q=80&w=500&h=280',
   };
-  const imageUrl = animal?.imageUrl || defaultImages[animal?.species] || defaultImages.cattle;
+  const backendUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+  const imageUrl = animal?.image 
+    ? `${backendUrl}${animal.image}` 
+    : (defaultImages[animal?.species] || defaultImages.cattle);
 
   return (
     <div
@@ -136,8 +98,7 @@ const AnimalCard = ({ animal, onClick }) => {
             <MoreVertical className="w-5 h-5" />
           </button>
           <div className="text-right">
-            <h3 className="font-bold text-gray-900 text-[17px] leading-tight">{animal?.name || 'بدون اسم'}</h3>
-            <p className="text-[12px] text-gray-400 font-medium mt-0.5">رقم التعريف: {animal?.tag_number || '---'}</p>
+            <h3 className="font-bold text-gray-900 text-[17px] leading-tight">معرف: {animal?.tag_number || '---'}</h3>
           </div>
         </div>
 
@@ -158,7 +119,7 @@ const AnimalCard = ({ animal, onClick }) => {
           <div className="flex items-center gap-2 flex-row-reverse justify-end">
             <div className="text-right">
               <p className="text-gray-400 font-medium">العمر</p>
-              <p className="font-bold text-gray-900">{calculateAge(animal?.birth_date)}</p>
+              <p className="font-bold text-gray-900">{formatAge(animal?.age_value, animal?.age_unit)}</p>
             </div>
             <div className="w-7 h-7 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0">
               <CalendarDays className="w-3.5 h-3.5 text-gray-400" />
@@ -202,37 +163,8 @@ const AnimalCard = ({ animal, onClick }) => {
   );
 };
 
-// ─── MOCK DATA ────────────────────────────────────────────────────────────────
-const MOCK_ANIMALS = [
-  {
-    _id: 'm1', name: 'وولي', tag_number: 'CV-3301#',
-    species: 'sheep', gender: 'female',
-    birth_date: new Date(new Date().setMonth(new Date().getMonth() - 26)).toISOString(),
-    weight_kg: 86, health_status: 'healthy',
-    imageUrl: 'https://images.unsplash.com/photo-1484557985045-edf25e08da73?auto=format&fit=crop&q=80&w=500&h=280'
-  },
-  {
-    _id: 'm2', name: 'سبيريت', tag_number: 'EQ-10428',
-    species: 'goat', gender: 'male',
-    birth_date: new Date(new Date().setFullYear(new Date().getFullYear() - 6)).toISOString(),
-    weight_kg: 85, health_status: 'sick',
-    imageUrl: 'https://images.unsplash.com/photo-1501706362039-c06b2d715385?auto=format&fit=crop&q=80&w=500&h=280'
-  },
-  {
-    _id: 'm3', name: 'بيبسي', tag_number: 'BV-88218',
-    species: 'cattle', gender: 'female',
-    birth_date: new Date(new Date().setFullYear(new Date().getFullYear() - 4)).toISOString(),
-    weight_kg: 660, health_status: 'healthy',
-    imageUrl: 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&q=80&w=500&h=280'
-  },
-  {
-    _id: 'm4', name: 'بومبا', tag_number: 'PR-5529#',
-    species: 'cattle', gender: 'male',
-    birth_date: new Date(new Date().setMonth(new Date().getMonth() - 18)).toISOString(),
-    weight_kg: 110, health_status: 'critical',
-    imageUrl: 'https://images.unsplash.com/photo-1604848698030-c434ba08ece1?auto=format&fit=crop&q=80&w=500&h=280'
-  },
-];
+
+
 
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 const AnimalsListPage = () => {
@@ -248,24 +180,23 @@ const AnimalsListPage = () => {
   const [searchTerm, setSearchTerm]       = useState('');
 
   useEffect(() => {
-    if (farmId && farmId !== 'dummy') {
+    if (farmId) {
       dispatch(fetchFarmById(farmId));
       dispatch(fetchFarmAnimals(farmId));
     }
   }, [dispatch, farmId]);
 
-  const isDummy = !farmId || farmId === 'dummy' || !!error.animals;
-  const rawAnimals = (isDummy || !farmAnimals?.length) ? MOCK_ANIMALS : farmAnimals;
+  const rawAnimals = farmAnimals || [];
 
   const displayAnimals = rawAnimals.filter((a) => {
     const matchSpecies = filterSpecies === 'all' || a.species === filterSpecies;
     const matchStatus  = filterStatus === 'all'  || a.health_status === filterStatus;
     const matchSearch  = !searchTerm ||
-      a.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      a.tag_number?.toLowerCase().includes(searchTerm.toLowerCase());
+      a.tag_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      a.breed?.toLowerCase().includes(searchTerm.toLowerCase());
     let matchAge = true;
-    if (filterAge !== 'all' && a.birth_date) {
-      const months = Math.floor((Date.now() - new Date(a.birth_date)) / (1000*60*60*24*30));
+    if (filterAge !== 'all') {
+      const months = a.age_unit === 'years' ? a.age_value * 12 : a.age_value;
       if (filterAge === 'young') matchAge = months < 12;
       else if (filterAge === 'mid') matchAge = months >= 12 && months < 36;
       else if (filterAge === 'adult') matchAge = months >= 36;
@@ -275,7 +206,7 @@ const AnimalsListPage = () => {
 
   const hasFilters = filterSpecies !== 'all' || filterStatus !== 'all' || filterAge !== 'all' || !!searchTerm;
 
-  if (loading.animals && !farmAnimals?.length && !isDummy) {
+  if (loading.animals && !farmAnimals?.length) {
     return (
       <div className="min-h-screen bg-[#f5f7f5] flex items-center justify-center font-cairo">
         <Loader2 className="w-8 h-8 text-[#2a5c2a] animate-spin" />
@@ -285,7 +216,6 @@ const AnimalsListPage = () => {
 
   return (
     <div className="min-h-screen bg-[#f5f7f5] flex flex-col font-cairo" dir="rtl">
-      <TopNavbar />
 
       <main className="max-w-[1400px] w-full mx-auto px-8 py-8 flex-1 flex flex-col">
 
@@ -403,7 +333,7 @@ const AnimalsListPage = () => {
         {/* ── Pagination ────────────────────────────────────────────── */}
         <div className="flex items-center justify-between mt-10 pt-6">
           <div className="text-[12px] text-gray-500 font-medium">
-            عرض 1-{Math.min(12, displayAnimals.length)} من أصل {isDummy ? '482' : rawAnimals.length} حيوان
+            عرض 1-{Math.min(12, displayAnimals.length)} من أصل {rawAnimals.length} حيوان
           </div>
           <div className="flex items-center gap-2" dir="ltr">
             <button className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 bg-white transition-colors">

@@ -2,18 +2,22 @@
 // ────────────────────────────────────────────────────────────
 // الصفحة الرئيسية — بتجمّع كل كمبوننتات الـ dashboard feature
 // ────────────────────────────────────────────────────────────
-import { useSelector } from 'react-redux'
+import { useEffect } from 'react'
+import { useParams } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import { useInView } from '../../utils/useInView'
+import { fetchFarmStats, fetchFarmById } from '../../redux/farmSlice'
 
 import StatsCard from '../../features/dashboard/components/StatsCard'
 import AnimalDistributionChart from '../../features/dashboard/components/AnimalDistributionChart'
 import WeeklyHealthChart from '../../features/dashboard/components/WeeklyHealthChart'
 import AIRecommendations from '../../features/dashboard/components/AIRecommendations'
 import RecentActivities from '../../features/dashboard/components/RecentActivities'
-import { FARM_INFO } from '../../constant/mockData'
 
 function PageHeader() {
   const { ref, inView } = useInView({ triggerOnce: true })
+  const currentFarm = useSelector(state => state.farm.currentFarm);
+  
   return (
     <div
       ref={ref}
@@ -30,7 +34,7 @@ function PageHeader() {
         </h1>
         <p className="text-sm text-stone-500 mt-0.5">
           المؤشرات الحيوية في الوقت الفعلي وروى مدعومة بالذكاء الاصطناعي لمزرعة{' '}
-          <span className="text-[#3d6b47] font-semibold">{FARM_INFO.name}</span>
+          <span className="text-[#3d6b47] font-semibold">{currentFarm ? currentFarm.name : '...'}</span>
           .
         </p>
       </div>
@@ -72,8 +76,67 @@ function PageHeader() {
   )
 }
 
+const toArabicDigits = (num) => {
+  if (num === undefined || num === null) return '٠';
+  const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+  return num.toString().replace(/\d/g, (d) => arabicDigits[d]);
+};
+
 export default function DashboardPage() {
-  const stats = useSelector((state) => state.dashboard.stats)
+  const { farmId } = useParams();
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (farmId) {
+      dispatch(fetchFarmById(farmId));
+      dispatch(fetchFarmStats(farmId));
+    }
+  }, [dispatch, farmId]);
+
+  const farmStats = useSelector((state) => state.farm.farmStats);
+  const statsData = farmStats?.stats;
+
+  const totalAnimals = statsData?.total_animals || 0;
+  const sickAnimals = statsData?.by_health_status?.find(s => s._id === 'sick')?.count || 0;
+  const upcomingVaccinations = statsData?.upcoming_vaccinations || 0;
+  const emergencyAnimals = statsData?.by_health_status?.find(s => s._id === 'critical')?.count || 0;
+
+  const stats = [
+    {
+      id: 'total',
+      label: 'إجمالي الحيوانات',
+      value: toArabicDigits(totalAnimals),
+      rawValue: totalAnimals,
+      icon: 'paw',
+      color: 'green',
+    },
+    {
+      id: 'sick',
+      label: 'الحيوانات المريضة',
+      value: toArabicDigits(sickAnimals),
+      rawValue: sickAnimals,
+      icon: 'medical',
+      color: 'rose',
+    },
+    {
+      id: 'vaccinations',
+      label: 'التطعيمات القادمة',
+      value: toArabicDigits(upcomingVaccinations),
+      rawValue: upcomingVaccinations,
+      badge: 'الـ ٧ أيام القادمة',
+      icon: 'syringe',
+      color: 'blue',
+    },
+    {
+      id: 'emergencies',
+      label: 'حالات الطوارئ',
+      value: toArabicDigits(emergencyAnimals),
+      rawValue: emergencyAnimals,
+      icon: 'alert',
+      color: 'red',
+      urgent: emergencyAnimals > 0,
+    },
+  ];
 
   return (
     <div dir="rtl" className="max-w-7xl mx-auto">

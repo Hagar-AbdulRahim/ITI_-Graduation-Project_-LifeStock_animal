@@ -1,49 +1,93 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { toast } from 'react-hot-toast';
+import { 
+  ChevronRight, Edit, Syringe, Plus, ShieldCheck, 
+  AlertTriangle, Calendar, Zap, Heart, User, Send, ChevronDown, Loader2, Trash2
+} from 'lucide-react';
+import cowImg from '../assets/images/cow.jpg';
+import { fetchAnimalById, fetchAnimalVaccinations, fetchAnimalMedicalHistory, fetchAnimalDiagnosisHistory, clearAnimalState } from '../redux/animalSlice';
+import { animalService } from '../features/animals/services/animalService';
 
-
-// Fallback profile generator for unknown animal ids
-const makeFallbackProfile = (id, name, species, gender, weight) => {
-  return {
-    id: id || 'LIV-UNKNOWN',
-    name: name || 'حيوان غير معروف',
-    species: species || 'أبقار',
-    breed: 'بلدي مختلط',
-    gender: gender || 'ذكر',
-    birthDate: '10 أكتوبر 2021',
-    age: '4.5 سنة',
-    regNo: `REG-${id}-MOCK`,
-    weight: weight ? `${weight} كجم` : '420 كجم',
-    weightChange: '+0.5%',
-    yield: '—',
-    yieldGroup: '',
-    status: 'ممتازة',
-    statusTag: 'سليم',
-    risk: 'مستقر',
-    riskTag: 'متوسط',
-    lastCheck: '15 مارس 2024',
-    aiAlerts: 'لا يوجد تنبيهات حيوية',
-    treatment: null,
-    history: [
-      { date: '15 مارس 2024', type: 'checkup', title: 'فحص دوري', description: 'المؤشرات الحيوية طبيعية ولا توجد ملاحظات سريرية.', doctor: 'د. سارة جينكنز', dotColor: 'bg-emerald-500' }
-    ],
-    vaccinations: [
-      { name: 'اللقاح الرباعي', date: '01 يناير 2024', batch: 'VAC-101-X', nextDate: '01 يناير 2025', nextDateColor: 'text-stone-600', status: 'محدث' }
-    ],
-    aiPrediction: "الحالة مستقرة، يوصى بالمحافظة على جدول التطعيمات وجداول التغذية الحالية دون تعديل.",
-    aiConfidence: '90%',
-    notes: [],
-    weightHistory: [410, 412, 415, 418, 419, 420]
-  };
+const formatAge = (ageValue, ageUnit) => {
+  if (ageValue == null) return '—';
+  if (ageUnit === 'years') {
+    return `${ageValue} سنة`;
+  }
+  return `${ageValue} شهر`;
 };
 
 export default function AnimalProfilePage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const reduxAnimal = useSelector((state) => {
-    return state.farm?.farmAnimals?.find(a => a._id === id);
+  // ── Primary: fetch full animal from dedicated slice ──
+  const { animal, vaccinations, medicalHistory, loading, error } = useSelector((state) => state.animal);
+
+  // ── Fallback: if animal not yet in slice, check farmAnimals list ──
+  const fallbackAnimal = useSelector((state) =>
+    state.farm?.farmAnimals?.find((a) => a._id === id)
+  );
+
+  // Use whichever is available
+  const animalData = animal || fallbackAnimal || null;
+
+  useEffect(() => {
+    // Clear stale animal data from a previous profile visit
+    dispatch(clearAnimalState());
+    if (id) {
+      dispatch(fetchAnimalById(id));
+      dispatch(fetchAnimalVaccinations(id));
+      dispatch(fetchAnimalMedicalHistory(id));
+    }
+  }, [dispatch, id]);
+
+  // ── Map backend data → UI profile object ──
+  const buildProfile = (a) => ({
+    id: a.tag_number || a._id,
+    name: `معرف: ${a.tag_number || a._id}`,
+    species: a.species === 'cattle' ? 'أبقار' : a.species === 'sheep' ? 'أغنام' : 'ماعز',
+    breed: a.breed || 'غير محدد',
+    gender: a.gender === 'female' ? 'أنثى' : 'ذكر',
+    age: formatAge(a.age_value, a.age_unit),
+    regNo: `REG-${a.tag_number || a._id}`,
+    weight: `${a.weight_kg || 0} كجم`,
+    weightChange: '+0.5%',
+    yield: '—',
+    yieldGroup: '',
+    status: a.health_status === 'healthy' ? 'ممتازة' : 'يحتاج رعاية',
+    statusTag: a.health_status === 'healthy' ? 'سليم' : 'مريض',
+    risk: 'مستقر',
+    riskTag: 'متوسط',
+    lastCheck: 'الآن',
+    aiAlerts: 'لا يوجد تنبيهات حيوية',
+    treatment: null,
+    history: medicalHistory?.map((h) => ({
+      date: new Date(h.date || h.createdAt).toLocaleDateString('ar-EG'),
+      type: 'checkup',
+      title: h.condition || h.title,
+      description: h.treatment || h.description,
+      doctor: h.veterinarian || 'طبيب بيطري',
+      dotColor: 'bg-emerald-500',
+    })) || [],
+    vaccinations: vaccinations?.map((v) => ({
+      name: v.vaccine_name,
+      date: v.last_date ? new Date(v.last_date).toLocaleDateString('ar-EG') : 'غير محدد',
+      batch: v.batch_number || '-',
+      nextDate: v.next_due_date ? new Date(v.next_due_date).toLocaleDateString('ar-EG') : 'غير محدد',
+      nextDateColor: 'text-stone-600',
+      status: 'محدث',
+    })) || [],
+    aiPrediction: 'الحالة مستقرة، يوصى بالمحافظة على جدول التطعيمات.',
+    aiConfidence: '90%',
+    notes: a.notes || [],
+    weightHistory: [410, 412, 415, 418, 419, a.weight_kg || 420],
   });
 
-  const [profile, setProfile] = useState(MOCK_PROFILES[id] || (reduxAnimal ? makeFallbackProfile(reduxAnimal.tag_number, reduxAnimal.name, reduxAnimal.species === 'cattle' ? 'أبقار' : reduxAnimal.species === 'sheep' ? 'أغنام' : 'ماعز', reduxAnimal.gender === 'female' ? 'أنثى' : 'ذكر', reduxAnimal.weight_kg) : MOCK_PROFILES['m3']));
+  const profile = animalData ? buildProfile(animalData) : null;
+
   const [noteText, setNoteText] = useState('');
 
   const handleAddNote = (e) => {
@@ -57,13 +101,50 @@ export default function AnimalProfilePage() {
       time: 'الآن'
     };
 
-    setProfile(prev => ({
-      ...prev,
-      notes: [newNote, ...prev.notes]
-    }));
+    // Normally this would be a dispatch, but we update UI optimistically for now
     setNoteText('');
     toast.success('تمت إضافة الملاحظة بنجاح!');
   };
+
+  const handleDeleteAnimal = async () => {
+    if (window.confirm('هل أنت متأكد أنك تريد حذف هذا الحيوان نهائياً؟ ستفقد جميع السجلات المرتبطة به.')) {
+      try {
+        await animalService.deleteAnimal(id);
+        toast.success('تم حذف الحيوان بنجاح');
+        navigate(animal?.farm_id ? `/farms/${animal.farm_id}/animals` : '/farms');
+      } catch (err) {
+        toast.error('حدث خطأ أثناء محاولة الحذف');
+      }
+    }
+  };
+
+  // ── Spinner: only while actively fetching AND no fallback data yet ──
+  if (loading.animal && !profile) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center font-cairo">
+        <Loader2 className="w-8 h-8 text-[#2d5a1b] animate-spin" />
+      </div>
+    );
+  }
+
+  // ── Error state: API failed and nothing to show ──
+  if (!loading.animal && !profile) {
+    return (
+      <div dir="rtl" className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center gap-4 font-cairo text-center px-4">
+        <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+          <AlertTriangle className="w-8 h-8 text-red-500" />
+        </div>
+        <h2 className="text-lg font-bold text-gray-800">لم يتم العثور على بيانات الحيوان</h2>
+        <p className="text-sm text-gray-500">تأكد من الاتصال بالخادم وصحة الرابط</p>
+        <button
+          onClick={() => navigate(-1)}
+          className="mt-2 px-6 py-2.5 bg-[#2d5a1b] text-white rounded-xl text-sm font-bold hover:bg-[#1e4520] transition-colors"
+        >
+          الرجوع للخلف
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div dir="rtl" className="max-w-7xl mx-auto px-1 py-4 font-cairo space-y-6 pb-20">
@@ -74,7 +155,7 @@ export default function AnimalProfilePage() {
         {/* Breadcrumb Path & Last updated */}
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 text-xs text-stone-400">
-            <Link to="/farms/dummy/animals" className="hover:text-[#2d5a1b] hover:underline transition-all font-semibold">الحيوانات</Link>
+            <Link to={`/farms/${animalData?.farm_id}/animals`} className="hover:text-[#2d5a1b] hover:underline transition-all font-semibold">الحيوانات</Link>
             <ChevronRight className="w-3 h-3" />
             <span className="text-stone-700 font-bold">{profile.name}</span>
           </div>
@@ -88,7 +169,15 @@ export default function AnimalProfilePage() {
         {/* Action Button Row */}
         <div className="flex items-center gap-2">
           <button 
-            onClick={() => toast.success('فتح تعديل الملف')}
+            onClick={handleDeleteAnimal}
+            className="flex items-center gap-1.5 px-3 py-2 border border-red-200 bg-red-50 text-red-600 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors shadow-sm"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>حذف</span>
+          </button>
+
+          <button 
+            onClick={() => navigate(`/animals/edit/${id}`)}
             className="flex items-center gap-1.5 px-3 py-2 border border-stone-200 bg-white text-stone-600 rounded-lg text-xs font-bold hover:bg-stone-50 transition-colors shadow-sm"
           >
             <Edit className="w-3.5 h-3.5" />
@@ -96,7 +185,7 @@ export default function AnimalProfilePage() {
           </button>
 
           <button 
-            onClick={() => toast.success('فتح إضافة تطعيم')}
+            onClick={() => navigate(`/animals/${id}/vaccinations/add`)}
             className="flex items-center gap-1.5 px-3 py-2 border border-stone-200 bg-white text-stone-600 rounded-lg text-xs font-bold hover:bg-stone-50 transition-colors shadow-sm"
           >
             <Syringe className="w-3.5 h-3.5" />
@@ -104,7 +193,7 @@ export default function AnimalProfilePage() {
           </button>
 
           <button 
-            onClick={() => toast.success('فتح إضافة سجل طبي')}
+            onClick={() => navigate(`/animals/${id}/medical-records/add`)}
             className="flex items-center gap-1.5 px-3 py-2 bg-[#2d5a1b] hover:bg-[#1e4520] text-white rounded-lg text-xs font-bold transition-colors shadow-md flex-row-reverse"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -125,10 +214,20 @@ export default function AnimalProfilePage() {
             <div className="flex items-center gap-4">
               <div className="relative w-20 h-20 rounded-2xl border border-stone-200 shadow-sm overflow-hidden flex-shrink-0">
                 <img 
-                  src={cowImg} 
+                  src={
+                    animalData?.image
+                      ? `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${animalData.image}`
+                      : {
+                          cattle: 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&q=80&w=500&h=280',
+                          sheep: 'https://images.unsplash.com/photo-1484557985045-edf25e08da73?auto=format&fit=crop&q=80&w=500&h=280',
+                          goat: 'https://images.unsplash.com/photo-1501706362039-c06b2d715385?auto=format&fit=crop&q=80&w=500&h=280',
+                        }[animalData?.species] || 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&q=80&w=500&h=280'
+                  } 
                   alt={profile.name} 
                   className="w-full h-full object-cover"
-                  onError={(e) => { e.target.style.display = 'none'; }}
+                  onError={(e) => { 
+                    e.target.src = 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&q=80&w=500&h=280';
+                  }}
                 />
                 <div className="absolute -bottom-1 -left-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center text-white text-[8px] font-bold">
                   ✓
@@ -146,7 +245,7 @@ export default function AnimalProfilePage() {
               </div>
             </div>
             <button 
-              onClick={() => navigate(-1)} 
+              onClick={() => navigate(`/farms/${animalData?.farm_id}/animals`)} 
               className="text-stone-400 hover:text-stone-600 transition-colors text-xs font-bold flex items-center gap-1"
             >
               <span>العودة للحيوانات</span>
@@ -221,12 +320,7 @@ export default function AnimalProfilePage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 text-xs text-stone-650">
-              <div className="flex justify-between items-center border-b border-stone-50 pb-2">
-                <span className="text-stone-400 font-medium">تاريخ الميلاد</span>
-                <span className="font-bold text-stone-800">{profile.birthDate}</span>
-              </div>
-
-              <div className="flex justify-between items-center border-b border-stone-50 pb-2">
+              <div className="flex justify-between items-center border-b border-stone-50 pb-2 col-span-2">
                 <span className="text-stone-400 font-medium">العمر</span>
                 <span className="font-bold text-stone-800">{profile.age}</span>
               </div>

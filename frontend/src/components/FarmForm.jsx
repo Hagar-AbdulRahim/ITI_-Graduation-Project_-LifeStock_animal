@@ -115,55 +115,6 @@ const FarmForm = ({ defaultValues = {}, onSubmit, loading = false, error, onCanc
         </div>
       </div>
 
-      {/* Location */}
-      <div className="bg-white rounded-[20px] border border-gray-200 shadow-sm p-6">
-        <h2 className="text-[14px] font-bold text-gray-900 mb-4 pb-3 border-b border-gray-100">
-          الموقع الجغرافي (GPS)
-        </h2>
-        <p className="text-[12px] text-gray-500 mb-4">
-          هذه الإحداثيات هامة لمراقبة تفشي الأمراض في نطاق الجغرافي للمزرعة.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-          {/* Longitude */}
-          <div>
-            <label className={labelCls}>
-              خط الطول (Longitude) <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="number"
-              step="any"
-              {...register('lng', {
-                required: 'مطلوب',
-                min: { value: -180, message: 'يجب أن يكون أكبر من -180' },
-                max: { value: 180, message: 'يجب أن يكون أقل من 180' },
-              })}
-              placeholder="مثال: 31.2357"
-              className={inputCls(errors.lng)}
-            />
-            {errors.lng && <p className="text-[11px] text-red-500 mt-1">{errors.lng.message}</p>}
-          </div>
-
-          {/* Latitude */}
-          <div>
-            <label className={labelCls}>
-              خط العرض (Latitude) <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="number"
-              step="any"
-              {...register('lat', {
-                required: 'مطلوب',
-                min: { value: -90, message: 'يجب أن يكون أكبر من -90' },
-                max: { value: 90, message: 'يجب أن يكون أقل من 90' },
-              })}
-              placeholder="مثال: 30.0444"
-              className={inputCls(errors.lat)}
-            />
-            {errors.lat && <p className="text-[11px] text-red-500 mt-1">{errors.lat.message}</p>}
-          </div>
-        </div>
-      </div>
-
       {/* Description */}
       <div className="bg-white rounded-[20px] border border-gray-200 shadow-sm p-6">
         <h2 className="text-[14px] font-bold text-gray-900 mb-4 pb-3 border-b border-gray-100">

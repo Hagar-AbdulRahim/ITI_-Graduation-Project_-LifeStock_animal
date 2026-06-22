@@ -7,42 +7,52 @@ import { fetchMyFarms } from '../../redux/farmSlice';
 import { updateFarm, deleteFarm } from '../../services/farmService';
 
 // ─── TOP NAVBAR ──────────────────────────────────────
-const TopNavbar = () => (
-  <header className="bg-white h-20 border-b border-gray-100 px-8 flex items-center justify-between sticky top-0 z-20 font-cairo">
-    <div className="flex-1 max-w-xl">
-      <div className="relative flex items-center w-full max-w-md">
-        <Search className="w-4 h-4 text-gray-400 absolute right-4" />
-        <input
-          type="text"
-          placeholder="البحث عن مزرعة بالاسم أو الموقع..."
-          className="w-full bg-gray-50 border border-gray-100 rounded-full py-2.5 pr-11 pl-4 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-[#2a5c2a]/20 focus:border-[#2a5c2a] transition-all"
-        />
-      </div>
-    </div>
+const TopNavbar = () => {
+  const { user } = useSelector((state) => state.auth);
+  const displayName = user?.name || 'د. سارة ميار';
+  const avatarUrl = user?.avatar;
 
-    <div className="flex items-center gap-6">
-      <div className="flex items-center gap-4 text-gray-400">
-        <button className="hover:text-gray-600 transition-colors relative">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
-        <button className="hover:text-gray-600 transition-colors">
-          <HelpCircle className="w-5 h-5" />
-        </button>
-      </div>
-      <div className="h-8 w-px bg-gray-200"></div>
-      <div className="flex items-center gap-3">
-        <div className="text-left" dir="ltr">
-          <p className="text-sm font-bold text-gray-900">د. سارة ميار</p>
-          <p className="text-[11px] text-gray-500 font-medium">طبيبة بيطرية أولى</p>
-        </div>
-        <div className="w-10 h-10 rounded-full bg-indigo-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
-          <img src="https://i.pravatar.cc/150?u=sarah" alt="Dr Sarah" className="w-full h-full object-cover" />
+  return (
+    <header className="bg-white h-20 border-b border-gray-100 px-8 flex items-center justify-between sticky top-0 z-20 font-cairo">
+      <div className="flex-1 max-w-xl">
+        <div className="relative flex items-center w-full max-w-md">
+          <Search className="w-4 h-4 text-gray-400 absolute right-4" />
+          <input
+            type="text"
+            placeholder="البحث عن مزرعة بالاسم أو الموقع..."
+            className="w-full bg-gray-50 border border-gray-100 rounded-full py-2.5 pr-11 pl-4 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-[#2a5c2a]/20 focus:border-[#2a5c2a] transition-all"
+          />
         </div>
       </div>
-    </div>
-  </header>
-);
+
+      <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 text-gray-400">
+          <button className="hover:text-gray-600 transition-colors relative">
+            <Bell className="w-5 h-5" />
+            <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+          </button>
+          <button className="hover:text-gray-600 transition-colors">
+            <HelpCircle className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="h-8 w-px bg-gray-200"></div>
+        <div className="flex items-center gap-3">
+          <div className="text-left" dir="ltr">
+            <p className="text-sm font-bold text-gray-900">{displayName}</p>
+            <p className="text-[11px] text-gray-500 font-medium">طبيبة بيطرية أولى</p>
+          </div>
+          <div className="w-10 h-10 rounded-full bg-indigo-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0 flex items-center justify-center">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-sm font-bold text-indigo-700">{displayName[0]}</span>
+            )}
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+};
 
 const FarmCard = ({ farm }) => {
   const navigate = useNavigate();
@@ -143,7 +153,7 @@ const FarmCard = ({ farm }) => {
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full max-h-[80vh] overflow-y-auto border border-gray-200">
             <h3 className="text-lg font-bold mb-4">تعديل المزرعة</h3>
             <FarmForm
-              defaultValues={{ name: farm.name, governorate: farm.governorate, description: farm.description || '', lng: farm.location?.coordinates?.[0] || 31.2357, lat: farm.location?.coordinates?.[1] || 30.0444 }}
+              defaultValues={{ name: farm.name, governorate: farm.governorate, description: farm.description || '' }}
               onSubmit={handleUpdate}
               loading={loading?.farms}
               error={error?.farms}
@@ -178,7 +188,7 @@ const FarmsPage = () => {
     dispatch(fetchMyFarms());
   }, [dispatch]);
 
-  const displayFarms = farms.length > 0 ? farms : (error.farms ? [{ _id: 'dummy', name: 'مزرعة Green Pastures', governorate: 'الشرقية', description: 'مزرعة نموذجية لتربية الأبقار الحلوب وتسمين العجول باستخدام أحدث تقنيات الذكاء الاصطناعي.', total_animals: 1240 }] : []);
+  const displayFarms = farms || [];
 
   return (
     <div className="min-h-screen bg-[#f5f7f5] flex flex-col font-cairo" dir="rtl">
@@ -203,21 +213,9 @@ const FarmsPage = () => {
         </div>
 
         {/* Alerts / Loading */}
-        {loading.farms && displayFarms.length === 0 ? (
+        {loading.farms && displayFarms.length === 0 && (
           <div className="flex-1 flex items-center justify-center">
             <Loader2 className="w-8 h-8 text-[#2a5c2a] animate-spin" />
-          </div>
-        ) : error.farms && farms.length === 0 && (
-          <div className="bg-red-50 border border-red-100 rounded-2xl p-5 mb-8 flex items-start gap-4">
-            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-              <AlertCircle className="w-5 h-5 text-red-600" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-red-800 mb-1">توضيح بخصوص قاعدة البيانات</h3>
-              <p className="text-xs text-red-600 leading-relaxed font-medium">
-                بما أنه لا يوجد اتصال بقاعدة البيانات حالياً، قمنا بإنشاء مزرعة تجريبية (وهمية) بالأسفل لتتمكن من معاينة التصميم والتفاعل معه.
-              </p>
-            </div>
           </div>
         )}
 

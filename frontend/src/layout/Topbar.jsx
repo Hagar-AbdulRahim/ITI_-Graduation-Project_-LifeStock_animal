@@ -1,7 +1,11 @@
 // layouts/Topbar.jsx
-import { FARM_INFO } from '../constant/mockData';
+import { useSelector } from 'react-redux';
 
 export default function Topbar() {
+  const { user } = useSelector((state) => state.auth);
+  const displayName = user?.name || 'د. سارة ميار';
+  const initialChar = displayName ? displayName[0] : 'س';
+
   return (
     <header
       dir='rtl'
@@ -10,14 +14,23 @@ export default function Topbar() {
     >
       {/* User Info */}
       <div className='flex items-center gap-3'>
-        <div className='w-9 h-9 rounded-lg bg-[#2d5a1b] text-white flex items-center justify-center text-sm font-bold shadow-sm'>
-          س
-        </div>
+        {user?.avatar ? (
+          <img
+            src={user.avatar}
+            alt={displayName}
+            className='w-9 h-9 rounded-lg object-cover shadow-sm'
+            onError={(e) => { e.target.style.display = 'none'; }}
+          />
+        ) : (
+          <div className='w-9 h-9 rounded-lg bg-[#2d5a1b] text-white flex items-center justify-center text-sm font-bold shadow-sm'>
+            {initialChar}
+          </div>
+        )}
         <div className='leading-tight'>
           <p className='text-sm font-semibold text-stone-800'>
-            {FARM_INFO.veterinarian}
+            {displayName}
           </p>
-          <p className='text-[11px] text-stone-400'>{FARM_INFO.title}</p>
+          <p className='text-[11px] text-stone-400'>طبيبة بيطرية أولى</p>
         </div>
       </div>
 

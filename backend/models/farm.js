@@ -19,23 +19,6 @@ const farmSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    // GeoJSON Point — مطلوب لـ $geoNear queries في الـ Outbreak Detection
-    location: {
-      type: {
-        type: String,
-        enum: ["Point"],
-        default: "Point",
-      },
-      coordinates: {
-        type: [Number], // [longitude, latitude]
-        required: true,
-        validate: {
-          validator: ([lng, lat]) =>
-            lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90,
-          message: "إحداثيات GPS غير صحيحة",
-        },
-      },
-    },
     total_animals: {
       type: Number,
       default: 0,
@@ -57,21 +40,14 @@ const farmSchema = new mongoose.Schema(
   }
 );
 
-// ── Indexes ──────────────────────────────────────────────────────────────────
-farmSchema.index({ location: "2dsphere" });  // مطلوب للـ GeoJSON queries
 farmSchema.index({ user_id: 1 });
-farmSchema.index({ governorate: 1 });        // للـ Outbreak filtering
+farmSchema.index({ governorate: 1 });
 
-// ── Cascade: لو المزرعة اتحذفت، احذف كل حيواناتها ──────────────────────────
-farmSchema.pre(
-  "findOneAndDelete",
-  async function (next) {
-    const farm = await this.model.findOne(this.getQuery());
-    if (farm) {
-      await mongoose.model("Animal").deleteMany({ farm_id: farm._id });
-    }
-    next();
+farmSchema.pre("findOneAndDelete", async function () {
+  const farm = await this.model.findOne(this.getQuery());
+  if (farm) {
+    await mongoose.model("Animal").deleteMany({ farm_id: farm._id });
   }
-);
+});
 
 module.exports = mongoose.model("Farm", farmSchema);
