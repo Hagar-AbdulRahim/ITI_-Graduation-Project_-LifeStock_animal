@@ -1,49 +1,40 @@
-const Farm = require("../models/farm");
+const Farm   = require("../models/farm");
 const Animal = require("../models/animal");
+const Vaccination = require("../models/vaccination");
 
 // ── Create Farm ───────────────────────────────────────────────────────────────
 const createFarm = async (req, res) => {
   try {
-    const { name, governorate, location, description } = req.body;
+    const { name, governorate, description } = req.body;
 
     const farm = await Farm.create({
       user_id: req.user._id,
       name,
       governorate,
-      location,
       description: description || null,
     });
 
     return res.status(201).json({
       success: true,
       message: "تم إنشاء المزرعة بنجاح",
-      data: farm,
+      data:    farm,
     });
   } catch (err) {
-    // duplicate name for the same user
     if (err.code === 11000) {
-      return res.status(409).json({
-        success: false,
-        message: "لديك مزرعة بهذا الاسم بالفعل",
-      });
+      return res.status(409).json({ success: false, message: "لديك مزرعة بهذا الاسم بالفعل" });
     }
     console.error("createFarm error:", err);
     return res.status(500).json({ success: false, message: "خطأ في الخادم" });
   }
 };
 
-// ── Get All Farms (current user) ──────────────────────────────────────────────
+// ── Get All Farms ─────────────────────────────────────────────────────────────
 const getMyFarms = async (req, res) => {
   try {
     const farms = await Farm.find({ user_id: req.user._id, is_active: true }).sort({
       created_at: -1,
     });
-
-    return res.status(200).json({
-      success: true,
-      count: farms.length,
-      data: farms,
-    });
+    return res.status(200).json({ success: true, count: farms.length, data: farms });
   } catch (err) {
     console.error("getMyFarms error:", err);
     return res.status(500).json({ success: false, message: "خطأ في الخادم" });
@@ -54,8 +45,8 @@ const getMyFarms = async (req, res) => {
 const getFarmById = async (req, res) => {
   try {
     const farm = await Farm.findOne({
-      _id: req.params.id,
-      user_id: req.user._id,
+      _id:       req.params.id,
+      user_id:   req.user._id,
       is_active: true,
     });
 
@@ -73,8 +64,7 @@ const getFarmById = async (req, res) => {
 // ── Update Farm ───────────────────────────────────────────────────────────────
 const updateFarm = async (req, res) => {
   try {
-    // location included so the farmer can correct GPS coordinates after creation
-    const allowedFields = ["name", "governorate", "description", "location"];
+    const allowedFields = ["name", "governorate", "description"];
     const updates = {};
     allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) updates[field] = req.body[field];
@@ -93,14 +83,11 @@ const updateFarm = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "تم تحديث المزرعة بنجاح",
-      data: farm,
+      data:    farm,
     });
   } catch (err) {
     if (err.code === 11000) {
-      return res.status(409).json({
-        success: false,
-        message: "لديك مزرعة بهذا الاسم بالفعل",
-      });
+      return res.status(409).json({ success: false, message: "لديك مزرعة بهذا الاسم بالفعل" });
     }
     console.error("updateFarm error:", err);
     return res.status(500).json({ success: false, message: "خطأ في الخادم" });
@@ -108,11 +95,10 @@ const updateFarm = async (req, res) => {
 };
 
 // ── Delete Farm ───────────────────────────────────────────────────────────────
-// animals are deleted via the cascade pre-hook defined in the Farm model
 const deleteFarm = async (req, res) => {
   try {
     const farm = await Farm.findOneAndDelete({
-      _id: req.params.id,
+      _id:     req.params.id,
       user_id: req.user._id,
     });
 
@@ -134,8 +120,8 @@ const deleteFarm = async (req, res) => {
 const getFarmStats = async (req, res) => {
   try {
     const farm = await Farm.findOne({
-      _id: req.params.id,
-      user_id: req.user._id,
+      _id:       req.params.id,
+      user_id:   req.user._id,
       is_active: true,
     });
 
@@ -143,7 +129,13 @@ const getFarmStats = async (req, res) => {
       return res.status(404).json({ success: false, message: "المزرعة غير موجودة" });
     }
 
-    const [speciesStats, healthStats, totalCount] = await Promise.all([
+    const activeAnimals = await Animal.find({ farm_id: farm._id, is_active: true }).select("_id");
+    const animalIds = activeAnimals.map(a => a._id);
+
+    const sevenDaysFromNow = new Date();
+    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+
+    const [speciesStats, healthStats, totalCount, upcomingVaccinationsCount] = await Promise.all([
       Animal.aggregate([
         { $match: { farm_id: farm._id, is_active: true } },
         { $group: { _id: "$species", count: { $sum: 1 } } },
@@ -153,6 +145,10 @@ const getFarmStats = async (req, res) => {
         { $group: { _id: "$health_status", count: { $sum: 1 } } },
       ]),
       Animal.countDocuments({ farm_id: farm._id, is_active: true }),
+      Vaccination.countDocuments({
+        animal_id: { $in: animalIds },
+        next_due_date: { $gte: new Date(), $lte: sevenDaysFromNow }
+      }),
     ]);
 
     return res.status(200).json({
@@ -160,9 +156,10 @@ const getFarmStats = async (req, res) => {
       data: {
         farm,
         stats: {
-          total_animals: totalCount,
-          by_species: speciesStats,
+          total_animals:    totalCount,
+          by_species:       speciesStats,
           by_health_status: healthStats,
+          upcoming_vaccinations: upcomingVaccinationsCount,
         },
       },
     });

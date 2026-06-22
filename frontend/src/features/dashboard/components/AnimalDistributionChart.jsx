@@ -51,15 +51,38 @@ const CustomLabel = ({ cx, cy, total }) => (
 );
 
 export default function AnimalDistributionChart() {
-  // ← هنا مربوط بالـ Redux store
-  const data = useSelector((state) => state.dashboard.animalDistribution);
-  const total = data.reduce((acc, d) => acc + d.value, 0);
+  const farmStats = useSelector((state) => state.farm.farmStats);
+  const bySpecies = farmStats?.stats?.by_species || [];
+
+  const speciesLabels = {
+    cattle: 'الأبقار',
+    sheep: 'الأغنام',
+    goat: 'الماعز',
+  };
+
+  const speciesColors = {
+    cattle: '#3d6b47',
+    sheep: '#5b9bd5',
+    goat: '#7c4d8a',
+  };
+
+  const total = bySpecies.reduce((acc, d) => acc + d.count, 0);
+
+  const data = bySpecies.map((item) => {
+    const percentage = total > 0 ? Math.round((item.count / total) * 100) : 0;
+    return {
+      name: speciesLabels[item._id] || item._id,
+      value: item.count,
+      percentage,
+      color: speciesColors[item._id] || '#7c7c7c',
+    };
+  });
 
   return (
     <div className='bg-white rounded-2xl p-5 shadow-sm border border-stone-100 h-full'>
       <h3 className='text-sm font-bold text-stone-700 mb-4'>توزيع الحيوانات</h3>
 
-      <ResponsiveContainer width='100%' height={220}>
+      <ResponsiveContainer width='105%' height={220}>
         <PieChart>
           <Pie
             data={data}

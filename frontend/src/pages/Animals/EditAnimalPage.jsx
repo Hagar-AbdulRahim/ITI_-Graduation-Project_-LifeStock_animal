@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
-import { ArrowRight, Save, X, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { ArrowRight, Save, X, Loader2 } from 'lucide-react';
 import { fetchAnimalById, updateExistingAnimal } from '../../redux/animalSlice';
 import { fetchMyFarms } from '../../redux/farmSlice';
 
@@ -18,7 +18,6 @@ const EditAnimalPage = () => {
   const dispatch = useDispatch();
 
   const { animal, loading, error } = useSelector((state) => state.animal);
-  const [imagePreview, setImagePreview] = useState(null);
 
   const {
     register,
@@ -47,9 +46,7 @@ const EditAnimalPage = () => {
         health_status: animal.health_status || 'healthy',
         notes: animal.notes || '',
       });
-      if (animal.imageUrl) {
-        setImagePreview(animal.imageUrl);
-      }
+
     }
   }, [animal, reset]);
 
@@ -73,14 +70,6 @@ const EditAnimalPage = () => {
     }
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result);
-      reader.readAsDataURL(file);
-    }
-  };
 
   const inputCls = (hasError) =>
     `w-full px-4 py-2.5 border rounded-xl text-sm outline-none transition-all font-cairo
@@ -131,32 +120,6 @@ const EditAnimalPage = () => {
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          {/* ── Section 1: Image ───────────────────────────────────── */}
-          <div className="bg-white rounded-[20px] border border-gray-200 shadow-sm p-6">
-            <h2 className="text-[14px] font-bold text-gray-900 mb-4 pb-3 border-b border-gray-100">صورة الحيوان</h2>
-            <div className="flex items-center gap-5">
-              <div className="relative w-28 h-28 rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center overflow-hidden flex-shrink-0 hover:border-[#2a5c2a] transition-colors cursor-pointer">
-                {imagePreview ? (
-                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="flex flex-col items-center gap-1">
-                    <ImageIcon className="w-7 h-7 text-gray-300" />
-                    <span className="text-[10px] text-gray-400 font-medium">رفع صورة</span>
-                  </div>
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                />
-              </div>
-              <div>
-                <p className="text-[13px] font-bold text-gray-700 mb-1">تحديث صورة الحيوان</p>
-                <p className="text-[12px] text-gray-400">JPG, PNG — حجم أقصى 5MB</p>
-              </div>
-            </div>
-          </div>
 
           {/* ── Section 2: Basic Info ──────────────────────────────── */}
           <div className="bg-white rounded-[20px] border border-gray-200 shadow-sm p-6">

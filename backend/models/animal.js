@@ -7,22 +7,15 @@ const animalSchema = new mongoose.Schema(
       ref: "Farm",
       required: true,
     },
-    name: {
+    tag_number: {
       type: String,
       required: true,
       trim: true,
-      minlength: 1,
-      maxlength: 100,
-    },
-    tag_number: {
-      type: String,
-      trim: true,
-      default: null,
     },
     species: {
       type: String,
       required: true,
-      enum: ["cattle", "sheep", "goat"], 
+      enum: ["cattle", "sheep", "goat"],
     },
     breed: {
       type: String,
@@ -35,14 +28,20 @@ const animalSchema = new mongoose.Schema(
       required: true,
       enum: ["male", "female"],
     },
-    birth_date: {
-      type: Date,
+
+    // ── العمر كقيمة + وحدة بدل تاريخ الميلاد ────────────────────────────────
+    age_value: {
+      type: Number,
       required: true,
-      validate: {
-        validator: (v) => v <= new Date(),
-        message: "تاريخ الميلاد لا يمكن أن يكون في المستقبل",
-      },
+      min: [0, "العمر لا يمكن أن يكون بالسالب"],
     },
+    age_unit: {
+      type: String,
+      required: true,
+      enum: ["months", "years"],
+      default: "months",
+    },
+
     weight_kg: {
       type: Number,
       min: [0.1, "الوزن يجب أن يكون أكبر من صفر"],
@@ -53,6 +52,13 @@ const animalSchema = new mongoose.Schema(
       enum: ["healthy", "sick", "critical", "deceased"],
       default: "healthy",
     },
+
+    // ── صورة الحيوان ──────────────────────────────────────────────────────────
+    image: {
+      type: String, // مسار الصورة: /uploads/animals/filename.jpg
+      default: null,
+    },
+
     notes: {
       type: String,
       trim: true,
@@ -69,21 +75,20 @@ const animalSchema = new mongoose.Schema(
   }
 );
 
-// ── Compound unique index: منع تكرار الاسم في نفس المزرعة ───────────────────
-// لو الحاج عبد الله حاول يضيف "مبروكة" تانية في نفس المزرعة → MongoDB بيرفض
-animalSchema.index({ farm_id: 1, name: 1 }, { unique: true });
-animalSchema.index({ farm_id: 1, health_status: 1 }); // للـ Dashboard stats
+// ── Compound unique index: منع تكرار رقم الوسم في نفس المزرعة فقط ──────────
+// (نفس رقم الوسم ممكن يتكرر في مزرعة تانية بدون مشكلة)
+animalSchema.index({ farm_id: 1, tag_number: 1 }, { unique: true });
+animalSchema.index({ farm_id: 1, health_status: 1 });
 animalSchema.index({ farm_id: 1, species: 1 });
 
-// ── Virtual: عمر الحيوان بالأشهر ────────────────────────────────────────────
-animalSchema.virtual("age_months").get(function () {
-  if (!this.birth_date) return null;
-  const diff = Date.now() - this.birth_date.getTime();
-  return Math.floor(diff / (1000 * 60 * 60 * 24 * 30));
+// ── Virtual: عمر الحيوان بالشهور دايماً (للمقارنات الداخلية لو احتجناها) ───
+animalSchema.virtual("age_in_months").get(function () {
+  if (this.age_value == null) return null;
+  return this.age_unit === "years" ? this.age_value * 12 : this.age_value;
 });
 
 // ── Cascade: لو الحيوان اتحذف، احذف حالاته وتطعيماته ───────────────────────
-animalSchema.pre("findOneAndDelete", async function (next) {
+animalSchema.pre("findOneAndDelete", async function () {
   const animal = await this.model.findOne(this.getQuery());
   if (animal) {
     await Promise.all([
@@ -91,7 +96,6 @@ animalSchema.pre("findOneAndDelete", async function (next) {
       mongoose.model("Vaccination").deleteMany({ animal_id: animal._id }),
     ]);
   }
-  next();
 });
 
 module.exports = mongoose.model("Animal", animalSchema);

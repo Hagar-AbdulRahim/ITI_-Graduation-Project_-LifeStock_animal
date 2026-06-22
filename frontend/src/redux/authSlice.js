@@ -99,8 +99,8 @@ export const fetchProfile = createAsyncThunk(
 
 const initialState = {
   user: null,
-  accessToken: null,
-  isAuthenticated: false,
+  accessToken: localStorage.getItem('token') || null,
+  isAuthenticated: !!localStorage.getItem('token'),
   loading: false,
   error: null,
 };
@@ -116,6 +116,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.loading = false;
       state.error = null;
+      localStorage.removeItem('token');
     },
     updateToken: (state, action) => {
       state.accessToken = action.payload;
@@ -124,6 +125,7 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.accessToken = action.payload.access_token;
       state.isAuthenticated = true;
+      localStorage.setItem('token', action.payload.access_token);
     },
     clearError: (state) => {
       state.error = null;
@@ -140,6 +142,7 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.accessToken = action.payload.access_token;
       state.isAuthenticated = true;
+      localStorage.setItem('token', action.payload.access_token);
     });
     builder.addCase(loginUser.rejected, (state, action) => {
       state.loading = false;
@@ -156,6 +159,7 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.accessToken = action.payload.access_token;
       state.isAuthenticated = true;
+      localStorage.setItem('token', action.payload.access_token);
     });
     builder.addCase(loginWithGoogle.rejected, (state, action) => {
       state.loading = false;
@@ -180,6 +184,7 @@ const authSlice = createSlice({
       state.user = null;
       state.accessToken = null;
       state.isAuthenticated = false;
+      localStorage.removeItem('token');
     });
 
     // Fetch Profile
