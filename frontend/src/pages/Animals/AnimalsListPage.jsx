@@ -59,15 +59,39 @@ const SPECIES_MAP = {
 
 const GENDER_MAP = { male: 'ذكر', female: 'أنثى' };
 
-const calculateAge = (birthDate) => {
-  if (!birthDate) return '—';
-  const diffMs = Date.now() - new Date(birthDate);
+/**
+ * Supports both legacy birth_date and the API's age_value + age_unit fields.
+ */
+const formatAge = (animal) => {
+  // Prefer direct age_value / age_unit from the API
+  if (animal?.age_value != null && animal?.age_unit) {
+    const unitMap = { days: 'يوم', months: 'شهر', years: 'سنة' };
+    return `${animal.age_value} ${unitMap[animal.age_unit] || animal.age_unit}`;
+  }
+  // Fallback: calculate from birth_date
+  if (!animal?.birth_date) return '—';
+  const diffMs = Date.now() - new Date(animal.birth_date);
   const months = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30));
   if (months < 1) return `${Math.floor(diffMs / (1000 * 60 * 60 * 24))} يوم`;
   if (months < 12) return `${months} شهر`;
   const years = Math.floor(months / 12);
   const rem = months % 12;
   return rem > 0 ? `${years}.${rem} سنة` : `${years} سنة`;
+};
+
+/**
+ * Convert age_value+age_unit to months for filter comparison.
+ */
+const ageToMonths = (animal) => {
+  if (animal?.age_value != null && animal?.age_unit) {
+    if (animal.age_unit === 'days')   return animal.age_value / 30;
+    if (animal.age_unit === 'months') return animal.age_value;
+    if (animal.age_unit === 'years')  return animal.age_value * 12;
+  }
+  if (animal?.birth_date) {
+    return Math.floor((Date.now() - new Date(animal.birth_date)) / (1000 * 60 * 60 * 24 * 30));
+  }
+  return null;
 };
 
 const getHealthStyle = (status) => {
@@ -91,111 +115,136 @@ const getHealthStyle = (status) => {
   }
 };
 
-// ─── ANIMAL CARD (Matching design exactly) ─────────────────────────────────────
+// ─── STATS BANNER ─────────────────────────────────────────────────────────────
+const StatsBanner = ({ animals }) => {
+  const total    = animals.length;
+  const healthy  = animals.filter(a => a.health_status === 'healthy').length;
+  const sick     = animals.filter(a => a.health_status === 'sick').length;
+  const critical = animals.filter(a => a.health_status === 'critical').length;
+
+  const stats = [
+    { label: 'إجمالي الحيوانات', value: total,    color: 'text-[#2a5c2a]', bg: 'bg-[#eaf5eb]', icon: '🐾' },
+    { label: 'سليم',             value: healthy,  color: 'text-emerald-700', bg: 'bg-emerald-50', icon: '✅' },
+    { label: 'مراقبة',           value: sick,     color: 'text-amber-700',  bg: 'bg-amber-50',  icon: '⚠️' },
+    { label: 'حالة حرجة',        value: critical, color: 'text-red-700',    bg: 'bg-red-50',    icon: '🚨' },
+  ];
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-7">
+      {stats.map((s) => (
+        <div key={s.label} className={`${s.bg} rounded-2xl px-5 py-4 flex items-center gap-3 border border-white shadow-sm`}>
+          <span className="text-2xl">{s.icon}</span>
+          <div className="text-right flex-1">
+            <p className="text-[11px] text-gray-500 font-medium">{s.label}</p>
+            <p className={`text-2xl font-extrabold ${s.color}`}>{s.value}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ─── SPECIES EMOJI MAP ──────────────────────────────────────────────────────────────
+const SPECIES_EMOJI = { cattle: '🐄', sheep: '🐑', goat: '🐐', horse: '🐎', pig: '🐷' };
+const SPECIES_GRADIENT = {
+  cattle: 'from-amber-100 to-amber-50',
+  sheep:  'from-sky-100 to-sky-50',
+  goat:   'from-emerald-100 to-emerald-50',
+  horse:  'from-orange-100 to-orange-50',
+  pig:    'from-pink-100 to-pink-50',
+};
+
+// ─── ANIMAL CARD ──────────────────────────────────────────────────────────────
 const AnimalCard = ({ animal, onClick }) => {
   const h = getHealthStyle(animal?.health_status);
   const speciesLabel = SPECIES_MAP[animal?.species] || animal?.species || 'غير محدد';
-  const genderLabel = GENDER_MAP[animal?.gender] || '—';
-
-  const defaultImages = {
-    cattle: 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&q=80&w=500&h=280',
-    sheep:  'https://images.unsplash.com/photo-1484557985045-edf25e08da73?auto=format&fit=crop&q=80&w=500&h=280',
-    goat:   'https://images.unsplash.com/photo-1501706362039-c06b2d715385?auto=format&fit=crop&q=80&w=500&h=280',
-    horse:  'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?auto=format&fit=crop&q=80&w=500&h=280',
-    pig:    'https://images.unsplash.com/photo-1604848698030-c434ba08ece1?auto=format&fit=crop&q=80&w=500&h=280',
-  };
-  const imageUrl = animal?.imageUrl || defaultImages[animal?.species] || defaultImages.cattle;
+  const genderLabel  = GENDER_MAP[animal?.gender]   || '—';
+  const ageLabel     = formatAge(animal);
+  const hasImage     = !!(animal?.image);
+  const gradient     = SPECIES_GRADIENT[animal?.species] || 'from-gray-100 to-gray-50';
+  const emoji        = SPECIES_EMOJI[animal?.species]    || '🐾';
 
   return (
     <div
-      className="bg-white border border-gray-200 rounded-[20px] shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col font-cairo cursor-pointer group"
+      className="bg-white border border-gray-200 rounded-[20px] shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col font-cairo cursor-pointer group"
       onClick={onClick}
     >
-      {/* Image */}
-      <div className="relative h-[195px] w-full overflow-hidden bg-gray-100">
-        <img
-          src={imageUrl}
-          alt={animal?.name}
-          className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
-        />
-        {/* Health Badge — top LEFT of image */}
-        <div className={`absolute top-3 left-3 px-2.5 py-1 rounded-full flex items-center gap-1.5 text-[11px] font-bold shadow-sm ${h.badgeBg} ${h.badgeText}`}>
+      {/* Image / Placeholder */}
+      <div className="relative h-[190px] w-full overflow-hidden">
+        {hasImage ? (
+          <img
+            src={animal.image}
+            alt={speciesLabel}
+            className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
+          />
+        ) : (
+          <div className={`w-full h-full bg-gradient-to-br ${gradient} flex flex-col items-center justify-center gap-2`}>
+            <span className="text-6xl select-none">{emoji}</span>
+            <span className="text-[12px] font-bold text-gray-400">لا توجد صورة</span>
+          </div>
+        )}
+        {/* Health Badge */}
+        <div className={`absolute top-3 left-3 px-2.5 py-1 rounded-full flex items-center gap-1.5 text-[11px] font-bold shadow-sm backdrop-blur-sm ${h.badgeBg} ${h.badgeText}`}>
           <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${h.dot}`} />
           {h.label}
+        </div>
+        {/* Species chip top-right */}
+        <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/20 text-gray-800 text-[10px] font-bold backdrop-blur-sm border border-white/30">
+          {speciesLabel}
         </div>
       </div>
 
       {/* Content */}
       <div className="p-5 flex flex-col flex-grow">
-        {/* Header row: name on right, dots on left */}
-        <div className="flex items-start justify-between mb-1">
+        {/* Tag number header */}
+        <div className="flex items-center justify-between mb-4">
           <button
-            className="text-gray-400 hover:text-gray-600 transition-colors mt-0.5 flex-shrink-0"
+            className="text-gray-300 hover:text-gray-500 transition-colors"
             onClick={(e) => e.stopPropagation()}
           >
-            <MoreVertical className="w-5 h-5" />
+            <MoreVertical className="w-4 h-4" />
           </button>
           <div className="text-right">
-            <h3 className="font-bold text-gray-900 text-[17px] leading-tight">{animal?.name || 'بدون اسم'}</h3>
-            <p className="text-[12px] text-gray-400 font-medium mt-0.5">رقم التعريف: {animal?.tag_number || '---'}</p>
+            <p className="text-[11px] text-gray-400 font-medium">رقم التعريف</p>
+            <h3 className="font-extrabold text-[#2a5c2a] text-[18px] tracking-wide leading-tight">
+              {animal?.tag_number || '---'}
+            </h3>
           </div>
         </div>
 
-        {/* Stats Grid — 2 columns, 3 rows */}
-        <div className="grid grid-cols-2 gap-x-2 gap-y-3 my-4 text-[12px]">
-          {/* النوع */}
-          <div className="flex items-center gap-2 flex-row-reverse justify-end">
-            <div className="text-right">
-              <p className="text-gray-400 font-medium">النوع</p>
-              <p className="font-bold text-gray-900">{speciesLabel}</p>
-            </div>
-            <div className="w-7 h-7 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0">
-              <Dna className="w-3.5 h-3.5 text-gray-400" />
-            </div>
+        {/* Key stats — 3 highlighted cells */}
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          {/* Weight */}
+          <div className="bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
+            <Weight className="w-4 h-4 text-[#2a5c2a] mx-auto mb-1" />
+            <p className="text-[10px] text-gray-400 font-medium">الوزن</p>
+            <p className="font-extrabold text-gray-900 text-[13px]">
+              {animal?.weight_kg != null ? `${animal.weight_kg} كجم` : '—'}
+            </p>
           </div>
-
-          {/* العمر */}
-          <div className="flex items-center gap-2 flex-row-reverse justify-end">
-            <div className="text-right">
-              <p className="text-gray-400 font-medium">العمر</p>
-              <p className="font-bold text-gray-900">{calculateAge(animal?.birth_date)}</p>
-            </div>
-            <div className="w-7 h-7 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0">
-              <CalendarDays className="w-3.5 h-3.5 text-gray-400" />
-            </div>
+          {/* Age */}
+          <div className="bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
+            <CalendarDays className="w-4 h-4 text-[#2a5c2a] mx-auto mb-1" />
+            <p className="text-[10px] text-gray-400 font-medium">العمر</p>
+            <p className="font-extrabold text-gray-900 text-[13px]">{ageLabel}</p>
           </div>
-
-          {/* الوزن */}
-          <div className="flex items-center gap-2 flex-row-reverse justify-end">
-            <div className="text-right">
-              <p className="text-gray-400 font-medium">الوزن</p>
-              <p className="font-bold text-gray-900">{animal?.weight_kg ? `${animal.weight_kg} كجم` : '—'}</p>
-            </div>
-            <div className="w-7 h-7 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0">
-              <Weight className="w-3.5 h-3.5 text-gray-400" />
-            </div>
-          </div>
-
-          {/* الجنس */}
-          <div className="flex items-center gap-2 flex-row-reverse justify-end">
-            <div className="text-right">
-              <p className="text-gray-400 font-medium">الجنس</p>
-              <p className={`font-bold ${animal?.gender === 'female' ? 'text-pink-500' : 'text-blue-500'}`}>
-                {genderLabel}
-              </p>
-            </div>
-            <div className="w-7 h-7 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0">
-              <Thermometer className="w-3.5 h-3.5 text-gray-400" />
-            </div>
+          {/* Gender */}
+          <div className="bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
+            <Dna className="w-4 h-4 text-[#2a5c2a] mx-auto mb-1" />
+            <p className="text-[10px] text-gray-400 font-medium">الجنس</p>
+            <p className={`font-extrabold text-[13px] ${animal?.gender === 'female' ? 'text-pink-500' : 'text-blue-500'}`}>
+              {genderLabel}
+            </p>
           </div>
         </div>
 
         {/* CTA Button */}
         <button
-          className={`w-full py-2.5 rounded-xl text-[13px] font-bold transition-colors mt-auto ${h.btnBg}`}
+          className="w-full py-2.5 rounded-xl text-[13px] font-bold transition-all duration-200 mt-auto bg-[#2a5c2a] text-white hover:bg-[#1e4520] hover:shadow-md flex items-center justify-center gap-2"
           onClick={(e) => { e.stopPropagation(); onClick && onClick(); }}
         >
-          {h.btnText}
+          <HeartPulse className="w-4 h-4" />
+          انتقل إلى تفاصيل الحيوان
         </button>
       </div>
     </div>
@@ -254,21 +303,26 @@ const AnimalsListPage = () => {
     }
   }, [dispatch, farmId]);
 
-  const isDummy = !farmId || farmId === 'dummy' || !!error.animals;
-  const rawAnimals = (isDummy || !farmAnimals?.length) ? MOCK_ANIMALS : farmAnimals;
+  // Show real data if the API loaded something; only fall back to mock on error with no data
+  const hasRealData = farmAnimals?.length > 0;
+  const isDummy = !farmId || farmId === 'dummy' || (!hasRealData && !!error.animals);
+  const rawAnimals = isDummy ? MOCK_ANIMALS : (hasRealData ? farmAnimals : []);
 
   const displayAnimals = rawAnimals.filter((a) => {
     const matchSpecies = filterSpecies === 'all' || a.species === filterSpecies;
     const matchStatus  = filterStatus === 'all'  || a.health_status === filterStatus;
     const matchSearch  = !searchTerm ||
-      a.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      a.tag_number?.toLowerCase().includes(searchTerm.toLowerCase());
+      (a.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (a.tag_number?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (a.breed?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     let matchAge = true;
-    if (filterAge !== 'all' && a.birth_date) {
-      const months = Math.floor((Date.now() - new Date(a.birth_date)) / (1000*60*60*24*30));
-      if (filterAge === 'young') matchAge = months < 12;
-      else if (filterAge === 'mid') matchAge = months >= 12 && months < 36;
-      else if (filterAge === 'adult') matchAge = months >= 36;
+    if (filterAge !== 'all') {
+      const months = ageToMonths(a);
+      if (months !== null) {
+        if (filterAge === 'young') matchAge = months < 12;
+        else if (filterAge === 'mid') matchAge = months >= 12 && months < 36;
+        else if (filterAge === 'adult') matchAge = months >= 36;
+      }
     }
     return matchSpecies && matchStatus && matchSearch && matchAge;
   });
@@ -379,8 +433,16 @@ const AnimalsListPage = () => {
           </div>
         </div>
 
+        {/* ── Stats Banner ───────────────────────────────────────────── */}
+        <StatsBanner animals={rawAnimals} />
+
         {/* ── Animals Grid ──────────────────────────────────────────── */}
-        {displayAnimals.length === 0 ? (
+        {loading.animals && !hasRealData ? (
+          <div className="flex-1 flex flex-col items-center justify-center py-20">
+            <Loader2 className="w-10 h-10 text-[#2a5c2a] animate-spin mb-4" />
+            <p className="text-gray-400 font-medium text-sm">جاري تحميل الحيوانات...</p>
+          </div>
+        ) : displayAnimals.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">
             <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
               <PawPrint className="w-10 h-10 text-gray-300" />
@@ -403,7 +465,7 @@ const AnimalsListPage = () => {
         {/* ── Pagination ────────────────────────────────────────────── */}
         <div className="flex items-center justify-between mt-10 pt-6">
           <div className="text-[12px] text-gray-500 font-medium">
-            عرض 1-{Math.min(12, displayAnimals.length)} من أصل {isDummy ? '482' : rawAnimals.length} حيوان
+            عرض 1-{Math.min(12, displayAnimals.length)} من أصل {rawAnimals.length} حيوان
           </div>
           <div className="flex items-center gap-2" dir="ltr">
             <button className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 bg-white transition-colors">

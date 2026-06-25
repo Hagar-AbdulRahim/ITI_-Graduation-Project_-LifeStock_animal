@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { ArrowRight, Save, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { addNewAnimal } from '../../redux/animalSlice';
-import { fetchMyFarms } from '../../redux/farmSlice';
 
 // ─── Backend Animal Model (for reference) ─────────────────────────────────────
 // Required: farm_id, name, species (cattle|sheep|goat), gender (male|female), birth_date
@@ -13,13 +12,13 @@ import { fetchMyFarms } from '../../redux/farmSlice';
 // ─────────────────────────────────────────────────────────────────────────────
 
 const AddAnimalPage = () => {
-  const { farmId } = useParams(); // optional: pre-fill farm if coming from farm page
+  const { farmId } = useParams(); // farm_id comes from the URL — no need to select it
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { farms } = useSelector((state) => state.farm);
   const { loading, error } = useSelector((state) => state.animal);
 
+  const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
   const {
@@ -27,24 +26,21 @@ const AddAnimalPage = () => {
     handleSubmit,
     formState: { errors },
   } = useForm({
-    defaultValues: { farm_id: farmId || '' },
+    defaultValues: { age_unit: 'months' },
   });
-
-  useEffect(() => {
-    dispatch(fetchMyFarms());
-  }, [dispatch]);
 
   const onSubmit = async (data) => {
     const payload = {
-      farm_id:    data.farm_id,
-      name:       data.name.trim(),
-      species:    data.species,        // cattle | sheep | goat (backend enum)
-      gender:     data.gender,         // male | female (backend enum)
-      birth_date: data.birth_date,
-      ...(data.tag_number && { tag_number:  data.tag_number.trim() }),
-      ...(data.breed      && { breed:       data.breed.trim() }),
-      ...(data.weight_kg  && { weight_kg:   Number(data.weight_kg) }),
-      ...(data.notes      && { notes:       data.notes.trim() }),
+      farm_id: farmId,                    // always taken from URL
+      species: data.species,              // cattle | sheep | goat
+      gender: data.gender,              // male | female
+      age_value: Number(data.age_value),   // numeric age
+      age_unit: data.age_unit,            // months | years
+      ...(data.name && { name: data.name.trim() }),
+      ...(data.tag_number && { tag_number: data.tag_number.trim() }),
+      ...(data.breed && { breed: data.breed.trim() }),
+      ...(data.weight_kg && { weight_kg: Number(data.weight_kg) }),
+      ...(data.notes && { notes: data.notes.trim() }),
     };
 
     try {
@@ -58,10 +54,16 @@ const AddAnimalPage = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => setImagePreview(reader.result);
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
   };
 
   const inputCls = (hasError) =>
@@ -112,9 +114,19 @@ const AddAnimalPage = () => {
           <div className="bg-white rounded-[20px] border border-gray-200 shadow-sm p-6">
             <h2 className="text-[14px] font-bold text-gray-900 mb-4 pb-3 border-b border-gray-100">صورة الحيوان</h2>
             <div className="flex items-center gap-5">
+              {/* Image preview area */}
               <div className="relative w-28 h-28 rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center overflow-hidden flex-shrink-0 hover:border-[#2a5c2a] transition-colors cursor-pointer">
                 {imagePreview ? (
-                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  <>
+                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="absolute top-1 left-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center shadow"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </>
                 ) : (
                   <div className="flex flex-col items-center gap-1">
                     <ImageIcon className="w-7 h-7 text-gray-300" />
@@ -143,17 +155,7 @@ const AddAnimalPage = () => {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-              {/* Name */}
-              <div>
-                <label className={labelCls}>اسم الحيوان <span className="text-red-400">*</span></label>
-                <input
-                  type="text"
-                  {...register('name', { required: 'الاسم مطلوب', maxLength: { value: 100, message: 'الاسم طويل جداً' } })}
-                  placeholder="مثال: بيسي، مبروكة..."
-                  className={inputCls(errors.name)}
-                />
-                {errors.name && <p className="text-[11px] text-red-500 mt-1">{errors.name.message}</p>}
-              </div>
+
 
               {/* Tag Number */}
               <div>
@@ -195,16 +197,33 @@ const AddAnimalPage = () => {
                 {errors.gender && <p className="text-[11px] text-red-500 mt-1">{errors.gender.message}</p>}
               </div>
 
-              {/* Birth Date — required, must be in the past */}
-              <div>
-                <label className={labelCls}>تاريخ الميلاد <span className="text-red-400">*</span></label>
-                <input
-                  type="date"
-                  max={new Date().toISOString().split('T')[0]}
-                  {...register('birth_date', { required: 'تاريخ الميلاد مطلوب' })}
-                  className={inputCls(errors.birth_date)}
-                />
-                {errors.birth_date && <p className="text-[11px] text-red-500 mt-1">{errors.birth_date.message}</p>}
+              {/* Age value + unit — two inputs side by side */}
+              <div className="md:col-span-2">
+                <label className={labelCls}>العمر <span className="text-red-400">*</span></label>
+                <div className="flex gap-3">
+                  {/* Number input */}
+                  <input
+                    type="number"
+                    min="1"
+                    max="999"
+                    {...register('age_value', {
+                      required: 'العمر مطلوب',
+                      min: { value: 1, message: 'يجب أن يكون العمر أكبر من صفر' },
+                      max: { value: 999, message: 'رقم كبير جداً' },
+                    })}
+                    placeholder="مثال: 10"
+                    className={`${inputCls(errors.age_value)} flex-1`}
+                  />
+                  {/* Unit selector */}
+                  <select
+                    {...register('age_unit', { required: true })}
+                    className={`${inputCls(false)} bg-white w-36 flex-shrink-0`}
+                  >
+                    <option value="months">شهر</option>
+                    <option value="years">سنة</option>
+                  </select>
+                </div>
+                {errors.age_value && <p className="text-[11px] text-red-500 mt-1">{errors.age_value.message}</p>}
               </div>
 
               {/* Breed */}
@@ -233,21 +252,6 @@ const AddAnimalPage = () => {
                   className={inputCls(errors.weight_kg)}
                 />
                 {errors.weight_kg && <p className="text-[11px] text-red-500 mt-1">{errors.weight_kg.message}</p>}
-              </div>
-
-              {/* Farm Selection */}
-              <div>
-                <label className={labelCls}>المزرعة <span className="text-red-400">*</span></label>
-                <select
-                  {...register('farm_id', { required: 'المزرعة مطلوبة' })}
-                  className={`${inputCls(errors.farm_id)} bg-white`}
-                >
-                  <option value="">اختر المزرعة...</option>
-                  {farms?.map((farm) => (
-                    <option key={farm._id} value={farm._id}>{farm.name}</option>
-                  ))}
-                </select>
-                {errors.farm_id && <p className="text-[11px] text-red-500 mt-1">{errors.farm_id.message}</p>}
               </div>
             </div>
           </div>
