@@ -43,9 +43,11 @@ export const fetchFarmStats = createAsyncThunk(
   'farm/fetchFarmStats',
   async (farmId, { rejectWithValue }) => {
     try {
-      // GET /api/farms/:id/stats — real endpoint that exists in backend
+      // GET /api/farms/:id/stats
+      // axios: response.data = { success, data: { farm, stats: {...} } }
+      // farmService already returns response.data, so result = { success, data: { farm, stats } }
       const result = await farmService.getFarmStats(farmId);
-      return result.data; // {farm, stats: {total_animals, by_species, by_health_status}}
+      return result.data; // { farm, stats: { total_animals, by_species, by_health_status, upcoming_vaccinations, emergencies, ... } }
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'فشل في تحميل إحصائيات المزرعة');
     }

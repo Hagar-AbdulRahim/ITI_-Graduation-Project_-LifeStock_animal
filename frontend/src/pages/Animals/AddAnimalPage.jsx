@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
-import { ArrowRight, Save, X, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { ArrowRight, Save, X, Loader2, ImagePlus } from 'lucide-react';
 import { addNewAnimal } from '../../redux/animalSlice';
+import { fetchMyFarms } from '../../redux/farmSlice';
+import cowsFieldBg from '../../assets/images/cows-field-bg.jpg';
 
 // ─── Backend Animal Model (for reference) ─────────────────────────────────────
 // Required: farm_id, name, species (cattle|sheep|goat), gender (male|female), birth_date
@@ -18,52 +20,49 @@ const AddAnimalPage = () => {
 
   const { loading, error } = useSelector((state) => state.animal);
 
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm({
     defaultValues: { age_unit: 'months' },
   });
 
+  const selectedImage = watch('image');
+
+  useEffect(() => {
+    dispatch(fetchMyFarms());
+  }, [dispatch]);
+
   const onSubmit = async (data) => {
-    const payload = {
-      farm_id: farmId,                    // always taken from URL
-      species: data.species,              // cattle | sheep | goat
-      gender: data.gender,              // male | female
-      age_value: Number(data.age_value),   // numeric age
-      age_unit: data.age_unit,            // months | years
-      ...(data.name && { name: data.name.trim() }),
-      ...(data.tag_number && { tag_number: data.tag_number.trim() }),
-      ...(data.breed && { breed: data.breed.trim() }),
-      ...(data.weight_kg && { weight_kg: Number(data.weight_kg) }),
-      ...(data.notes && { notes: data.notes.trim() }),
-    };
+    const formData = new FormData();
+    const actualFarmId = (farmId && farmId !== 'dummy') ? farmId : (farms && farms.length > 0 ? farms[0]._id : null);
+
+    if (actualFarmId) formData.append('farm_id', actualFarmId);
+    formData.append('species', data.species);
+    formData.append('gender', data.gender);
+    formData.append('age_value', Number(data.age_value));
+    formData.append('age_unit', data.age_unit);
+    formData.append('health_status', data.health_status || 'healthy');
+
+    const finalTagNumber = data.tag_number ? data.tag_number.trim() : `TAG-${Math.floor(Math.random() * 1000000)}`;
+    formData.append('tag_number', finalTagNumber);
+    if (data.breed) formData.append('breed', data.breed.trim());
+    if (data.weight_kg) formData.append('weight_kg', Number(data.weight_kg));
+    if (data.notes) formData.append('notes', data.notes.trim());
+
+    if (data.image && data.image[0]) {
+      formData.append('image', data.image[0]);
+    }
 
     try {
-      await dispatch(addNewAnimal(payload)).unwrap();
-      navigate(farmId ? `/farms/${farmId}/animals` : '/farms');
+      await dispatch(addNewAnimal(formData)).unwrap();
+      navigate(actualFarmId ? `/farms/${actualFarmId}/animals` : '/farms');
     } catch (err) {
       // Error shown via Redux state
     }
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleRemoveImage = () => {
-    setImageFile(null);
-    setImagePreview(null);
   };
 
   const inputCls = (hasError) =>
@@ -75,7 +74,19 @@ const AddAnimalPage = () => {
   const labelCls = 'block text-[13px] font-bold text-gray-700 mb-2';
 
   return (
-    <div className="min-h-screen bg-[#f5f7f5] font-cairo" dir="rtl">
+    <div className="min-h-screen font-cairo relative" dir="rtl">
+      {/* ── Background Image ─────────────────────────────────────── */}
+      <div
+        className="fixed inset-0 z-0"
+        style={{
+          backgroundImage: `url(${cowsFieldBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      />
+      {/* ── Overlay ──────────────────────────────────────────────── */}
+      <div className="fixed inset-0 z-0 bg-black/40 backdrop-blur-[2px]" />
       {/* ── Sticky Header ─────────────────────────────────────────── */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-20 shadow-sm">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -99,7 +110,7 @@ const AddAnimalPage = () => {
         </div>
       </div>
 
-      <main className="max-w-3xl mx-auto px-6 py-8">
+      <main className="max-w-3xl mx-auto px-6 py-8 relative z-10">
         {/* Error Banner */}
         {error?.saving && (
           <div className="mb-5 p-4 bg-red-50 text-red-700 rounded-xl border border-red-100 text-sm font-medium flex items-center gap-2">
@@ -110,44 +121,6 @@ const AddAnimalPage = () => {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 
-          {/* ── Section 1: Image ───────────────────────────────────── */}
-          <div className="bg-white rounded-[20px] border border-gray-200 shadow-sm p-6">
-            <h2 className="text-[14px] font-bold text-gray-900 mb-4 pb-3 border-b border-gray-100">صورة الحيوان</h2>
-            <div className="flex items-center gap-5">
-              {/* Image preview area */}
-              <div className="relative w-28 h-28 rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center overflow-hidden flex-shrink-0 hover:border-[#2a5c2a] transition-colors cursor-pointer">
-                {imagePreview ? (
-                  <>
-                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={handleRemoveImage}
-                      className="absolute top-1 left-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center shadow"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </>
-                ) : (
-                  <div className="flex flex-col items-center gap-1">
-                    <ImageIcon className="w-7 h-7 text-gray-300" />
-                    <span className="text-[10px] text-gray-400 font-medium">رفع صورة</span>
-                  </div>
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                />
-              </div>
-              <div>
-                <p className="text-[13px] font-bold text-gray-700 mb-1">اختر صورة للحيوان</p>
-                <p className="text-[12px] text-gray-400">JPG, PNG — حجم أقصى 5MB</p>
-                <p className="text-[11px] text-gray-400 mt-1">اختياري — يمكن إضافتها لاحقاً</p>
-              </div>
-            </div>
-          </div>
-
           {/* ── Section 2: Basic Info ──────────────────────────────── */}
           <div className="bg-white rounded-[20px] border border-gray-200 shadow-sm p-6">
             <h2 className="text-[14px] font-bold text-gray-900 mb-4 pb-3 border-b border-gray-100">
@@ -155,7 +128,58 @@ const AddAnimalPage = () => {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
+              {/* Image Upload Big Box */}
+              <div className="md:col-span-2 mb-2">
+                <label className={labelCls}>صورة الحيوان (اختياري)</label>
+                <div className={`relative w-full h-40 bg-gray-50 hover:bg-gray-100 transition-all border-2 border-dashed ${errors.image ? 'border-red-400' : 'border-gray-300'} rounded-2xl flex flex-col items-center justify-center cursor-pointer group overflow-hidden`}>
+                  <input
+                    type="file"
+                    accept="image/jpeg, image/png, image/jpg, image/webp"
+                    {...register('image', {
+                      validate: {
+                        lessThan5MB: files => !files || files.length === 0 || files[0].size <= 5 * 1024 * 1024 || 'حجم الصورة يجب أن لا يتجاوز 5 ميجابايت'
+                      }
+                    })}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                  />
+                  <ImagePlus className={`w-10 h-10 mb-3 transition-colors ${selectedImage && selectedImage.length > 0 ? 'text-[#2a5c2a]' : 'text-gray-400 group-hover:text-[#2a5c2a]'}`} />
+                  {selectedImage && selectedImage.length > 0 ? (
+                    <p className="text-[14px] font-bold text-[#2a5c2a]">{selectedImage[0].name}</p>
+                  ) : (
+                    <>
+                      <p className="text-[14px] font-bold text-gray-600 group-hover:text-[#2a5c2a] transition-colors">اضغط هنا لرفع صورة الحيوان</p>
+                      <p className="text-[12px] text-gray-400 mt-1">يُسمح بـ: JPEG, JPG, PNG, WEBP (الحد الأقصى: 5MB)</p>
+                    </>
+                  )}
+                </div>
+                {errors.image && <p className="text-[12px] text-red-500 mt-2 font-medium">{errors.image.message}</p>}
+              </div>
 
+              {/* Age */}
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <label className={labelCls}>العمر <span className="text-red-400">*</span></label>
+                  <input
+                    type="number"
+                    min="0"
+                    {...register('age_value', { required: 'العمر مطلوب', min: { value: 0, message: 'لا يمكن أن يكون أقل من صفر' } })}
+                    placeholder="مثال: 8"
+                    className={inputCls(errors.age_value)}
+                  />
+                  {errors.age_value && <p className="text-[11px] text-red-500 mt-1">{errors.age_value.message}</p>}
+                </div>
+                <div className="w-1/3">
+                  <label className={labelCls}>الوحدة <span className="text-red-400">*</span></label>
+                  <select
+                    {...register('age_unit', { required: 'الوحدة مطلوبة' })}
+                    className={`${inputCls(errors.age_unit)} bg-white`}
+                  >
+                    <option value="months">أشهر</option>
+                    <option value="years">سنوات</option>
+                  </select>
+                  {errors.age_unit && <p className="text-[11px] text-red-500 mt-1">{errors.age_unit.message}</p>}
+                </div>
+              </div>
 
               {/* Tag Number */}
               <div>
@@ -197,34 +221,22 @@ const AddAnimalPage = () => {
                 {errors.gender && <p className="text-[11px] text-red-500 mt-1">{errors.gender.message}</p>}
               </div>
 
-              {/* Age value + unit — two inputs side by side */}
-              <div className="md:col-span-2">
-                <label className={labelCls}>العمر <span className="text-red-400">*</span></label>
-                <div className="flex gap-3">
-                  {/* Number input */}
-                  <input
-                    type="number"
-                    min="1"
-                    max="999"
-                    {...register('age_value', {
-                      required: 'العمر مطلوب',
-                      min: { value: 1, message: 'يجب أن يكون العمر أكبر من صفر' },
-                      max: { value: 999, message: 'رقم كبير جداً' },
-                    })}
-                    placeholder="مثال: 10"
-                    className={`${inputCls(errors.age_value)} flex-1`}
-                  />
-                  {/* Unit selector */}
-                  <select
-                    {...register('age_unit', { required: true })}
-                    className={`${inputCls(false)} bg-white w-36 flex-shrink-0`}
-                  >
-                    <option value="months">شهر</option>
-                    <option value="years">سنة</option>
-                  </select>
-                </div>
-                {errors.age_value && <p className="text-[11px] text-red-500 mt-1">{errors.age_value.message}</p>}
+              {/* Health Status */}
+              <div>
+                <label className={labelCls}>الحالة الصحية</label>
+                <select
+                  {...register('health_status')}
+                  className={`${inputCls(errors.health_status)} bg-white`}
+                  defaultValue="healthy"
+                >
+                  <option value="healthy">سليم</option>
+                  <option value="sick">مريض / مراقبة</option>
+                  <option value="critical">حالة حرجة</option>
+                  <option value="deceased">متوفى</option>
+                </select>
               </div>
+
+
 
               {/* Breed */}
               <div>
@@ -253,6 +265,8 @@ const AddAnimalPage = () => {
                 />
                 {errors.weight_kg && <p className="text-[11px] text-red-500 mt-1">{errors.weight_kg.message}</p>}
               </div>
+
+
             </div>
           </div>
 

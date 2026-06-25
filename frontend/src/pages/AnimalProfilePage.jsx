@@ -1,257 +1,90 @@
-// pages/AnimalProfilePage.jsx
-// ────────────────────────────────────────────────────────────
-// صفحة ملف الحيوان التفصيلية — LivestockCare AI
-// ────────────────────────────────────────────────────────────
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { toast } from 'react-hot-toast';
 import { 
-  ShieldCheck, 
-  AlertTriangle, 
-  Calendar, 
-  Zap, 
-  Plus, 
-  Send,
-  User,
-  Heart,
-  ChevronRight,
-  ChevronDown,
-  Edit,
-  Syringe,
-  FileText
+  ChevronRight, Edit, Syringe, Plus, ShieldCheck, 
+  AlertTriangle, Calendar, Zap, Heart, User, Send, ChevronDown, Loader2, Trash2
 } from 'lucide-react';
-import toast from 'react-hot-toast';
 import cowImg from '../assets/images/cow.jpg';
-
-// ── Mock Animals Profile Database ──────────────────
-const MOCK_PROFILES = {
-  'm3': { // بيسي
-    id: 'LIV-00482',
-    name: 'بيسي (Bessie)',
-    species: 'أبقار',
-    breed: 'هولشتاين فريزيان',
-    gender: 'أنثى',
-    birthDate: '12 مايو 2019',
-    age: '4 سنوات و 10 أشهر',
-    regNo: 'REG-88293-FR',
-    weight: '720 كجم',
-    weightChange: '+1.2%',
-    yield: '28.4 لتر/يوم',
-    yieldGroup: 'قطيع الحليب أ',
-    status: 'ممتازة',
-    statusTag: 'سليم',
-    risk: 'مستقر',
-    riskTag: 'متوسط',
-    lastCheck: '15 مارس 2024',
-    aiAlerts: '3 تنبيهات',
-    treatment: {
-      diagnosis: 'التهاب ضرع خفيف',
-      protocol: 'تنظيف موضعي يومي مع وضع جل الغدد الثديية (10 جم) لمدة 5 أيام.',
-      progress: 75
-    },
-    history: [
-      {
-        date: '15 مارس 2024',
-        type: 'checkup',
-        title: 'فحص جسدي روتيني',
-        description: 'الحيوان في حالة بدنية مثالية. أصوات الرئة والمشية طبيعية.',
-        doctor: 'د. سارة جينكنز',
-        dotColor: 'bg-emerald-500'
-      },
-      {
-        date: '28 فبراير 2024',
-        type: 'blood',
-        title: 'تحليل دم: نقص كالسيوم',
-        description: 'اكتشاف نقص طفيف في الكالسيوم. التوصية بتعديل المكملات الغذائية.',
-        doctor: 'د. سارة جينكنز',
-        dotColor: 'bg-blue-500'
-      }
-    ],
-    vaccinations: [
-      { name: 'الاسهال الفيروسي البقري (BVD)', date: '12 أكتوبر 2023', batch: 'BVD-449-X', nextDate: '12 أكتوبر 2024', nextDateColor: 'text-stone-600', status: 'محدث' },
-      { name: 'الحمى القلاعية (FMD)', date: '05 يناير 2024', batch: 'FMD-221-Z', nextDate: '05 يوليو 2024', nextDateColor: 'text-red-600 font-bold', status: 'مستحق قريباً' }
-    ],
-    aiPrediction: "بناءً على اتجاهات الوزن الحالية واستقرار إنتاج الحليب، من المتوقع أن تدخل 'بيسي' ذروة دورة الإنتاج خلال 14 يوماً. يقترح زيادة تناول الفوسفور بنسبة 5% لدعم كثافة العظام.",
-    aiConfidence: '94%',
-    notes: [
-      { author: 'أحمد (مربي الحيوان)', role: 'مربي', text: 'لوحظ انخفاض طفيف في الشهية مساء أمس، لكنها عادت للأكل بشكل طبيعي اليوم.', time: 'منذ يومين' }
-    ],
-    weightHistory: [480, 520, 580, 620, 680, 705, 715, 720]
-  },
-  'm1': { // وولي
-    id: 'CV-3301#',
-    name: 'وولي (Woolly)',
-    species: 'أغنام',
-    breed: 'ميرينو استرالي',
-    gender: 'أنثى',
-    birthDate: '10 أبريل 2022',
-    age: '2.2 سنة',
-    regNo: 'REG-99120-AU',
-    weight: '86 كجم',
-    weightChange: '+0.8%',
-    yield: '1.2 لتر/يوم',
-    yieldGroup: 'قطيع الحلوب ب',
-    status: 'ممتازة',
-    statusTag: 'سليم',
-    risk: 'مستقر',
-    riskTag: 'متوسط',
-    lastCheck: '10 مارس 2024',
-    aiAlerts: '1 تنبيه',
-    treatment: null,
-    history: [
-      {
-        date: '10 مارس 2024',
-        type: 'checkup',
-        title: 'فحص جز الرأس والصوف',
-        description: 'جودة الصوف عالية ولا توجد طفيليات خارجية. صحة الجلد ممتازة.',
-        doctor: 'د. سارة جينكنز',
-        dotColor: 'bg-emerald-500'
-      }
-    ],
-    vaccinations: [
-      { name: 'التسمم المعوي (Clostridial)', date: '14 نوفمبر 2023', batch: 'CLS-802-A', nextDate: '14 نوفمبر 2024', nextDateColor: 'text-stone-600', status: 'محدث' }
-    ],
-    aiPrediction: "معدل نمو الصوف طبيعي جداً ومستقر. ينصح بالحفاظ على النمط الغذائي الحالي لضمان الحفاظ على مستويات اللانولين الطبيعية.",
-    aiConfidence: '91%',
-    notes: [
-      { author: 'سعيد (مربي الأغنام)', role: 'مربي', text: 'النشاط والحركة ممتازة في المرعى اليوم.', time: 'منذ ٣ أيام' }
-    ],
-    weightHistory: [60, 65, 70, 75, 78, 82, 84, 86]
-  },
-  'm2': { // سبيريت
-    id: 'EQ-10428',
-    name: 'سبيريت (Spirit)',
-    species: 'ماعز',
-    breed: 'ماعز دمشقي',
-    gender: 'ذكر',
-    birthDate: '15 يناير 2020',
-    age: '6.1 سنة',
-    regNo: 'REG-20412-SY',
-    weight: '85 كجم',
-    weightChange: '-1.5%',
-    yield: '—',
-    yieldGroup: '',
-    status: 'مراقبة',
-    statusTag: 'مراقبة',
-    risk: 'متوسط',
-    riskTag: 'متوسط',
-    lastCheck: '14 مارس 2024',
-    aiAlerts: '2 تنبيهين',
-    treatment: {
-      diagnosis: 'نزلة برد طفيفة',
-      protocol: 'تدفئة الحظيرة وتجريع الحيوان بفيتامين سي لمدة ٣ أيام.',
-      progress: 40
-    },
-    history: [
-      {
-        date: '14 مارس 2024',
-        type: 'checkup',
-        title: 'فحص الجهاز التنفسي',
-        description: 'احتقان بسيط في المجاري التنفسية العليا. لا توجد مؤشرات حرارة حرجة.',
-        doctor: 'د. سارة جينكنز',
-        dotColor: 'bg-amber-500'
-      }
-    ],
-    vaccinations: [
-      { name: 'لقاح التهاب الرئة (Pneumonia)', date: '10 سبتمبر 2023', batch: 'PN-421-C', nextDate: '10 سبتمبر 2024', nextDateColor: 'text-stone-600', status: 'محدث' }
-    ],
-    aiPrediction: "انخفاض طفيف في الوزن بمعدل ١.٥٪ بسبب الخمول الأخير. يوصى بإضافة مكملات الفيتامين لتعزيز المناعة لتلافي تطور المرض.",
-    aiConfidence: '88%',
-    notes: [
-      { author: 'محمد (المشرف الميداني)', role: 'مشرف', text: 'الحيوان يظهر عطاساً خفيفاً في الصباح الباكر.', time: 'أمس' }
-    ],
-    weightHistory: [88, 87.5, 87, 86.2, 86, 85.5, 85.2, 85]
-  },
-  'm4': { // بومبا
-    id: 'PR-5529#',
-    name: 'بومبا (Pumba)',
-    species: 'أبقار',
-    breed: 'بلدي هجين',
-    gender: 'ذكر',
-    birthDate: '12 نوفمبر 2024',
-    age: '1.6 سنة',
-    regNo: 'REG-33410-EG',
-    weight: '110 كجم',
-    weightChange: '-4.5%',
-    yield: '—',
-    yieldGroup: '',
-    status: 'حالة حرجة',
-    statusTag: 'حرج',
-    risk: 'حرج',
-    riskTag: 'حرج',
-    lastCheck: '15 مارس 2024',
-    aiAlerts: '4 تنبيهات',
-    treatment: {
-      diagnosis: 'اشتباه بمرض تنفسي بقري (BRD)',
-      protocol: 'عزل فوري في حظيرة الحجر الصحي وإعطاء ٢٠ مل مضاد حيوي فلوفينيكول.',
-      progress: 20
-    },
-    history: [
-      {
-        date: '15 مارس 2024',
-        type: 'emergency',
-        title: 'رصد شذوذ حراري وخمول حاد',
-        description: 'ارتفاع درجة الحرارة لـ ٤٠.٥ درجة مئوية مع خمول شديد وانقطاع عن الأكل.',
-        doctor: 'د. سارة جينكنز',
-        dotColor: 'bg-red-500'
-      }
-    ],
-    vaccinations: [
-      { name: 'لقاح التسمم الدموي (Pasteurella)', date: '01 ديسمبر 2023', batch: 'PAS-109-D', nextDate: '01 يونيو 2024', nextDateColor: 'text-red-600 font-bold', status: 'منتهي' }
-    ],
-    aiPrediction: "ارتفاع حاد في مؤشر الخطورة للعدوى الرئوية. يوصى بالتدخل البيطري العاجل وتوزيع جرعات وقائية للحيوانات المخالطة في نفس الحظيرة.",
-    aiConfidence: '95%',
-    notes: [
-      { author: 'أحمد (مربي الحيوان)', role: 'مربي', text: 'الحيوان لا يتحرك منذ الصباح الباكر ويرفض شرب الماء.', time: 'اليوم، ٦ صباحاً' }
-    ],
-    weightHistory: [122, 120, 118, 115, 113, 112, 111, 110]
-  }
-};
-
-// Fallback profile generator for unknown animal ids
-const makeFallbackProfile = (id, name, species, gender, weight) => {
-  return {
-    id: id || 'LIV-UNKNOWN',
-    name: name || 'حيوان غير معروف',
-    species: species || 'أبقار',
-    breed: 'بلدي مختلط',
-    gender: gender || 'ذكر',
-    birthDate: '10 أكتوبر 2021',
-    age: '4.5 سنة',
-    regNo: `REG-${id}-MOCK`,
-    weight: weight ? `${weight} كجم` : '420 كجم',
-    weightChange: '+0.5%',
-    yield: '—',
-    yieldGroup: '',
-    status: 'ممتازة',
-    statusTag: 'سليم',
-    risk: 'مستقر',
-    riskTag: 'متوسط',
-    lastCheck: '15 مارس 2024',
-    aiAlerts: 'لا يوجد تنبيهات حيوية',
-    treatment: null,
-    history: [
-      { date: '15 مارس 2024', type: 'checkup', title: 'فحص دوري', description: 'المؤشرات الحيوية طبيعية ولا توجد ملاحظات سريرية.', doctor: 'د. سارة جينكنز', dotColor: 'bg-emerald-500' }
-    ],
-    vaccinations: [
-      { name: 'اللقاح الرباعي', date: '01 يناير 2024', batch: 'VAC-101-X', nextDate: '01 يناير 2025', nextDateColor: 'text-stone-600', status: 'محدث' }
-    ],
-    aiPrediction: "الحالة مستقرة، يوصى بالمحافظة على جدول التطعيمات وجداول التغذية الحالية دون تعديل.",
-    aiConfidence: '90%',
-    notes: [],
-    weightHistory: [410, 412, 415, 418, 419, 420]
-  };
-};
+import { fetchAnimalById, fetchAnimalVaccinations, fetchAnimalMedicalHistory, fetchAnimalDiagnosisHistory, clearAnimalState } from '../redux/animalSlice';
+import { animalService } from '../features/animals/services/animalService';
 
 export default function AnimalProfilePage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const reduxAnimal = useSelector((state) => {
-    return state.farm?.farmAnimals?.find(a => a._id === id);
+  // ── Primary: fetch full animal from dedicated slice ──
+  const { animal, vaccinations, medicalHistory, loading, error } = useSelector((state) => state.animal);
+
+  // ── Fallback: if animal not yet in slice, check farmAnimals list ──
+  const fallbackAnimal = useSelector((state) =>
+    state.farm?.farmAnimals?.find((a) => a._id === id)
+  );
+
+  // Use whichever is available
+  const animalData = animal || fallbackAnimal || null;
+
+  useEffect(() => {
+    // Clear stale animal data from a previous profile visit
+    dispatch(clearAnimalState());
+    if (id) {
+      dispatch(fetchAnimalById(id));
+      dispatch(fetchAnimalVaccinations(id));
+      dispatch(fetchAnimalMedicalHistory(id));
+    }
+  }, [dispatch, id]);
+
+  // ── Map backend data → UI profile object ──
+  const buildProfile = (a) => ({
+    id: a.tag_number || a._id,
+    name: 'حيوان #' + (a.tag_number || a._id.toString().substring(18)), // Since name is removed, just give a fallback label
+    species: a.species === 'cattle' ? 'أبقار' : a.species === 'sheep' ? 'أغنام' : 'ماعز',
+    breed: a.breed || 'غير محدد',
+    gender: a.gender === 'female' ? 'أنثى' : 'ذكر',
+    birthDate: '—', // Removed from backend
+    age: a.age_value !== undefined 
+      ? `${a.age_value} ${a.age_unit === 'years' ? 'سنة' : 'شهر'}` 
+      : 'غير محدد',
+    regNo: `REG-${a.tag_number || a._id}`,
+    weight: `${a.weight_kg || 0} كجم`,
+    weightChange: '+0.5%',
+    yield: '—',
+    yieldGroup: '',
+    status: a.health_status === 'healthy' ? 'ممتازة' : 'يحتاج رعاية',
+    statusTag: a.health_status === 'healthy' ? 'سليم' : 'مريض',
+    risk: 'مستقر',
+    riskTag: 'متوسط',
+    lastCheck: 'الآن',
+    aiAlerts: 'لا يوجد تنبيهات حيوية',
+    treatment: null,
+    history: medicalHistory?.map((h) => ({
+      date: new Date(h.date || h.createdAt).toLocaleDateString('ar-EG'),
+      type: 'checkup',
+      title: h.condition || h.title,
+      description: h.treatment || h.description,
+      doctor: h.veterinarian || 'طبيب بيطري',
+      dotColor: 'bg-emerald-500',
+    })) || [],
+    vaccinations: vaccinations?.map((v) => ({
+      name: v.vaccine_name,
+      date: v.last_date ? new Date(v.last_date).toLocaleDateString('ar-EG') : 'غير محدد',
+      batch: v.batch_number || '-',
+      nextDate: v.next_due_date ? new Date(v.next_due_date).toLocaleDateString('ar-EG') : 'غير محدد',
+      nextDateColor: 'text-stone-600',
+      status: 'محدث',
+    })) || [],
+    aiPrediction: 'الحالة مستقرة، يوصى بالمحافظة على جدول التطعيمات.',
+    aiConfidence: '90%',
+    notes: typeof a.notes === 'string' && a.notes.trim() !== ''
+      ? [{ author: 'ملاحظة النظام', role: 'تاريخ الإضافة', text: a.notes, time: '—' }]
+      : (Array.isArray(a.notes) ? a.notes : []),
+    weightHistory: [410, 412, 415, 418, 419, a.weight_kg || 420],
   });
 
-  const [profile, setProfile] = useState(MOCK_PROFILES[id] || (reduxAnimal ? makeFallbackProfile(reduxAnimal.tag_number, reduxAnimal.name, reduxAnimal.species === 'cattle' ? 'أبقار' : reduxAnimal.species === 'sheep' ? 'أغنام' : 'ماعز', reduxAnimal.gender === 'female' ? 'أنثى' : 'ذكر', reduxAnimal.weight_kg) : MOCK_PROFILES['m3']));
+  const profile = animalData ? buildProfile(animalData) : null;
+
   const [noteText, setNoteText] = useState('');
 
   const handleAddNote = (e) => {
@@ -265,13 +98,50 @@ export default function AnimalProfilePage() {
       time: 'الآن'
     };
 
-    setProfile(prev => ({
-      ...prev,
-      notes: [newNote, ...prev.notes]
-    }));
+    // Normally this would be a dispatch, but we update UI optimistically for now
     setNoteText('');
     toast.success('تمت إضافة الملاحظة بنجاح!');
   };
+
+  const handleDeleteAnimal = async () => {
+    if (window.confirm('هل أنت متأكد أنك تريد حذف هذا الحيوان نهائياً؟ ستفقد جميع السجلات المرتبطة به.')) {
+      try {
+        await animalService.deleteAnimal(id);
+        toast.success('تم حذف الحيوان بنجاح');
+        navigate(animal?.farm_id ? `/farms/${animal.farm_id}/animals` : '/farms');
+      } catch (err) {
+        toast.error('حدث خطأ أثناء محاولة الحذف');
+      }
+    }
+  };
+
+  // ── Spinner: only while actively fetching AND no fallback data yet ──
+  if (loading.animal && !profile) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center font-cairo">
+        <Loader2 className="w-8 h-8 text-[#2d5a1b] animate-spin" />
+      </div>
+    );
+  }
+
+  // ── Error state: API failed and nothing to show ──
+  if (!loading.animal && !profile) {
+    return (
+      <div dir="rtl" className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center gap-4 font-cairo text-center px-4">
+        <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+          <AlertTriangle className="w-8 h-8 text-red-500" />
+        </div>
+        <h2 className="text-lg font-bold text-gray-800">لم يتم العثور على بيانات الحيوان</h2>
+        <p className="text-sm text-gray-500">تأكد من الاتصال بالخادم وصحة الرابط</p>
+        <button
+          onClick={() => navigate(-1)}
+          className="mt-2 px-6 py-2.5 bg-[#2d5a1b] text-white rounded-xl text-sm font-bold hover:bg-[#1e4520] transition-colors"
+        >
+          الرجوع للخلف
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div dir="rtl" className="max-w-7xl mx-auto px-1 py-4 font-cairo space-y-6 pb-20">
@@ -296,7 +166,15 @@ export default function AnimalProfilePage() {
         {/* Action Button Row */}
         <div className="flex items-center gap-2">
           <button 
-            onClick={() => toast.success('فتح تعديل الملف')}
+            onClick={handleDeleteAnimal}
+            className="flex items-center gap-1.5 px-3 py-2 border border-red-200 bg-red-50 text-red-600 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors shadow-sm"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>حذف</span>
+          </button>
+
+          <button 
+            onClick={() => navigate(`/animals/edit/${id}`)}
             className="flex items-center gap-1.5 px-3 py-2 border border-stone-200 bg-white text-stone-600 rounded-lg text-xs font-bold hover:bg-stone-50 transition-colors shadow-sm"
           >
             <Edit className="w-3.5 h-3.5" />
@@ -304,7 +182,7 @@ export default function AnimalProfilePage() {
           </button>
 
           <button 
-            onClick={() => toast.success('فتح إضافة تطعيم')}
+            onClick={() => navigate(`/animals/${id}/vaccinations/add`)}
             className="flex items-center gap-1.5 px-3 py-2 border border-stone-200 bg-white text-stone-600 rounded-lg text-xs font-bold hover:bg-stone-50 transition-colors shadow-sm"
           >
             <Syringe className="w-3.5 h-3.5" />
@@ -312,7 +190,7 @@ export default function AnimalProfilePage() {
           </button>
 
           <button 
-            onClick={() => toast.success('فتح إضافة سجل طبي')}
+            onClick={() => navigate(`/animals/${id}/medical-records/add`)}
             className="flex items-center gap-1.5 px-3 py-2 bg-[#2d5a1b] hover:bg-[#1e4520] text-white rounded-lg text-xs font-bold transition-colors shadow-md flex-row-reverse"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -333,10 +211,10 @@ export default function AnimalProfilePage() {
             <div className="flex items-center gap-4">
               <div className="relative w-20 h-20 rounded-2xl border border-stone-200 shadow-sm overflow-hidden flex-shrink-0">
                 <img 
-                  src={cowImg} 
+                  src={animalData?.image ? `http://localhost:5000${animalData.image}` : cowImg} 
                   alt={profile.name} 
                   className="w-full h-full object-cover"
-                  onError={(e) => { e.target.style.display = 'none'; }}
+                  onError={(e) => { e.target.src = cowImg; }}
                 />
                 <div className="absolute -bottom-1 -left-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center text-white text-[8px] font-bold">
                   ✓

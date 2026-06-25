@@ -1,27 +1,27 @@
 // store/slices/dashboardSlice.js
 // ─────────────────────────────────────────────────────────────
-// لما يجي الـ Backend، بدّل الـ initialState بـ async thunk
-// يجيب البيانات من services/dashboardService.js
+// Dashboard state — كل البيانات جاية من farmStats في farmSlice
+// عبر GET /api/farms/:id/stats
 // ─────────────────────────────────────────────────────────────
 
 import { createSlice } from '@reduxjs/toolkit'
-import {
-  DASHBOARD_STATS,
-  ANIMAL_DISTRIBUTION,
-  WEEKLY_HEALTH_TRENDS,
-  AI_RECOMMENDATIONS,
-  RECENT_ACTIVITIES,
-} from '../../constant/mockData'
+
+const STATS_TEMPLATE = [
+  { id: 'total',        label: 'إجمالي الحيوانات',    value: '٠', rawValue: 0, icon: 'paw',     color: 'green' },
+  { id: 'sick',         label: 'الحيوانات المريضة',   value: '٠', rawValue: 0, icon: 'medical', color: 'rose'  },
+  { id: 'vaccinations', label: 'التطعيمات القادمة',   value: '٠', rawValue: 0, icon: 'syringe', color: 'blue', badge: 'الـ ٧ أيام القادمة' },
+  { id: 'emergencies',  label: 'حالات الطوارئ',       value: '٠', rawValue: 0, icon: 'alert',   color: 'red',  urgent: true },
+]
 
 const initialState = {
-  stats: DASHBOARD_STATS,
-  animalDistribution: ANIMAL_DISTRIBUTION,
-  weeklyTrends: WEEKLY_HEALTH_TRENDS,
-  aiRecommendations: AI_RECOMMENDATIONS,
-  recentActivities: RECENT_ACTIVITIES,
-  trendPeriod: '7days', // "7days" | "30days" | "90days"
-  loading: false,
-  error: null,
+  stats:              STATS_TEMPLATE,
+  animalDistribution: [],
+  weeklyTrends:       [],
+  aiRecommendations:  [],
+  recentActivities:   [],
+  trendPeriod:        '7days',
+  loading:            false,
+  error:              null,
 }
 
 const dashboardSlice = createSlice({
@@ -30,14 +30,6 @@ const dashboardSlice = createSlice({
   reducers: {
     setTrendPeriod(state, action) {
       state.trendPeriod = action.payload
-      // TODO: dispatch fetch thunk هنا لما يجي الـ API
-    },
-    // placeholder للـ API integration لاحقاً
-    setStats(state, action) {
-      state.stats = action.payload
-    },
-    setWeeklyTrends(state, action) {
-      state.weeklyTrends = action.payload
     },
     setLoading(state, action) {
       state.loading = action.payload
@@ -48,12 +40,5 @@ const dashboardSlice = createSlice({
   },
 })
 
-export const {
-  setTrendPeriod,
-  setStats,
-  setWeeklyTrends,
-  setLoading,
-  setError,
-} = dashboardSlice.actions
-
+export const { setTrendPeriod, setLoading, setError } = dashboardSlice.actions
 export default dashboardSlice.reducer

@@ -1,15 +1,19 @@
 // features/dashboard/components/RecentActivities.jsx
-import { useSelector } from 'react-redux';
-import SidebarIcon from '../../../components/SidebarIcon';
+import { useSelector } from 'react-redux'
+import { Activity, Syringe, Thermometer, CheckCircle2 } from 'lucide-react'
 
-const activityStyle = {
-  vaccination: { bg: 'bg-[#e0f2fe]', icon: 'syringe', color: 'text-[#0369a1]' },
-  alert: { bg: 'bg-[#fee2e2]', icon: 'thermometer', color: 'text-[#b91c1c]' },
-  success: { bg: 'bg-[#dcfce7]', icon: 'check', color: 'text-[#15803d]' },
-};
+const ACTIVITY_STYLES = {
+  vaccination: { Icon: Syringe,      bg: 'bg-blue-50',  text: 'text-blue-500'  },
+  alert:       { Icon: Thermometer,  bg: 'bg-red-50',   text: 'text-red-500'   },
+  success:     { Icon: CheckCircle2, bg: 'bg-green-50', text: 'text-green-500' },
+  default:     { Icon: Activity,     bg: 'bg-stone-50', text: 'text-stone-500' },
+}
 
 export default function RecentActivities() {
-  const activities = useSelector((state) => state.dashboard.recentActivities);
+  const mockActivities = useSelector((state) => state.dashboard.recentActivities)
+  const farmStats      = useSelector((state) => state.farm.farmStats)
+
+  const activities = farmStats?.stats?.recent_activities ?? mockActivities
 
   return (
     <div className='bg-white rounded-2xl p-5 shadow-sm border border-stone-100 h-full flex flex-col'>
@@ -23,44 +27,45 @@ export default function RecentActivities() {
 
       {/* Activity List */}
       <div className='flex-1 space-y-4'>
-        {activities.map((activity, i) => {
-          const s = activityStyle[activity.type] || activityStyle.success;
-          return (
-            <div
-              key={activity.id}
-              className='flex items-start gap-3 group'
-              style={{
-                animationDelay: `${i * 100}ms`,
-              }}
-            >
-              {/* Icon */}
+        {activities.length === 0 ? (
+          <div className='flex flex-col items-center justify-center h-full py-8 text-stone-400 text-sm text-center'>
+            <Activity className='w-8 h-8 mb-2 opacity-40' />
+            <p>لا توجد أنشطة حديثة بعد</p>
+            <p className='text-xs mt-1'>ستظهر هنا عند إضافة حيوانات أو تسجيل حالات</p>
+          </div>
+        ) : (
+          activities.map((activity, i) => {
+            const s = ACTIVITY_STYLES[activity.type] || ACTIVITY_STYLES.default
+            const { Icon } = s
+            return (
               <div
-                className={`w-8 h-8 rounded-lg ${s.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}
+                key={activity.id ?? i}
+                className='flex items-start gap-3 group'
+                style={{ animationDelay: `${i * 100}ms` }}
               >
-                <span className={`w-4 h-4 ${s.color}`}>
-                  <SidebarIcon name={s.icon} className={`w-4 h-4 ${s.color}`} />
-                </span>
-              </div>
+                {/* Icon */}
+                <div className={`w-8 h-8 rounded-lg ${s.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                  <Icon className={`w-4 h-4 ${s.text}`} />
+                </div>
 
-              {/* Content */}
-              <div className='flex-1 min-w-0'>
-                <p className='text-sm text-stone-700 leading-snug'>
-                  {activity.text}
-                </p>
-                <div className='flex items-center gap-2 mt-1'>
-                  <span className='text-[11px] text-stone-400'>
-                    {activity.time}
-                  </span>
-                  <span className='w-0.5 h-0.5 bg-stone-300 rounded-full' />
-                  <span className='text-[11px] text-stone-400'>
-                    {activity.actor}
-                  </span>
+                {/* Content */}
+                <div className='flex-1 min-w-0'>
+                  <p className='text-sm text-stone-700 leading-snug'>{activity.text}</p>
+                  <div className='flex items-center gap-2 mt-1'>
+                    <span className='text-[11px] text-stone-400'>{activity.time}</span>
+                    {activity.actor && (
+                      <>
+                        <span className='w-0.5 h-0.5 bg-stone-300 rounded-full' />
+                        <span className='text-[11px] text-stone-400'>{activity.actor}</span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            )
+          })
+        )}
       </div>
     </div>
-  );
+  )
 }
