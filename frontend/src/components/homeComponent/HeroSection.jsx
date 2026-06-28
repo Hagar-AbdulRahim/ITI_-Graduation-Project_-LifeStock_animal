@@ -1,10 +1,14 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import StatsBar from './StatsBar'
 import heroBg from '@/assets/images/heroBg.jpg'
 
 const HeroSection = () => {
   const navigate = useNavigate()
+  const { isAuthenticated } = useSelector((state) => state.auth)
+  const { farms } = useSelector((state) => state.farm || { farms: [] })
+  const firstFarmId = farms && farms.length > 0 ? farms[0]._id : null;
 
   return (
     <section
@@ -57,8 +61,14 @@ const HeroSection = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17l9.2-9.2M17 17V7H7" />
               </svg>
             </button>
-            <button
-              onClick={() => navigate('/farms/dummy/ai-assistant')}
+             <button
+              onClick={() => {
+                if (isAuthenticated) {
+                  navigate(firstFarmId ? `/farms/${firstFarmId}/ai-assistant` : '/farms');
+                } else {
+                  navigate('/login');
+                }
+              }}
               className="flex items-center gap-2 font-semibold text-sm px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer"
               style={{ backgroundColor: '#ffffff', color: '#1F5C34', border: '2px solid #1F5C34' }}
               onMouseEnter={(e) => {

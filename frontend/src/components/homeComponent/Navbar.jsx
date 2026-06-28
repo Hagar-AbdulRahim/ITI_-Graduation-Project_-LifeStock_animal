@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../../redux/authSlice';
+import { fetchMyFarms } from '../../redux/farmSlice';
 import toast from 'react-hot-toast';
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -21,13 +22,13 @@ const IconLogin       = () => <svg className="w-4 h-4" fill="none" stroke="curre
 // ─── Nav Links definition (matches Sidebar routes) ────────────────────────────
 const NAV_LINKS = [
   { id: 'farms',         label: 'المزارع',               icon: <IconGrid />,     path: '/farms' },
-  { id: 'animals',       label: 'الحيوانات',              icon: <IconPaw />,      path: '/farms/dummy/animals' },
-  { id: 'ai-assistant',  label: 'المساعد الذكي',          icon: <IconBot />,      path: '/farms/dummy/ai-assistant' },
-  { id: 'diagnosis',     label: 'التشخيص',               icon: <IconActivity />, path: '/farms/dummy/diagnosis' },
-  { id: 'image-analysis',label: 'تحليل الصور',            icon: <IconCamera />,   path: '/farms/dummy/image-analysis' },
-  { id: 'vaccinations',  label: 'التطعيمات',              icon: <IconSyringe />,  path: '/farms/dummy/vaccinations' },
-  { id: 'library',       label: 'المكتبة',                icon: <IconBook />,     path: '/farms/dummy/library' },
-  { id: 'reports',       label: 'التقارير',               icon: <IconBarChart />, path: '/farms/dummy/reports' },
+  { id: 'animals',       label: 'الحيوانات',              icon: <IconPaw />,      path: '/animals' },
+  { id: 'ai-assistant',  label: 'المساعد الذكي',          icon: <IconBot />,      path: '/ai-assistant' },
+  { id: 'diagnosis',     label: 'التشخيص',               icon: <IconActivity />, path: '/diagnosis' },
+  { id: 'image-analysis',label: 'تحليل الصور',            icon: <IconCamera />,   path: '/image-analysis' },
+  { id: 'vaccinations',  label: 'التطعيمات',              icon: <IconSyringe />,  path: '/vaccinations' },
+  { id: 'library',       label: 'المكتبة',                icon: <IconBook />,     path: '/library' },
+  { id: 'reports',       label: 'التقارير',               icon: <IconBarChart />, path: '/reports' },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -39,6 +40,19 @@ const Navbar = () => {
   const [showDropdown, setShowDropdown] = useState(false);
 
   const { user, isAuthenticated } = useSelector((state) => state.auth);
+  const { farms } = useSelector((state) => state.farm || { farms: [] });
+  const firstFarmId = farms && farms.length > 0 ? farms[0]._id : null;
+
+  useEffect(() => {
+    if (isAuthenticated && (!farms || farms.length === 0)) {
+      dispatch(fetchMyFarms());
+    }
+  }, [dispatch, isAuthenticated, farms]);
+
+  const getDynamicPath = (link) => {
+    if (link.id === 'farms') return '/farms';
+    return firstFarmId ? `/farms/${firstFarmId}${link.path}` : '/farms';
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -107,7 +121,7 @@ const Navbar = () => {
               {NAV_LINKS.map((link) => (
                 <NavLink
                   key={link.id}
-                  to={link.path}
+                  to={getDynamicPath(link)}
                   className={desktopLink}
                 >
                   <span className="text-[#2E7D32] opacity-70">{link.icon}</span>
@@ -199,7 +213,7 @@ const Navbar = () => {
             {NAV_LINKS.map((link) => (
               <NavLink
                 key={link.id}
-                to={link.path}
+                to={getDynamicPath(link)}
                 onClick={() => setMenuOpen(false)}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${

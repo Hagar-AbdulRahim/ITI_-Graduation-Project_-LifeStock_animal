@@ -50,11 +50,9 @@ const TopNavbar = () => (
 // ─── HELPERS ───────────────────────────────────────────────────────────────────
 const SPECIES_MAP = {
   cattle: 'أبقار',
-  sheep:  'أغنام',
-  goat:   'ماعز',
-  // horse and pig are NOT in the backend enum — kept as display-only fallbacks
-  horse:  'خيل',
-  pig:    'خنازير',
+  sheep: 'أغنام',
+  goat: 'ماعز',
+
 };
 
 const GENDER_MAP = { male: 'ذكر', female: 'أنثى' };
@@ -84,9 +82,9 @@ const formatAge = (animal) => {
  */
 const ageToMonths = (animal) => {
   if (animal?.age_value != null && animal?.age_unit) {
-    if (animal.age_unit === 'days')   return animal.age_value / 30;
+    if (animal.age_unit === 'days') return animal.age_value / 30;
     if (animal.age_unit === 'months') return animal.age_value;
-    if (animal.age_unit === 'years')  return animal.age_value * 12;
+    if (animal.age_unit === 'years') return animal.age_value * 12;
   }
   if (animal?.birth_date) {
     return Math.floor((Date.now() - new Date(animal.birth_date)) / (1000 * 60 * 60 * 24 * 30));
@@ -117,16 +115,16 @@ const getHealthStyle = (status) => {
 
 // ─── STATS BANNER ─────────────────────────────────────────────────────────────
 const StatsBanner = ({ animals }) => {
-  const total    = animals.length;
-  const healthy  = animals.filter(a => a.health_status === 'healthy').length;
-  const sick     = animals.filter(a => a.health_status === 'sick').length;
+  const total = animals.length;
+  const healthy = animals.filter(a => a.health_status === 'healthy').length;
+  const sick = animals.filter(a => a.health_status === 'sick').length;
   const critical = animals.filter(a => a.health_status === 'critical').length;
 
   const stats = [
-    { label: 'إجمالي الحيوانات', value: total,    color: 'text-[#2a5c2a]', bg: 'bg-[#eaf5eb]', icon: '🐾' },
-    { label: 'سليم',             value: healthy,  color: 'text-emerald-700', bg: 'bg-emerald-50', icon: '✅' },
-    { label: 'مراقبة',           value: sick,     color: 'text-amber-700',  bg: 'bg-amber-50',  icon: '⚠️' },
-    { label: 'حالة حرجة',        value: critical, color: 'text-red-700',    bg: 'bg-red-50',    icon: '🚨' },
+    { label: 'إجمالي الحيوانات', value: total, color: 'text-[#2a5c2a]', bg: 'bg-[#eaf5eb]', icon: '🐾' },
+    { label: 'سليم', value: healthy, color: 'text-emerald-700', bg: 'bg-emerald-50', icon: '✅' },
+    { label: 'مراقبة', value: sick, color: 'text-amber-700', bg: 'bg-amber-50', icon: '⚠️' },
+    { label: 'حالة حرجة', value: critical, color: 'text-red-700', bg: 'bg-red-50', icon: '🚨' },
   ];
 
   return (
@@ -148,21 +146,22 @@ const StatsBanner = ({ animals }) => {
 const SPECIES_EMOJI = { cattle: '🐄', sheep: '🐑', goat: '🐐', horse: '🐎', pig: '🐷' };
 const SPECIES_GRADIENT = {
   cattle: 'from-amber-100 to-amber-50',
-  sheep:  'from-sky-100 to-sky-50',
-  goat:   'from-emerald-100 to-emerald-50',
-  horse:  'from-orange-100 to-orange-50',
-  pig:    'from-pink-100 to-pink-50',
+  sheep: 'from-sky-100 to-sky-50',
+  goat: 'from-emerald-100 to-emerald-50',
+  horse: 'from-orange-100 to-orange-50',
+  pig: 'from-pink-100 to-pink-50',
 };
 
 // ─── ANIMAL CARD ──────────────────────────────────────────────────────────────
 const AnimalCard = ({ animal, onClick }) => {
   const h = getHealthStyle(animal?.health_status);
   const speciesLabel = SPECIES_MAP[animal?.species] || animal?.species || 'غير محدد';
-  const genderLabel  = GENDER_MAP[animal?.gender]   || '—';
-  const ageLabel     = formatAge(animal);
-  const hasImage     = !!(animal?.image);
-  const gradient     = SPECIES_GRADIENT[animal?.species] || 'from-gray-100 to-gray-50';
-  const emoji        = SPECIES_EMOJI[animal?.species]    || '🐾';
+  const genderLabel = GENDER_MAP[animal?.gender] || '—';
+  const ageLabel = formatAge(animal);
+  const imageUrl = animal?.image || animal?.imageUrl;
+  const hasImage = !!imageUrl;
+  const gradient = SPECIES_GRADIENT[animal?.species] || 'from-gray-100 to-gray-50';
+  const emoji = SPECIES_EMOJI[animal?.species] || '🐾';
 
   return (
     <div
@@ -173,7 +172,7 @@ const AnimalCard = ({ animal, onClick }) => {
       <div className="relative h-[190px] w-full overflow-hidden">
         {hasImage ? (
           <img
-            src={animal.image}
+            src={imageUrl}
             alt={speciesLabel}
             className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
           />
@@ -251,37 +250,6 @@ const AnimalCard = ({ animal, onClick }) => {
   );
 };
 
-// ─── MOCK DATA ────────────────────────────────────────────────────────────────
-const MOCK_ANIMALS = [
-  {
-    _id: 'm1', name: 'وولي', tag_number: 'CV-3301#',
-    species: 'sheep', gender: 'female',
-    birth_date: new Date(new Date().setMonth(new Date().getMonth() - 26)).toISOString(),
-    weight_kg: 86, health_status: 'healthy',
-    imageUrl: 'https://images.unsplash.com/photo-1484557985045-edf25e08da73?auto=format&fit=crop&q=80&w=500&h=280'
-  },
-  {
-    _id: 'm2', name: 'سبيريت', tag_number: 'EQ-10428',
-    species: 'goat', gender: 'male',
-    birth_date: new Date(new Date().setFullYear(new Date().getFullYear() - 6)).toISOString(),
-    weight_kg: 85, health_status: 'sick',
-    imageUrl: 'https://images.unsplash.com/photo-1501706362039-c06b2d715385?auto=format&fit=crop&q=80&w=500&h=280'
-  },
-  {
-    _id: 'm3', name: 'بيبسي', tag_number: 'BV-88218',
-    species: 'cattle', gender: 'female',
-    birth_date: new Date(new Date().setFullYear(new Date().getFullYear() - 4)).toISOString(),
-    weight_kg: 660, health_status: 'healthy',
-    imageUrl: 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&q=80&w=500&h=280'
-  },
-  {
-    _id: 'm4', name: 'بومبا', tag_number: 'PR-5529#',
-    species: 'cattle', gender: 'male',
-    birth_date: new Date(new Date().setMonth(new Date().getMonth() - 18)).toISOString(),
-    weight_kg: 110, health_status: 'critical',
-    imageUrl: 'https://images.unsplash.com/photo-1604848698030-c434ba08ece1?auto=format&fit=crop&q=80&w=500&h=280'
-  },
-];
 
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 const AnimalsListPage = () => {
@@ -292,26 +260,24 @@ const AnimalsListPage = () => {
   const { farmAnimals, loading, error } = useSelector((state) => state.farm);
 
   const [filterSpecies, setFilterSpecies] = useState('all');
-  const [filterStatus, setFilterStatus]   = useState('all');
-  const [filterAge, setFilterAge]         = useState('all');
-  const [searchTerm, setSearchTerm]       = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterAge, setFilterAge] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    if (farmId && farmId !== 'dummy') {
+    if (farmId) {
       dispatch(fetchFarmById(farmId));
       dispatch(fetchFarmAnimals(farmId));
     }
   }, [dispatch, farmId]);
 
-  // Show real data if the API loaded something; only fall back to mock on error with no data
-  const hasRealData = farmAnimals?.length > 0;
-  const isDummy = !farmId || farmId === 'dummy' || (!hasRealData && !!error.animals);
-  const rawAnimals = isDummy ? MOCK_ANIMALS : (hasRealData ? farmAnimals : []);
+  // Show real data from API only
+  const rawAnimals = farmAnimals || [];
 
   const displayAnimals = rawAnimals.filter((a) => {
     const matchSpecies = filterSpecies === 'all' || a.species === filterSpecies;
-    const matchStatus  = filterStatus === 'all'  || a.health_status === filterStatus;
-    const matchSearch  = !searchTerm ||
+    const matchStatus = filterStatus === 'all' || a.health_status === filterStatus;
+    const matchSearch = !searchTerm ||
       (a.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (a.tag_number?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (a.breed?.toLowerCase() || '').includes(searchTerm.toLowerCase());
@@ -329,7 +295,7 @@ const AnimalsListPage = () => {
 
   const hasFilters = filterSpecies !== 'all' || filterStatus !== 'all' || filterAge !== 'all' || !!searchTerm;
 
-  if (loading.animals && !farmAnimals?.length && !isDummy) {
+  if (loading.animals) {
     return (
       <div className="min-h-screen bg-[#f5f7f5] flex items-center justify-center font-cairo">
         <Loader2 className="w-8 h-8 text-[#2a5c2a] animate-spin" />
@@ -437,10 +403,18 @@ const AnimalsListPage = () => {
         <StatsBanner animals={rawAnimals} />
 
         {/* ── Animals Grid ──────────────────────────────────────────── */}
-        {loading.animals && !hasRealData ? (
+        {loading.animals ? (
           <div className="flex-1 flex flex-col items-center justify-center py-20">
             <Loader2 className="w-10 h-10 text-[#2a5c2a] animate-spin mb-4" />
             <p className="text-gray-400 font-medium text-sm">جاري تحميل الحيوانات...</p>
+          </div>
+        ) : rawAnimals.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+              <PawPrint className="w-10 h-10 text-gray-300" />
+            </div>
+            <p className="text-gray-500 font-semibold text-lg">لم يتم العثور على حيوانات (No animals found)</p>
+            <p className="text-gray-400 text-sm mt-1">قم بإضافة حيوان للمزرعة للبدء</p>
           </div>
         ) : displayAnimals.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">

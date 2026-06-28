@@ -128,6 +128,30 @@ export const addMedicalRecord = createAsyncThunk(
   }
 );
 
+export const editVaccination = createAsyncThunk(
+  'animal/editVaccination',
+  async ({ vacId, data }, { rejectWithValue }) => {
+    try {
+      const result = await animalService.updateAnimalVaccination(vacId, data);
+      return result.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'فشل في تعديل التطعيم');
+    }
+  }
+);
+
+export const deleteVaccination = createAsyncThunk(
+  'animal/deleteVaccination',
+  async (vacId, { rejectWithValue }) => {
+    try {
+      await animalService.deleteAnimalVaccination(vacId);
+      return vacId;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'فشل في حذف التطعيم');
+    }
+  }
+);
+
 // ─── Initial State ────────────────────────────────────────────────────────────
 
 const initialState = {
@@ -293,6 +317,37 @@ const animalSlice = createSlice({
       .addCase(addMedicalRecord.rejected, (state, action) => {
         state.loading.saving = false;
         state.error.saving = action.payload || 'فشل في إضافة السجل الطبي';
+      })
+
+      // ── editVaccination ──────────────────────────────────────────────────────
+      .addCase(editVaccination.pending, (state) => {
+        state.loading.saving = true;
+        state.error.saving = null;
+      })
+      .addCase(editVaccination.fulfilled, (state, action) => {
+        state.loading.saving = false;
+        const idx = state.vaccinations.findIndex(v => v._id === action.payload._id);
+        if (idx !== -1) {
+          state.vaccinations[idx] = action.payload;
+        }
+      })
+      .addCase(editVaccination.rejected, (state, action) => {
+        state.loading.saving = false;
+        state.error.saving = action.payload || 'فشل في تعديل التطعيم';
+      })
+
+      // ── deleteVaccination ───────────────────────────────────────────────────
+      .addCase(deleteVaccination.pending, (state) => {
+        state.loading.saving = true;
+        state.error.saving = null;
+      })
+      .addCase(deleteVaccination.fulfilled, (state, action) => {
+        state.loading.saving = false;
+        state.vaccinations = state.vaccinations.filter(v => v._id !== action.payload);
+      })
+      .addCase(deleteVaccination.rejected, (state, action) => {
+        state.loading.saving = false;
+        state.error.saving = action.payload || 'فشل في حذف التطعيم';
       });
   },
 });

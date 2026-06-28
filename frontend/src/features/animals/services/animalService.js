@@ -103,14 +103,18 @@ export const animalService = {
     return response.data;
   },
 
-  /**
-   * POST /api/animals/:id/vaccinations
-   * Add a new vaccination record for an animal.
-   * @param {string} id - Animal MongoDB ObjectId
-   * @param {Object} data - Vaccination data
-   */
   addAnimalVaccination: async (id, data) => {
     const response = await api.post(`${BASE_URL}/${id}/vaccinations`, data);
+    return response.data;
+  },
+
+  updateAnimalVaccination: async (vacId, data) => {
+    const response = await api.put(`${BASE_URL}/vaccinations/${vacId}`, data);
+    return response.data;
+  },
+
+  deleteAnimalVaccination: async (vacId) => {
+    const response = await api.delete(`${BASE_URL}/vaccinations/${vacId}`);
     return response.data;
   },
 

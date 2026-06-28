@@ -38,7 +38,7 @@ const AddAnimalPage = () => {
 
   const onSubmit = async (data) => {
     const formData = new FormData();
-    const actualFarmId = (farmId && farmId !== 'dummy') ? farmId : (farms && farms.length > 0 ? farms[0]._id : null);
+    const actualFarmId = farmId ? farmId : (farms && farms.length > 0 ? farms[0]._id : null);
 
     if (actualFarmId) formData.append('farm_id', actualFarmId);
     formData.append('species', data.species);

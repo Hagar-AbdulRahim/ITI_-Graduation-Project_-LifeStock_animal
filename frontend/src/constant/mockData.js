@@ -7,7 +7,7 @@ export const FARM_INFO = {
   veterinarian: 'د. سارة مِيلر',
   title: 'طبيبة بيطرية أولى',
   avatar: null,
-};
+}
 
 // -------- Stats Cards --------
 export const DASHBOARD_STATS = [
@@ -49,12 +49,12 @@ export const DASHBOARD_STATS = [
     color: 'red',
     urgent: true,
   },
-];
+]
 
 // -------- Donut Chart --------
 export const ANIMAL_DISTRIBUTION = [
   { name: 'لا توجد بيانات', value: 1, percentage: 100, color: '#e5e7eb' },
-];
+]
 
 // -------- Weekly Health Bar Chart --------
 export const WEEKLY_HEALTH_TRENDS = [
@@ -65,7 +65,7 @@ export const WEEKLY_HEALTH_TRENDS = [
   { day: 'الجمعة', score: 0, label: 'Fri' },
   { day: 'السبت', score: 0, label: 'Sat' },
   { day: 'الأحد', score: 0, label: 'Sun' },
-];
+]
 
 // -------- AI Recommendations --------
 export const AI_RECOMMENDATIONS = [
@@ -74,12 +74,13 @@ export const AI_RECOMMENDATIONS = [
     priority: 'منخفضة',
     priorityLevel: 'low',
     title: 'مرحباً بك في المزرعة',
-    description: 'لا توجد بيانات كافية للذكاء الاصطناعي لتحليلها بعد. قم بإضافة حيواناتك الأولى للبدء.',
-  }
-];
+    description:
+      'لا توجد بيانات كافية للذكاء الاصطناعي لتحليلها بعد. قم بإضافة حيواناتك الأولى للبدء.',
+  },
+]
 
 // -------- Recent Activities --------
-export const RECENT_ACTIVITIES = [];
+export const RECENT_ACTIVITIES = []
 
 // -------- Sidebar Navigation --------
 export const SIDEBAR_LINKS = [
@@ -105,6 +106,14 @@ export const SIDEBAR_LINKS = [
     path: '/ai-assistant',
   },
   {
+    id: 'notifications',
+    label: 'الإشعارات',
+    icon: 'bell',
+    color: 'text-amber-500',
+    path: '/notifications',
+    isStandalone: true,
+  },
+  {
     id: 'diagnosis',
     label: 'التشخيص',
     icon: 'plus-circle',
@@ -124,6 +133,14 @@ export const SIDEBAR_LINKS = [
     icon: 'syringe-icon',
     color: 'text-blue-500',
     path: '/vaccinations',
+  },
+  {
+    id: 'vaccine-agent',
+    label: 'مستشار اللقاحات',
+    icon: 'bot',
+    color: 'text-green-600',
+    path: '/vaccine-agent',
+    isStandalone: true,
   },
   {
     id: 'emergencies',
@@ -146,4 +163,4 @@ export const SIDEBAR_LINKS = [
     color: 'text-cyan-500',
     path: '/reports',
   },
-];
+]

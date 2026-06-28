@@ -20,6 +20,11 @@ import AddAnimalPage from '../pages/Animals/AddAnimalPage';
 import EditAnimalPage from '../pages/Animals/EditAnimalPage';
 import AddVaccinationPage from '../pages/Animals/AddVaccinationPage';
 import AddMedicalRecordPage from '../pages/Animals/AddMedicalRecordPage';
+import AnimalMedicalRecordsPage from '../pages/Animals/AnimalMedicalRecordsPage';
+import AnimalVaccinationsPage from '../pages/Animals/AnimalVaccinationsPage';
+import EditVaccinationPage from '../pages/Animals/EditVaccinationPage';
+import NotificationsPage from '../pages/NotificationsPage';
+import VaccineAgentPage from '../pages/VaccineAgentPage';
 
 // Dashboard & Layout Pages
 import DashboardPage from '../pages/dashboard/DashboardPage';
@@ -135,6 +140,46 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <AddMedicalRecordPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/animals/:id/medical-records"
+        element={
+          <ProtectedRoute>
+            <AnimalMedicalRecordsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/animals/:id/vaccinations"
+        element={
+          <ProtectedRoute>
+            <AnimalVaccinationsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/animals/:id/vaccinations/edit/:vacId"
+        element={
+          <ProtectedRoute>
+            <EditVaccinationPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <NotificationsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/vaccine-agent"
+        element={
+          <ProtectedRoute>
+            <VaccineAgentPage />
           </ProtectedRoute>
         }
       />

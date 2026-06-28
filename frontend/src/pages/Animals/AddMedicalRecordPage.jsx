@@ -1,9 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { useForm } from 'react-hook-form';
-import { ArrowRight, Save, X, Loader2, Stethoscope, AlertCircle } from 'lucide-react';
-import { fetchAnimalById, addMedicalRecord } from '../../redux/animalSlice';
+import React, { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { useForm } from 'react-hook-form'
+import {
+  ArrowRight,
+  Save,
+  X,
+  Loader2,
+  Stethoscope,
+  AlertCircle,
+} from 'lucide-react'
+import toast from 'react-hot-toast'
+import { fetchAnimalById, addMedicalRecord } from '../../redux/animalSlice'
 
 // ─── Backend HealthCase Model (Mapping) ──────────────────────────────────────
 // The user requested: Disease Name, Symptoms, Diagnosis Date, Recovery Status, Notes.
@@ -15,11 +23,11 @@ import { fetchAnimalById, addMedicalRecord } from '../../redux/animalSlice';
 // ─────────────────────────────────────────────────────────────────────────────
 
 const AddMedicalRecordPage = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
 
-  const { animal, loading, error } = useSelector((state) => state.animal);
+  const { animal, loading, error } = useSelector((state) => state.animal)
 
   const {
     register,
@@ -30,63 +38,66 @@ const AddMedicalRecordPage = () => {
     defaultValues: {
       input_type: 'text',
       resolved: 'false',
-    }
-  });
+    },
+  })
 
-  const isResolved = watch('resolved') === 'true';
+  const isResolved = watch('resolved') === 'true'
 
   useEffect(() => {
     if (id && (!animal || animal._id !== id)) {
-      dispatch(fetchAnimalById(id));
+      dispatch(fetchAnimalById(id))
     }
-  }, [dispatch, id, animal]);
+  }, [dispatch, id, animal])
 
   const onSubmit = async (data) => {
     // Backend expects an array of symptoms (1 to 20 items)
     const symptomsArray = data.symptoms
       .split(/[\n,،]+/)
       .map((s) => s.trim())
-      .filter(Boolean);
+      .filter(Boolean)
 
     if (data.notes) {
-      symptomsArray.push(`ملاحظات إضافية: ${data.notes.trim()}`);
+      symptomsArray.push(`ملاحظات إضافية: ${data.notes.trim()}`)
     }
 
     if (symptomsArray.length === 0) {
-      symptomsArray.push('حالة مرضية عامة');
+      symptomsArray.push('حالة مرضية عامة')
     }
 
     const payload = {
-      symptoms:      symptomsArray.slice(0, 20), // Max 20 according to backend validation
-      input_type:    'text',
-      ai_diagnosis:  data.disease_name.trim() || undefined,
-      resolved:      data.resolved === 'true',
+      symptoms: symptomsArray.slice(0, 20), // Max 20 according to backend validation
+      input_type: 'text',
+      ai_diagnosis: data.disease_name.trim() || undefined,
+      resolved: data.resolved === 'true',
       vet_consulted: true, // Assuming manual entry implies vet/human consultation
       // severity could be added here if desired, e.g. based on resolved status
-    };
+    }
 
     try {
-      await dispatch(addMedicalRecord({ id, data: payload })).unwrap();
-      navigate(`/animals/${id}`);
+      await dispatch(addMedicalRecord({ id, data: payload })).unwrap()
+      toast.success('تم حفظ السجل الطبي بنجاح')
+      navigate(`/animals/${id}`)
     } catch (err) {
-      // Error handled by Redux state
+      toast.error(err || 'فشل في حفظ السجل الطبي')
     }
-  };
+  }
 
   const inputCls = (hasError) =>
     `w-full px-4 py-2.5 border rounded-xl text-sm outline-none transition-all font-cairo bg-white
-     ${hasError
-      ? 'border-red-400 focus:ring-2 focus:ring-red-200'
-      : 'border-gray-200 focus:ring-2 focus:ring-[#2a5c2a]/20 focus:border-[#2a5c2a]'}`;
+     ${
+       hasError
+         ? 'border-red-400 focus:ring-2 focus:ring-red-200'
+         : 'border-gray-200 focus:ring-2 focus:ring-[#2a5c2a]/20 focus:border-[#2a5c2a]'
+     }`
 
-  const labelCls = 'block text-[13px] font-bold text-gray-700 mb-2';
+  const labelCls = 'block text-[13px] font-bold text-gray-700 mb-2'
 
   if (loading.animal && !animal) {
     return (
       <div className="min-h-screen bg-[#f5f7f5] flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-[#2a5c2a] animate-spin" />
       </div>
-    );
+    )
   }
 
   return (
@@ -103,8 +114,12 @@ const AddMedicalRecordPage = () => {
               <ArrowRight className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-[17px] font-bold text-gray-900">إضافة سجل طبي</h1>
-              <p className="text-[11px] text-gray-400 font-medium">سجل صحي للحيوان: {animal?.name}</p>
+              <h1 className="text-[17px] font-bold text-gray-900">
+                إضافة سجل طبي
+              </h1>
+              <p className="text-[11px] text-gray-400 font-medium">
+                سجل صحي للحيوان: {animal?.name}
+              </p>
             </div>
           </div>
           <span className="text-[12px] text-red-600 font-medium bg-red-50 border border-red-100 px-3 py-1 rounded-full flex items-center gap-1.5">
@@ -126,20 +141,28 @@ const AddMedicalRecordPage = () => {
           {/* ── Section 1: Basic Info ──────────────────────────────── */}
           <div className="bg-white rounded-[20px] border border-gray-200 shadow-sm p-6">
             <h2 className="text-[14px] font-bold text-gray-900 mb-4 pb-3 border-b border-gray-100">
-              تفاصيل الحالة الطبية <span className="text-red-400 text-[11px] font-medium mr-1">* مطلوب</span>
+              تفاصيل الحالة الطبية{' '}
+              <span className="text-red-400 text-[11px] font-medium mr-1">
+                * مطلوب
+              </span>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              
               {/* Disease Name */}
               <div className="md:col-span-2">
                 <label className={labelCls}>اسم المرض / التشخيص المبدئي</label>
                 <input
                   type="text"
-                  {...register('disease_name', { maxLength: { value: 200, message: 'الاسم طويل جداً' } })}
+                  {...register('disease_name', {
+                    maxLength: { value: 200, message: 'الاسم طويل جداً' },
+                  })}
                   placeholder="مثال: التهاب الضرع، حمى..."
                   className={inputCls(errors.disease_name)}
                 />
-                {errors.disease_name && <p className="text-[11px] text-red-500 mt-1">{errors.disease_name.message}</p>}
+                {errors.disease_name && (
+                  <p className="text-[11px] text-red-500 mt-1">
+                    {errors.disease_name.message}
+                  </p>
+                )}
               </div>
 
               {/* Diagnosis Date */}
@@ -156,7 +179,9 @@ const AddMedicalRecordPage = () => {
 
               {/* Recovery Status */}
               <div>
-                <label className={labelCls}>حالة الشفاء (Recovery Status)</label>
+                <label className={labelCls}>
+                  حالة الشفاء (Recovery Status)
+                </label>
                 <select
                   {...register('resolved')}
                   className={`${inputCls(errors.resolved)} bg-white`}
@@ -168,30 +193,48 @@ const AddMedicalRecordPage = () => {
 
               {/* Symptoms */}
               <div className="md:col-span-2">
-                <label className={labelCls}>الأعراض الملحوظة <span className="text-red-400">*</span></label>
+                <label className={labelCls}>
+                  الأعراض الملحوظة <span className="text-red-400">*</span>
+                </label>
                 <textarea
-                  {...register('symptoms', { required: 'يرجى إدخال عرض واحد على الأقل' })}
+                  {...register('symptoms', {
+                    required: 'يرجى إدخال عرض واحد على الأقل',
+                  })}
                   rows={3}
                   placeholder="افصل بين الأعراض بفاصلة (،) أو سطر جديد. مثال: ارتفاع الحرارة، فقدان الشهية..."
                   className={`${inputCls(errors.symptoms)} resize-none`}
                 />
-                {errors.symptoms && <p className="text-[11px] text-red-500 mt-1">{errors.symptoms.message}</p>}
+                {errors.symptoms && (
+                  <p className="text-[11px] text-red-500 mt-1">
+                    {errors.symptoms.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>
 
           {/* ── Section 2: Notes ───────────────────────────────────── */}
           <div className="bg-white rounded-[20px] border border-gray-200 shadow-sm p-6">
-            <h2 className="text-[14px] font-bold text-gray-900 mb-4 pb-3 border-b border-gray-100">ملاحظات إضافية</h2>
+            <h2 className="text-[14px] font-bold text-gray-900 mb-4 pb-3 border-b border-gray-100">
+              ملاحظات إضافية
+            </h2>
             <div>
-              <label className={labelCls}>أي ملاحظات حول العلاج، الأدوية، أو توصيات الطبيب</label>
+              <label className={labelCls}>
+                أي ملاحظات حول العلاج، الأدوية، أو توصيات الطبيب
+              </label>
               <textarea
-                {...register('notes', { maxLength: { value: 1000, message: 'الملاحظات طويلة جداً' } })}
+                {...register('notes', {
+                  maxLength: { value: 1000, message: 'الملاحظات طويلة جداً' },
+                })}
                 rows={4}
                 placeholder="تفاصيل الأدوية الموصوفة وتوصيات الرعاية..."
                 className={`${inputCls(errors.notes)} resize-none`}
               />
-              {errors.notes && <p className="text-[11px] text-red-500 mt-1">{errors.notes.message}</p>}
+              {errors.notes && (
+                <p className="text-[11px] text-red-500 mt-1">
+                  {errors.notes.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -210,15 +253,18 @@ const AddMedicalRecordPage = () => {
               disabled={loading.saving}
               className="flex items-center gap-2 px-8 py-2.5 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 transition-colors shadow-sm shadow-red-900/20 disabled:opacity-70"
             >
-              {loading.saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {loading.saving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
               حفظ السجل الطبي
             </button>
           </div>
-
         </form>
       </main>
     </div>
-  );
-};
+  )
+}
 
-export default AddMedicalRecordPage;
+export default AddMedicalRecordPage
