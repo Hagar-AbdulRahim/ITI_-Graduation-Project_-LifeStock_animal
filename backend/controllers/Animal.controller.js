@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Animal = require("../models/animal");
 const Farm   = require("../models/farm");
 const fs     = require("fs");
@@ -5,6 +6,7 @@ const path   = require("path");
 
 // helper: verify farm belongs to the current user
 const userOwnsFarm = async (farmId, userId) => {
+  if (!mongoose.Types.ObjectId.isValid(farmId)) return null;
   const farm = await Farm.findOne({ _id: farmId, user_id: userId, is_active: true });
   return farm;
 };
@@ -59,6 +61,8 @@ const createAnimal = async (req, res) => {
   }
 };
 
+
+
 // ── Get All Animals in a Farm ─────────────────────────────────────────────────
 const getAnimalsByFarm = async (req, res) => {
   try {
@@ -67,13 +71,15 @@ const getAnimalsByFarm = async (req, res) => {
 
     const farm = await userOwnsFarm(farmId, req.user._id);
     if (!farm) {
-      return res.status(404).json({ success: false, message: "المزرعة غير موجودة" });
+      return res.status(404).json({ success: false, message: "المزرعة غير موجودة أو غير مصرح بدخولها" });
     }
 
     const filter = { farm_id: farmId, is_active: true };
-    if (species)       filter.species       = species;
-    if (health_status) filter.health_status = health_status;
-    if (gender)         filter.gender         = gender;
+    
+    // تأمين الفلاتر ضد النصوص الفارغة القادمة من حقول الاختيار في الفرونت إند
+    if (species && species.trim() !== "")       filter.species       = species.trim();
+    if (health_status && health_status.trim() !== "") filter.health_status = health_status.trim();
+    if (gender && gender.trim() !== "")         filter.gender         = gender.trim();
 
     const animals = await Animal.find(filter).sort({ created_at: -1 });
 
@@ -87,7 +93,6 @@ const getAnimalsByFarm = async (req, res) => {
     return res.status(500).json({ success: false, message: "خطأ في الخادم" });
   }
 };
-
 // ── Get Single Animal ─────────────────────────────────────────────────────────
 const getAnimalById = async (req, res) => {
   try {
