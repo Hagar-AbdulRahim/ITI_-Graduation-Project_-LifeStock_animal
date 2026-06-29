@@ -39,7 +39,9 @@ export default function WeeklyHealthChart() {
   const farmStats = useSelector((state) => state.farm.farmStats);
   const period = useSelector((state) => state.dashboard.trendPeriod)
 
-  const data = farmStats?.stats?.weekly_health_trends || mockData;
+  const data = period === '30days'
+    ? (farmStats?.stats?.weekly_health_trends_30 || farmStats?.stats?.weekly_health_trends || mockData)
+    : (farmStats?.stats?.weekly_health_trends || mockData);
 
   // لحساب متوسط النقاط
   const averageScore = data.length > 0 

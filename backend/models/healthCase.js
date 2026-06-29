@@ -95,6 +95,25 @@ const healthCaseSchema = new mongoose.Schema(
       default: null,
     },
 
+    // ── مراجعة الطبيب البيطري ─────────────────────────────────────────────
+    vet_notes: {
+      type: String,
+      default: null,
+    },
+    recommended_treatment: {
+      type: String,
+      default: null,
+    },
+    reviewed_by: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    reviewed_at: {
+      type: Date,
+      default: null,
+    },
+
     // ── حالات تاريخية مُدخَلة عبر Onboarding Agent (مش تشخيص AI حالي) ──────────
     is_historical: {
       type: Boolean,

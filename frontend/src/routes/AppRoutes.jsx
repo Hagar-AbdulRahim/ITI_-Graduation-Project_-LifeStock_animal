@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
+import RoleRoute from './RoleRoute';
 
 // Auth Pages
 import Login from '../pages/Auth/Login';
@@ -34,6 +35,26 @@ import AiAssistantPage from '../pages/AiAssistantPage';
 import DiagnosisPage from '../pages/DiagnosisPage';
 import ImageAnalysisPage from '../pages/ImageAnalysis/ImageAnalysisPage';
 import VaccinationsPage from '../pages/Vaccinations/VaccinationsPage';
+
+// Admin Portal
+import AdminLayout from '../layout/AdminLayout';
+import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
+import AdminUsersPage from '../pages/admin/AdminUsersPage';
+import AdminUserDetailPage from '../pages/admin/AdminUserDetailPage';
+import AdminFarmsPage from '../pages/admin/AdminFarmsPage';
+import AdminAnimalsPage from '../pages/admin/AdminAnimalsPage';
+import AdminHealthCasesPage from '../pages/admin/AdminHealthCasesPage';
+import AdminConsultationsPage from '../pages/admin/AdminConsultationsPage';
+import AdminOutbreaksPage from '../pages/admin/AdminOutbreaksPage';
+import AdminNotificationsPage from '../pages/admin/AdminNotificationsPage';
+import AdminSettingsPage from '../pages/admin/AdminSettingsPage';
+
+// Doctor Portal
+import DoctorLayout from '../layout/DoctorLayout';
+import DoctorDashboardPage from '../pages/doctor/DoctorDashboardPage';
+import DoctorCasesPage from '../pages/doctor/DoctorCasesPage';
+import DoctorConsultationsPage from '../pages/doctor/DoctorConsultationsPage';
+import DoctorOutbreaksPage from '../pages/doctor/DoctorOutbreaksPage';
 
 // ComingSoon component for placeholder pages in the dashboard flow
 const ComingSoon = ({ title }) => (
@@ -183,6 +204,44 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
+      {/* Admin Portal */}
+      <Route
+        path="/admin"
+        element={
+          <RoleRoute allowedRoles={['admin']}>
+            <AdminLayout />
+          </RoleRoute>
+        }
+      >
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<AdminDashboardPage />} />
+        <Route path="users" element={<AdminUsersPage />} />
+        <Route path="users/:id" element={<AdminUserDetailPage />} />
+        <Route path="farms" element={<AdminFarmsPage />} />
+        <Route path="animals" element={<AdminAnimalsPage />} />
+        <Route path="health-cases" element={<AdminHealthCasesPage />} />
+        <Route path="consultations" element={<AdminConsultationsPage />} />
+        <Route path="outbreaks" element={<AdminOutbreaksPage />} />
+        <Route path="notifications" element={<AdminNotificationsPage />} />
+        <Route path="settings" element={<AdminSettingsPage />} />
+      </Route>
+
+      {/* Doctor Portal */}
+      <Route
+        path="/doctor"
+        element={
+          <RoleRoute allowedRoles={['doctor', 'admin']}>
+            <DoctorLayout />
+          </RoleRoute>
+        }
+      >
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<DoctorDashboardPage />} />
+        <Route path="cases" element={<DoctorCasesPage />} />
+        <Route path="consultations" element={<DoctorConsultationsPage />} />
+        <Route path="outbreaks" element={<DoctorOutbreaksPage />} />
+      </Route>
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/farms" replace />} />

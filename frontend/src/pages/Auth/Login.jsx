@@ -10,6 +10,7 @@ import { loginUser, setCredentials } from '../../redux/authSlice';
 import toast from 'react-hot-toast';
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
+import { getRoleHomePath } from '../../utils/roleRedirect';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -25,9 +26,9 @@ const Login = () => {
 
   const onSubmit = async (data) => {
     try {
-      await dispatch(loginUser(data)).unwrap();
+      const result = await dispatch(loginUser(data)).unwrap();
       toast.success('تم تسجيل الدخول بنجاح');
-      navigate('/');
+      navigate(getRoleHomePath(result.user?.role));
     } catch (error) {
       toast.error(error || 'بيانات الدخول غير صحيحة');
     }
@@ -177,7 +178,7 @@ const Login = () => {
 
                       dispatch(setCredentials(res.data));
                       toast.success("تم تسجيل الدخول بنجاح");
-                      navigate("/");
+                      navigate(getRoleHomePath(res.data.user?.role));
                     } catch (err) {
                       toast.error(
                         err.response?.data?.message ||

@@ -1,0 +1,688 @@
+{
+  "info": {
+    "name": "LivestockCare AI - Full API",
+    "_postman_id": "livestock-care-api-v1",
+    "description": "Complete API collection for LivestockCare AI app.\n\n## Setup\n1. Import this collection and the environment file.\n2. Run **Auth > Login (Farmer)** or **Login (Admin)** first.\n3. Token is saved automatically to `accessToken`.\n4. Run **Farms > Create Farm** then copy `_id` to `farmId` variable.\n5. Run **Animals > Create Animal** then copy `_id` to `animalId`.\n\n## Test Accounts\n- Admin: `admin@livestock.ai` (seed with `npm run seed:admin` in backend)\n- Farmer: register via **Register** then verify email\n\n## Dashboard Endpoints\n- Farmer: `GET /api/farms/:id/stats`\n- Admin: `GET /api/admin/dashboard/stats`\n- Doctor: `GET /api/doctor/dashboard/stats`",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "accessToken", "value": "" },
+    { "key": "farmId", "value": "" },
+    { "key": "animalId", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "healthCaseId", "value": "" },
+    { "key": "vaccinationId", "value": "" },
+    { "key": "consultationId", "value": "" },
+    { "key": "outbreakId", "value": "" },
+    { "key": "notificationId", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register (Farmer)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"مزارع تجريبي\",\n  \"email\": \"farmer@test.com\",\n  \"phone\": \"01012345678\",\n  \"password\": \"Test1234\",\n  \"governorate\": \"القاهرة\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/register"
+          }
+        },
+        {
+          "name": "Login (Farmer)",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 200) {",
+                "  const json = pm.response.json();",
+                "  if (json.access_token) pm.collectionVariables.set('accessToken', json.access_token);",
+                "  if (json.user?._id) pm.collectionVariables.set('userId', json.user._id);",
+                "  pm.test('Login successful', () => pm.response.to.have.status(200));",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"farmer@test.com\",\n  \"password\": \"Test1234\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "Login (Admin)",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 200) {",
+                "  const json = pm.response.json();",
+                "  if (json.access_token) pm.collectionVariables.set('accessToken', json.access_token);",
+                "  pm.test('Admin login successful', () => pm.response.to.have.status(200));",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@livestock.ai\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{baseUrl}}/api/auth/verify-email?token=YOUR_TOKEN"
+          }
+        },
+        {
+          "name": "Resend Verification",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"farmer@test.com\"\n}" },
+            "url": "{{baseUrl}}/api/auth/resend-verification"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/refresh"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/logout"
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"farmer@test.com\"\n}" },
+            "url": "{{baseUrl}}/api/auth/forgot-password"
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"farmer@test.com\",\n  \"otp\": \"123456\",\n  \"new_password\": \"NewTest1234\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/reset-password"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/users/me" }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"مزارع محدّث\",\n  \"governorate\": \"الجيزة\"\n}" },
+            "url": "{{baseUrl}}/api/users/me"
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"Test1234\",\n  \"new_password\": \"NewTest1234\"\n}"
+            },
+            "url": "{{baseUrl}}/api/users/me/password"
+          }
+        },
+        {
+          "name": "Update FCM Token",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"fcm_token\": \"sample-fcm-token\"\n}" },
+            "url": "{{baseUrl}}/api/users/me/fcm-token"
+          }
+        },
+        {
+          "name": "Delete Account",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/users/me" }
+        }
+      ]
+    },
+    {
+      "name": "Farms (Farmer Dashboard)",
+      "item": [
+        {
+          "name": "Create Farm",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 201) {",
+                "  const json = pm.response.json();",
+                "  if (json.data?._id) pm.collectionVariables.set('farmId', json.data._id);",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"مزرعة النيل\",\n  \"governorate\": \"القاهرة\",\n  \"description\": \"مزرعة تجريبية للاختبار\"\n}"
+            },
+            "url": "{{baseUrl}}/api/farms"
+          }
+        },
+        {
+          "name": "Get My Farms",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/farms" }
+        },
+        {
+          "name": "Get Farm By ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/farms/{{farmId}}" }
+        },
+        {
+          "name": "Get Farm Stats (Dashboard)",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Stats response has dashboard fields', () => {",
+                "  const json = pm.response.json();",
+                "  pm.expect(json.success).to.be.true;",
+                "  pm.expect(json.data.stats).to.have.property('total_animals');",
+                "  pm.expect(json.data.stats).to.have.property('upcoming_vaccinations');",
+                "  pm.expect(json.data.stats).to.have.property('weekly_health_trends');",
+                "  pm.expect(json.data.stats).to.have.property('ai_recommendations');",
+                "  pm.expect(json.data.stats).to.have.property('recent_activities');",
+                "});"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/farms/{{farmId}}/stats" }
+        },
+        {
+          "name": "Update Farm",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"مزرعة النيل المحدّثة\"\n}" },
+            "url": "{{baseUrl}}/api/farms/{{farmId}}"
+          }
+        },
+        {
+          "name": "Delete Farm",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/farms/{{farmId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Animals",
+      "item": [
+        {
+          "name": "Create Animal",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 201) {",
+                "  const json = pm.response.json();",
+                "  if (json.data?._id) pm.collectionVariables.set('animalId', json.data._id);",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"farm_id\": \"{{farmId}}\",\n  \"tag_number\": \"EG-001\",\n  \"species\": \"cattle\",\n  \"gender\": \"female\",\n  \"age_value\": 2,\n  \"age_unit\": \"years\",\n  \"weight_kg\": 450,\n  \"breed\": \"فriesian\"\n}"
+            },
+            "url": "{{baseUrl}}/api/animals"
+          }
+        },
+        {
+          "name": "Get Animals By Farm",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/animals/farm/{{farmId}}" }
+        },
+        {
+          "name": "Get Animal By ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/animals/{{animalId}}" }
+        },
+        {
+          "name": "Update Animal",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"weight_kg\": 460,\n  \"health_status\": \"healthy\"\n}" },
+            "url": "{{baseUrl}}/api/animals/{{animalId}}"
+          }
+        },
+        {
+          "name": "Delete Animal",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/animals/{{animalId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Vaccinations",
+      "item": [
+        {
+          "name": "Create Vaccination (Recurring)",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 201) {",
+                "  const json = pm.response.json();",
+                "  if (json.data?._id) pm.collectionVariables.set('vaccinationId', json.data._id);",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"animal_id\": \"{{animalId}}\",\n  \"vaccine_name\": \"حمى القلاع\",\n  \"vaccine_type\": \"recurring\",\n  \"last_date\": \"2025-06-01\",\n  \"next_due_date\": \"2026-06-01\",\n  \"dose_ml\": 2\n}"
+            },
+            "url": "{{baseUrl}}/api/vaccinations"
+          }
+        },
+        {
+          "name": "Get Vaccinations By Animal",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/vaccinations/animal/{{animalId}}" }
+        },
+        {
+          "name": "Get Vaccination By ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/vaccinations/{{vaccinationId}}" }
+        },
+        {
+          "name": "Update Vaccination",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"notes\": \"تم التطعيم بنجاح\"\n}" },
+            "url": "{{baseUrl}}/api/vaccinations/{{vaccinationId}}"
+          }
+        },
+        {
+          "name": "Delete Vaccination",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/vaccinations/{{vaccinationId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Health Cases",
+      "item": [
+        {
+          "name": "Diagnose (Text)",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 200 || pm.response.code === 201) {",
+                "  const json = pm.response.json();",
+                "  const id = json.data?._id || json.healthCase?._id;",
+                "  if (id) pm.collectionVariables.set('healthCaseId', id);",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"animal_id\": \"{{animalId}}\",\n  \"symptoms\": [\"حمى\", \"فقدان شهية\", \"إسهال\"],\n  \"input_type\": \"text\"\n}"
+            },
+            "url": "{{baseUrl}}/api/health-cases/diagnose"
+          }
+        },
+        {
+          "name": "Diagnose (General Consultation)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symptoms\": [\"سعال\", \"ضعف عام\"],\n  \"input_type\": \"text\"\n}"
+            },
+            "url": "{{baseUrl}}/api/health-cases/diagnose"
+          }
+        },
+        {
+          "name": "Get Cases By Animal",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/health-cases/animal/{{animalId}}" }
+        },
+        {
+          "name": "Get My Consultations",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/health-cases/consultations" }
+        },
+        {
+          "name": "Get Case By ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/health-cases/{{healthCaseId}}" }
+        },
+        {
+          "name": "Resolve Case",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"resolution_notes\": \"تم العلاج بنجاح\"\n}" },
+            "url": "{{baseUrl}}/api/health-cases/{{healthCaseId}}/resolve"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get My Notifications",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/notifications" }
+        },
+        {
+          "name": "Mark As Read",
+          "request": { "method": "PUT", "url": "{{baseUrl}}/api/notifications/{{notificationId}}/read" }
+        },
+        {
+          "name": "Mark All As Read",
+          "request": { "method": "PUT", "url": "{{baseUrl}}/api/notifications/read-all" }
+        },
+        {
+          "name": "Test Vaccination Reminder (Debug)",
+          "request": { "method": "POST", "url": "{{baseUrl}}/api/notifications/test-run" }
+        }
+      ]
+    },
+    {
+      "name": "Onboarding",
+      "item": [
+        {
+          "name": "Chat",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"مرحباً، أريد إضافة تاريخ مرضي للحيوان\",\n  \"history\": []\n}"
+            },
+            "url": "{{baseUrl}}/api/onboarding/{{animalId}}/chat"
+          }
+        },
+        {
+          "name": "Confirm",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medical_history\": [],\n  \"vaccinations\": []\n}"
+            },
+            "url": "{{baseUrl}}/api/onboarding/{{animalId}}/confirm"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Dashboard",
+      "item": [
+        {
+          "name": "Dashboard Stats",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Admin dashboard stats OK', () => {",
+                "  pm.response.to.have.status(200);",
+                "  pm.expect(pm.response.json().success).to.be.true;",
+                "});"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/dashboard/stats" }
+        },
+        {
+          "name": "Users Growth Analytics",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/analytics/users-growth?months=6" }
+        },
+        {
+          "name": "Health Trends Analytics",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/analytics/health-trends" }
+        },
+        {
+          "name": "Vaccination Analytics",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/analytics/vaccinations" }
+        },
+        {
+          "name": "List Users",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/users?page=1&limit=15" }
+        },
+        {
+          "name": "Get User By ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/users/{{userId}}" }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"طبيب تجريبي\",\n  \"email\": \"doctor@test.com\",\n  \"phone\": \"01098765432\",\n  \"password\": \"Doctor1234\",\n  \"governorate\": \"القاهرة\",\n  \"role\": \"doctor\",\n  \"specialization\": \"أمراض الماشية\",\n  \"license_number\": \"VET-001\",\n  \"assigned_governorates\": [\"القاهرة\", \"الجيزة\"]\n}"
+            },
+            "url": "{{baseUrl}}/api/admin/users"
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"طبيب محدّث\"\n}" },
+            "url": "{{baseUrl}}/api/admin/users/{{userId}}"
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/admin/users/{{userId}}" }
+        },
+        {
+          "name": "List Farms",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/farms?page=1&limit=15" }
+        },
+        {
+          "name": "Get Farm By ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/farms/{{farmId}}" }
+        },
+        {
+          "name": "Delete Farm",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/admin/farms/{{farmId}}" }
+        },
+        {
+          "name": "List Animals",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/animals?page=1&limit=15" }
+        },
+        {
+          "name": "List Health Cases",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/health-cases?page=1&limit=15&status=open" }
+        },
+        {
+          "name": "Update Health Case",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"resolved\": true\n}" },
+            "url": "{{baseUrl}}/api/admin/health-cases/{{healthCaseId}}"
+          }
+        },
+        {
+          "name": "List Consultations",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/consultations?page=1&limit=15" }
+        },
+        {
+          "name": "List Outbreaks",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/outbreaks?status=active" }
+        },
+        {
+          "name": "Create Outbreak",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 201 || pm.response.code === 200) {",
+                "  const json = pm.response.json();",
+                "  if (json.data?._id) pm.collectionVariables.set('outbreakId', json.data._id);",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"disease_name\": \"حمى القلاع\",\n  \"governorate\": \"القاهرة\",\n  \"cases_count\": 5,\n  \"ai_warning_message\": \"تنبيه: ارتفاع حالات حمى القلاع في المنطقة\"\n}"
+            },
+            "url": "{{baseUrl}}/api/admin/outbreaks"
+          }
+        },
+        {
+          "name": "Resolve Outbreak",
+          "request": { "method": "PUT", "url": "{{baseUrl}}/api/admin/outbreaks/{{outbreakId}}/resolve" }
+        },
+        {
+          "name": "List Notifications",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/notifications?page=1&limit=15" }
+        },
+        {
+          "name": "Broadcast Notification",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"تنبيه عام\",\n  \"body\": \"يرجى مراجعة جدول التطعيمات\",\n  \"type\": \"general\"\n}"
+            },
+            "url": "{{baseUrl}}/api/admin/notifications/broadcast"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Doctor Dashboard",
+      "item": [
+        {
+          "name": "Dashboard Stats",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Doctor dashboard stats OK', () => {",
+                "  pm.response.to.have.status(200);",
+                "  const data = pm.response.json().data;",
+                "  pm.expect(data).to.have.property('open_cases');",
+                "  pm.expect(data).to.have.property('consultations_today');",
+                "  pm.expect(data).to.have.property('active_outbreaks');",
+                "});"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/doctor/dashboard/stats" }
+        },
+        {
+          "name": "List Health Cases",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/doctor/health-cases?page=1&limit=15&status=open" }
+        },
+        {
+          "name": "Review Health Case",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vet_notes\": \"يُنصح بعزل الحيوان ومراجعة الطبيب\",\n  \"severity\": \"yellow\",\n  \"recommended_treatment\": \"مضاد حيوي + راحة\"\n}"
+            },
+            "url": "{{baseUrl}}/api/doctor/health-cases/{{healthCaseId}}/review"
+          }
+        },
+        {
+          "name": "List Pending Consultations",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/doctor/consultations?page=1&limit=15" }
+        },
+        {
+          "name": "Respond Consultation",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctor_response\": \"يُنصح بمراجعة الطبيب البيطري في أقرب وقت\"\n}"
+            },
+            "url": "{{baseUrl}}/api/doctor/consultations/{{consultationId}}/respond"
+          }
+        },
+        {
+          "name": "List Outbreaks",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/doctor/outbreaks?status=active" }
+        }
+      ]
+    }
+  ]
+}

@@ -3,7 +3,7 @@
 // الصفحة الرئيسية — بتجمّع كل كمبوننتات الـ dashboard feature
 // ────────────────────────────────────────────────────────────
 import { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchFarmById, fetchFarmStats } from '../../redux/farmSlice';
 import { useInView } from '../../utils/useInView'
@@ -14,10 +14,21 @@ import WeeklyHealthChart from '../../features/dashboard/components/WeeklyHealthC
 import AIRecommendations from '../../features/dashboard/components/AIRecommendations'
 import RecentActivities from '../../features/dashboard/components/RecentActivities'
 
-function PageHeader() {
+function PageHeader({ farmId }) {
   const { ref, inView } = useInView({ triggerOnce: true })
   const currentFarm = useSelector(state => state.farm.currentFarm);
-  
+  const navigate = useNavigate();
+
+  const handleExport = () => {
+    const blob = new Blob([JSON.stringify({ farm: currentFarm, exported_at: new Date().toISOString() }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `farm-${farmId || 'export'}-stats.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div
       ref={ref}
@@ -40,6 +51,8 @@ function PageHeader() {
       </div>
       <div className="flex gap-2">
         <button
+          type="button"
+          onClick={handleExport}
           className="flex items-center gap-2 px-4 py-2 rounded-lg border border-stone-200 text-sm
                      text-stone-600 bg-white hover:bg-stone-50 transition-all duration-200 shadow-sm"
         >
@@ -55,6 +68,8 @@ function PageHeader() {
           تصدير البيانات
         </button>
         <button
+          type="button"
+          onClick={() => navigate(`/animals/add?farmId=${farmId}`)}
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold
                      bg-[#2d5a1b] text-white hover:bg-[#3d6b47] transition-all duration-200
                      shadow-md hover:shadow-[#2d5a1b]/30 hover:scale-[1.02] active:scale-95"
@@ -94,7 +109,7 @@ export default function DashboardPage() {
   return (
     <div dir="rtl" className="max-w-7xl mx-auto">
       {/* Header */}
-      <PageHeader />
+      <PageHeader farmId={farmId} />
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

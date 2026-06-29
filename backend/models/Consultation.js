@@ -61,6 +61,23 @@ const consultationSchema = new mongoose.Schema(
       select: false,
       default: null,
     },
+
+    // ── رد الطبيب البيطري ───────────────────────────────────────────────────
+    doctor_response: { type: String, default: null },
+    doctor_status: {
+      type: String,
+      enum: ["pending", "responded"],
+      default: "pending",
+    },
+    responded_by: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    responded_at: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },

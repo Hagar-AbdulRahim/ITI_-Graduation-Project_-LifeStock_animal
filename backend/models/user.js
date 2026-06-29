@@ -53,6 +53,16 @@ const userSchema = new mongoose.Schema(
       type: String, enum: ["local", "google"], default: "local",
     },
 
+    // ── Role-Based Access ─────────────────────────────────────────────────
+    role: {
+      type: String,
+      enum: ["user", "doctor", "admin"],
+      default: "user",
+    },
+    specialization:     { type: String, default: null },
+    license_number:     { type: String, default: null },
+    assigned_governorates: [{ type: String }],
+
     // ── Notifications ─────────────────────────────────────────────────────
     notifications_enabled: { type: Boolean, default: true },
     fcm_token:             { type: String,  default: null  },
@@ -91,5 +101,6 @@ userSchema.methods.generatePasswordResetOtp = function () {
 
 // ── Indexes ───────────────────────────────────────────────────────────────────
 userSchema.index({ governorate: 1 });
+userSchema.index({ role: 1 });
 
 module.exports = mongoose.model("User", userSchema);
