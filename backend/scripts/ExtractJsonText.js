@@ -58,23 +58,48 @@ const diseaseToText = (disease) => {
 const vaccineToText = (vaccine) => {
   const lines = [];
 
-  if (vaccine.vaccine_name || vaccine.name)
-    lines.push(`اللقاح: ${vaccine.vaccine_name || vaccine.name}`);
+  if (vaccine.vaccine_name)
+    lines.push(`اللقاح: ${vaccine.vaccine_name}`);
 
-  if (vaccine.disease_name || vaccine.disease)
-    lines.push(`يقي من: ${vaccine.disease_name || vaccine.disease}`);
+  if (vaccine.scientific_name)
+    lines.push(`الاسم العلمي: ${vaccine.scientific_name}`);
 
-  if (vaccine.affected_species?.length)
-    lines.push(`الحيوانات: ${vaccine.affected_species.join("، ")}`);
+  if (vaccine.target_disease)
+    lines.push(`يقي من: ${vaccine.target_disease}`);
 
-  if (vaccine.schedule || vaccine.dose_schedule)
-    lines.push(`الجدول: ${vaccine.schedule || vaccine.dose_schedule}`);
+  if (vaccine.vaccine_type)
+    lines.push(`نوع اللقاح: ${vaccine.vaccine_type}`);
 
-  if (vaccine.notes)
-    lines.push(`ملاحظات: ${vaccine.notes}`);
+  if (vaccine.target_species?.length)
+    lines.push(`الحيوانات: ${vaccine.target_species.join("، ")}`);
+
+  if (vaccine.target_strains?.length)
+    lines.push(`السلالات المستهدفة: ${vaccine.target_strains.join("، ")}`);
+
+  if (vaccine.age_at_vaccination)
+    lines.push(`العمر عند التطعيم: ${vaccine.age_at_vaccination}`);
+
+  if (vaccine.dose)
+    lines.push(`الجرعة: ${vaccine.dose}`);
+
+  if (vaccine.route)
+    lines.push(`طريقة الإعطاء: ${vaccine.route}`);
+
+  if (vaccine.booster_dose)
+    lines.push(`الجرعة المنشطة: ${vaccine.booster_dose}`);
+
+  if (vaccine.revaccination_interval)
+    lines.push(`فترة إعادة التطعيم: ${vaccine.revaccination_interval}`);
+
+  if (vaccine.vaccination_type)
+    lines.push(`نوع التحصين: ${vaccine.vaccination_type}`);
+
+  if (vaccine.usage_context)
+    lines.push(`السياق: ${vaccine.usage_context}`);
 
   return lines.join("\n");
 };
+
 
 const extractKnowledgeBaseChunks = async () => {
   const allChunks = [];
