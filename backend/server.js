@@ -17,6 +17,7 @@ const { startVaccinationReminderJob } = require("./Cron_vaccinationreminder");
 const notificationRoutes = require("./routes/notification.routes");
 const adminRoutes        = require("./routes/Admin.routes");
 const doctorRoutes       = require("./routes/Doctor.routes");
+const { startOutbreakDetectionJob } = require("./Cron_outbreakdetection");
 const app = express();
 
 mongoose
@@ -25,6 +26,7 @@ mongoose
     console.log("✅ MongoDB Connected");
   
     startVaccinationReminderJob();
+    startOutbreakDetectionJob();
   })
   .catch((err) => console.log(err));
 
@@ -56,6 +58,7 @@ app.use("/api/onboarding",   onboardingRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/admin",         adminRoutes);
 app.use("/api/doctor",        doctorRoutes);
+app.use("/api/veterinary", require("./routes/veterinary.routes"));
 app.listen(5000, () => {
   console.log("🚀 Server running on port 5000");
 });

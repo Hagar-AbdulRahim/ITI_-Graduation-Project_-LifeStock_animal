@@ -52,7 +52,9 @@ const register = async (req, res) => {
       }
       return res.status(409).json({ success: false, message: "البريد الإلكتروني مسجل بالفعل" });
     }
-    const user      = new User({ name, email, phone, password, governorate, auth_provider: "local", role: "user" });
+   const ALLOWED_ROLES = ["user", "doctor", "admin"];
+   const requestedRole = ALLOWED_ROLES.includes(req.body.role) ? req.body.role : "user";
+   const user = new User({ name, email, phone, password, governorate, auth_provider: "local", role: requestedRole });
     const rawToken  = user.generateVerificationToken();
     await user.save();
     try {
