@@ -6,6 +6,7 @@ const {
   diagnoseVoice,
   diagnoseImage,
   getCasesByAnimal,
+  getMyConsultations,
   getCaseById,
   resolveCase,
 } = require("../controllers/Healthcase.controller");
@@ -43,6 +44,9 @@ router.post("/diagnose/voice", uploadAudio.single("audio"), diagnoseVoice);
 
 // تاريخ حيوان معين
 router.get("/animal/:animalId", [...animalIdParamValidator, validate], getCasesByAnimal);
+
+// استشارات عامة للمستخدم
+router.get("/consultations", getMyConsultations);
 
 // تفاصيل حالة واحدة
 router.get("/:id", [...caseIdValidator, validate], getCaseById);

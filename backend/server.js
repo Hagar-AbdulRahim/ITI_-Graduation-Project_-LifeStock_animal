@@ -15,6 +15,8 @@ const onboardingRoutes  = require("./routes/onboarding.routes");
 
 const { startVaccinationReminderJob } = require("./Cron_vaccinationreminder");
 const notificationRoutes = require("./routes/notification.routes");
+const adminRoutes        = require("./routes/Admin.routes");
+const doctorRoutes       = require("./routes/Doctor.routes");
 const app = express();
 
 mongoose
@@ -52,6 +54,8 @@ app.use("/api/vaccinations", vaccinationRoutes);
 app.use("/api/health-cases", healthCaseRoutes);
 app.use("/api/onboarding",   onboardingRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/admin",         adminRoutes);
+app.use("/api/doctor",        doctorRoutes);
 app.listen(5000, () => {
   console.log("🚀 Server running on port 5000");
 });

@@ -6,15 +6,29 @@ const fs            = require("fs");
 const { diagnoseSymptoms, analyzeImage } = require("../services/aiagent");
 const { transcribeAudio }   = require("../voiceService");
 
-// helper: تأكيد إن الحيوان ده ملك المزارع الحالي
-const verifyAnimalOwnership = async (animalId, userId) => {
+const { isAdmin, isDoctor, canAccessGovernorate } = require("../utils/accessControl");
+
+// helper: وصول للحيوان — قراءة (admin/doctor) أو ملكية (كتابة)
+const verifyAnimalAccess = async (animalId, user, { requireOwnership = false } = {}) => {
   const animal = await Animal.findOne({ _id: animalId, is_active: true }).populate(
     "farm_id",
     "user_id governorate"
   );
   if (!animal) return null;
-  if (animal.farm_id.user_id.toString() !== userId.toString()) return null;
-  return animal;
+
+  if (isAdmin(user)) return animal;
+
+  const isOwner = animal.farm_id.user_id.toString() === user._id.toString();
+
+  if (requireOwnership) {
+    if (!isOwner) return null;
+    return animal;
+  }
+
+  if (isOwner) return animal;
+  if (isDoctor(user) && canAccessGovernorate(user, animal.farm_id.governorate)) return animal;
+
+  return null;
 };
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -54,7 +68,7 @@ const runDiagnosis = async (req, body) => {
   // الحالة 1: فيه animal_id → تشخيص مرتبط بحيوان مسجل
   // ──────────────────────────────────────────────────────────────────────────
   if (animal_id) {
-    const animal = await verifyAnimalOwnership(animal_id, req.user._id);
+    const animal = await verifyAnimalAccess(animal_id, req.user, { requireOwnership: true });
     if (!animal) {
       return { status: 404, body: { success: false, message: "الحيوان غير موجود أو غير مصرح" } };
     }
@@ -281,7 +295,7 @@ const diagnoseImage = async (req, res) => {
 
 const getCasesByAnimal = async (req, res) => {
   try {
-    const animal = await verifyAnimalOwnership(req.params.animalId, req.user._id);
+    const animal = await verifyAnimalAccess(req.params.animalId, req.user);
     if (!animal) {
       return res.status(404).json({ success: false, message: "الحيوان غير موجود أو غير مصرح" });
     }
@@ -329,7 +343,12 @@ const getCaseById = async (req, res) => {
       return res.status(404).json({ success: false, message: "الحالة غير موجودة" });
     }
 
-    if (healthCase.user_id.toString() !== req.user._id.toString()) {
+    const canRead =
+      isAdmin(req.user) ||
+      healthCase.user_id.toString() === req.user._id.toString() ||
+      (isDoctor(req.user) && canAccessGovernorate(req.user, healthCase.governorate));
+
+    if (!canRead) {
       return res.status(403).json({ success: false, message: "غير مصرح" });
     }
 

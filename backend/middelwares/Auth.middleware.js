@@ -42,4 +42,26 @@ const protect = async (req, res, next) => {
   }
 };
 
-module.exports = { protect };
+/**
+ * يتحقق من أن دور المستخدم ضمن الأدوار المسموحة
+ * يُستخدم بعد protect
+ */
+const authorize = (...roles) => (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: "غير مصرح — يرجى تسجيل الدخول",
+    });
+  }
+
+  if (!roles.includes(req.user.role)) {
+    return res.status(403).json({
+      success: false,
+      message: "ليس لديك صلاحية للوصول إلى هذا المورد",
+    });
+  }
+
+  next();
+};
+
+module.exports = { protect, authorize };
