@@ -1,0 +1,503 @@
+[
+  {
+    "vaccine_number": 1,
+    "vaccine_name": "لقاح O1 المعطل بالأزيريدين",
+    "scientific_name": "Aziridine Inactivated O1 Vaccine",
+    "target_disease": "الحمى القلاعية (Foot and Mouth Disease)",
+    "manufacturer": "متعددة — يُنتج في مختبرات بيطرية رسمية",
+    "vaccine_type": "لقاح ميت — فيروس معطل بمركب الأزيريدين",
+    "target_strains": [
+      "O1"
+    ],
+    "target_species": [
+      "أبقار",
+      "جاموس",
+      "أغنام",
+      "ماعز"
+    ],
+    "age_at_vaccination": "من 3-4 أشهر فصاعداً",
+    "dose": "2 مل للأبقار والجاموس — 1 مل للأغنام والماعز",
+    "route": "تحت الجلد (S/C) أو عضلي عميق (I/M)",
+    "booster_dose": "بعد 4 أسابيع من الجرعة الأولى",
+    "revaccination_interval": "كل 6 أشهر",
+    "vaccination_type": "دوري",
+    "usage_context": "وقاية دورية — يُعطى ضمن برنامج التحصين الدوري المحلي ضد سلالة O1",
+    "source": "MEVAC Egypt | VSVRI | WOAH | PubMed"
+  },
+  {
+    "vaccine_number": 2,
+    "vaccine_name": "اللقاح الثنائي للحمى القلاعية (O1 و A)",
+    "scientific_name": "Bivalent FMD Vaccine Type O1 & A",
+    "target_disease": "الحمى القلاعية (Foot and Mouth Disease)",
+    "manufacturer": "متعددة — يُنتج في مختبرات بيطرية رسمية",
+    "vaccine_type": "لقاح ميت ثنائي التكافؤ",
+    "target_strains": [
+      "O1",
+      "A"
+    ],
+    "target_species": [
+      "أبقار",
+      "جاموس",
+      "أغنام",
+      "ماعز"
+    ],
+    "age_at_vaccination": "من 3-4 أشهر فصاعداً",
+    "dose": "2 مل للأبقار والجاموس — 1 مل للأغنام والماعز",
+    "route": "تحت الجلد (S/C)",
+    "booster_dose": "بعد 4 أسابيع من الجرعة الأولى",
+    "revaccination_interval": "كل 6 أشهر",
+    "vaccination_type": "دوري",
+    "usage_context": "وقاية دورية — يحمي من سلالتين O1 و A في آن واحد",
+    "source": "MEVAC Egypt | VSVRI | WOAH | PubMed"
+  },
+  {
+    "vaccine_number": 3,
+    "vaccine_name": "لقاح O1 المعطل بالفورمالين",
+    "scientific_name": "Formalin Inactivated O1 Vaccine",
+    "target_disease": "الحمى القلاعية (Foot and Mouth Disease)",
+    "manufacturer": "متعددة — يُنتج في مختبرات بيطرية رسمية",
+    "vaccine_type": "لقاح ميت — فيروس معطل بالفورمالين مع هيدروكسيد الألومنيوم",
+    "target_strains": [
+      "O1"
+    ],
+    "target_species": [
+      "أبقار",
+      "جاموس",
+      "أغنام",
+      "ماعز"
+    ],
+    "age_at_vaccination": "من 3-4 أشهر فصاعداً",
+    "dose": "2 مل للأبقار والجاموس — 1 مل للأغنام والماعز",
+    "route": "تحت الجلد (S/C)",
+    "booster_dose": "بعد 4 أسابيع من الجرعة الأولى",
+    "revaccination_interval": "كل 6 أشهر — مدة حماية أقصر من اللقاحات الزيتية",
+    "vaccination_type": "دوري",
+    "usage_context": "وقاية دورية — لقاح تقليدي ضد سلالة O1، مدة حمايته أقل من الزيتي",
+    "source": "MEVAC Egypt | VSVRI | WOAH | PubMed"
+  },
+  {
+    "vaccine_number": 4,
+    "vaccine_name": "لقاح O1 الزيتي",
+    "scientific_name": "Oil Adjuvant O1 Vaccine",
+    "target_disease": "الحمى القلاعية (Foot and Mouth Disease)",
+    "manufacturer": "متعددة — يُنتج في مختبرات بيطرية رسمية",
+    "vaccine_type": "لقاح ميت زيتي — مستحلب زيتي يمنح مناعة أطول",
+    "target_strains": [
+      "O1"
+    ],
+    "target_species": [
+      "أبقار",
+      "جاموس",
+      "أغنام",
+      "ماعز"
+    ],
+    "age_at_vaccination": "من 3 أشهر فصاعداً — يتميز بفاعلية مع العجول الصغيرة",
+    "dose": "2 مل للأبقار والجاموس — 1.5 مل للأغنام والماعز",
+    "route": "تحت الجلد (S/C) أو عضلي (I/M)",
+    "booster_dose": "بعد 4 أسابيع من الجرعة الأولى",
+    "revaccination_interval": "كل 6 أشهر — اللقاحات الزيتية تعطي مناعة أعلى وأطول",
+    "vaccination_type": "دوري",
+    "usage_context": "وقاية دورية — يُفضل على لقاحات الألومنيوم بسبب مناعة أعلى وأطول مدة",
+    "source": "MEVAC Egypt | VSVRI | WOAH | PubMed"
+  },
+  {
+    "vaccine_number": 5,
+    "vaccine_name": "تراي أفثوفاك (Tri-Aphthovac)",
+    "scientific_name": "Tri-Aphthovac Inactivated FMD Vaccine",
+    "target_disease": "الحمى القلاعية (Foot and Mouth Disease)",
+    "manufacturer": "MEVAC — مصر",
+    "vaccine_type": "لقاح ميت ثلاثي التكافؤ",
+    "target_strains": [
+      "O",
+      "A",
+      "SAT-2"
+    ],
+    "target_species": [
+      "أبقار",
+      "جاموس",
+      "أغنام",
+      "ماعز"
+    ],
+    "age_at_vaccination": "من 4 أشهر فصاعداً",
+    "dose": "2 مل للأبقار والجاموس — 1 مل للأغنام والماعز",
+    "route": "تحت الجلد (S/C)",
+    "booster_dose": "بعد 4 أسابيع من الجرعة الأولى",
+    "revaccination_interval": "كل 6 أشهر",
+    "vaccination_type": "دوري",
+    "usage_context": "وقاية دورية — يغطي السلالات المنتشرة في مصر والشرق الأوسط (O, A, SAT-2)",
+    "source": "MEVAC Egypt | VSVRI | WOAH | PubMed"
+  },
+  {
+    "vaccine_number": 6,
+    "vaccine_name": "أفثوفاك 7 (APHTHOVAC 7)",
+    "scientific_name": "APHTHOVAC 7 Inactivated Polyvalent FMD Vaccine",
+    "target_disease": "الحمى القلاعية (Foot and Mouth Disease)",
+    "manufacturer": "MEVAC — مصر",
+    "vaccine_type": "لقاح ميت سباعي التكافؤ بمستحلب زيتي ISA 206",
+    "target_strains": [
+      "A-Iran05",
+      "A-Africa-IV",
+      "O-PanAsia2",
+      "O-Manisa",
+      "O-EA3",
+      "SAT-2 Gharbia",
+      "SAT-2 LIB-12"
+    ],
+    "target_species": [
+      "أبقار",
+      "جاموس",
+      "أغنام",
+      "ماعز"
+    ],
+    "age_at_vaccination": "من 3 أشهر فصاعداً — اختُبر على عجول 6-8 أشهر",
+    "dose": "3 مل للأبقار والجاموس — 1 مل للأغنام والماعز",
+    "route": "تحت الجلد (S/C)",
+    "booster_dose": "بعد 4 أسابيع من الجرعة الأولى",
+    "revaccination_interval": "كل 6 أشهر",
+    "vaccination_type": "دوري",
+    "usage_context": "وقاية دورية — الأشمل تغطيةً للسلالات المتداولة في مصر والمنطقة",
+    "source": "MEVAC Egypt | VSVRI | WOAH | PubMed"
+  },
+  {
+    "vaccine_number": 7,
+    "vaccine_name": "سيرفاك متعدد التكافؤ الزيتي (SERVAC)",
+    "scientific_name": "SERVAC Polyvalent Inactivated FMD Oil Vaccine",
+    "target_disease": "الحمى القلاعية (Foot and Mouth Disease)",
+    "manufacturer": "معهد بحوث الأمصال واللقاحات البيطرية (VSVRI) — العباسية، مصر",
+    "vaccine_type": "لقاح ميت زيتي متعدد التكافؤ",
+    "target_strains": [
+      "O",
+      "A",
+      "SAT-2"
+    ],
+    "target_species": [
+      "أبقار",
+      "جاموس",
+      "أغنام",
+      "ماعز"
+    ],
+    "age_at_vaccination": "من 3 أشهر فصاعداً",
+    "dose": "3 مل للأبقار والجاموس — 1.5 مل للأغنام والماعز",
+    "route": "تحت الجلد (S/C) أو عضلي (I/M)",
+    "booster_dose": "بعد 4 أسابيع من الجرعة الأولى",
+    "revaccination_interval": "كل 6 أشهر",
+    "vaccination_type": "دوري",
+    "usage_context": "وقاية دورية — لقاح حكومي مصري يغطي السلالات المتداولة (O, A, SAT-2)",
+    "source": "MEVAC Egypt | VSVRI | WOAH | PubMed"
+  },
+  {
+    "vaccine_number": 8,
+    "vaccine_name": "لقاح طاعون المجترات الصغيرة (PPR)",
+    "scientific_name": "PPR Vaccine (Peste des Petits Ruminants)",
+    "target_disease": "الطاعون في المجترات الصغيرة (PPR)",
+    "manufacturer": "MEVAC / VSVRI — مصر",
+    "vaccine_type": "لقاح حي مضعف",
+    "target_strains": [
+      "Lineage IV"
+    ],
+    "target_species": [
+      "أغنام",
+      "ماعز"
+    ],
+    "age_at_vaccination": "3 أشهر فصاعداً",
+    "dose": "1 مل تحت الجلد",
+    "route": "تحت الجلد (S/C)",
+    "booster_dose": "جرعة واحدة تكفي لمناعة 3 سنوات",
+    "revaccination_interval": "كل 3 سنوات أو سنوياً في المناطق الموبوءة",
+    "vaccination_type": "دوري",
+    "usage_context": "وقاية دورية — أساسي في المناطق الموبوءة ومناطق انتشار المرض",
+    "source": "Merck Veterinary Manual, WOAH"
+  },
+  {
+    "vaccine_number": 9,
+    "vaccine_name": "لقاح الجدري في الأغنام والماعز",
+    "scientific_name": "Sheep and Goat Pox Vaccine (Capripoxvirus)",
+    "target_disease": "الجدري في الأغنام والماعز (Sheep and Goat Pox)",
+    "manufacturer": "MEVAC / VSVRI — مصر",
+    "vaccine_type": "لقاح حي مضعف",
+    "target_strains": [
+      "Capripoxvirus"
+    ],
+    "target_species": [
+      "أغنام",
+      "ماعز"
+    ],
+    "age_at_vaccination": "3 أشهر فصاعداً",
+    "dose": "1 مل تحت الجلد",
+    "route": "تحت الجلد (S/C)",
+    "booster_dose": "غير مطلوب — جرعة واحدة تمنح مناعة طويلة",
+    "revaccination_interval": "سنوياً في المناطق الموبوءة",
+    "vaccination_type": "دوري",
+    "usage_context": "وقاية دورية — ضروري في المناطق الموبوءة",
+    "source": "Merck Veterinary Manual, WOAH"
+  },
+  {
+    "vaccine_number": 10,
+    "vaccine_name": "لقاح البروسيلا للأبقار (S19)",
+    "scientific_name": "Brucella abortus Vaccine Strain S19",
+    "target_disease": "البروسيلا (Brucellosis)",
+    "manufacturer": "جهات بيطرية رسمية",
+    "vaccine_type": "لقاح حي مضعف",
+    "target_strains": [
+      "Brucella abortus"
+    ],
+    "target_species": [
+      "أبقار"
+    ],
+    "age_at_vaccination": "3-6 أشهر للإناث فقط",
+    "dose": "1-2 مل تحت الجلد",
+    "route": "تحت الجلد (S/C)",
+    "booster_dose": "غير مطلوب عادةً",
+    "revaccination_interval": "مرة واحدة في العمر — تُعطى للعجلات قبل البلوغ فقط",
+    "vaccination_type": "دوري — مرة واحدة",
+    "usage_context": "وقاية — يُعطى للإناث قبل البلوغ فقط. مرض مشترك — يتطلب إشراف بيطري رسمي. لا يُعطى للذكور أو الأبقار الحوامل",
+    "source": "Merck Veterinary Manual, WOAH"
+  },
+  {
+    "vaccine_number": 11,
+    "vaccine_name": "لقاح البروسيلا للأغنام والماعز (Rev.1)",
+    "scientific_name": "Brucella melitensis Vaccine Strain Rev.1",
+    "target_disease": "البروسيلا (Brucellosis)",
+    "manufacturer": "جهات بيطرية رسمية",
+    "vaccine_type": "لقاح حي مضعف",
+    "target_strains": [
+      "Brucella melitensis"
+    ],
+    "target_species": [
+      "أغنام",
+      "ماعز"
+    ],
+    "age_at_vaccination": "3-5 أشهر — للإناث فقط",
+    "dose": "0.5-1 مل تحت الجلد أو بالملتحمة",
+    "route": "تحت الجلد (S/C) أو بالملتحمة — الملتحمة أكثر أماناً",
+    "booster_dose": "غير مطلوب",
+    "revaccination_interval": "مرة واحدة في العمر",
+    "vaccination_type": "دوري — مرة واحدة",
+    "usage_context": "وقاية — يُعطى للإناث فقط قبل البلوغ. لا يُعطى للحوامل — يمكن أن يسبب إجهاض. مرض مشترك يصيب الإنسان — يتطلب قفازات عند الإعطاء",
+    "source": "Merck Veterinary Manual, PMC"
+  },
+  {
+    "vaccine_number": 12,
+    "vaccine_name": "لقاح الكلوستريديا 7-Way",
+    "scientific_name": "7-Way Clostridial Vaccine (CD&T + Blackleg)",
+    "target_disease": "أمراض الكلوستريديا (التسمم المعوي، الجمرة الخبيثة العرجية، الوذمة الخبيثة، الكزاز)",
+    "manufacturer": "متعددة — Zoetis, Merck Animal Health, Boehringer Ingelheim",
+    "vaccine_type": "لقاح ميت (Bacterin-Toxoid)",
+    "target_strains": [
+      "Clostridium chauvoei (Blackleg)",
+      "Clostridium septicum (Malignant Edema)",
+      "Clostridium sordellii",
+      "Clostridium novyi (Black Disease)",
+      "Clostridium perfringens Type C",
+      "Clostridium perfringens Type D (Enterotoxemia)",
+      "Clostridium tetani (Tetanus)"
+    ],
+    "target_species": [
+      "أبقار",
+      "أغنام",
+      "ماعز"
+    ],
+    "age_at_vaccination": "2-3 أشهر فصاعداً",
+    "dose": "2-5 مل حسب المنتج — تحت الجلد في الرقبة للأبقار",
+    "route": "تحت الجلد (S/C) — يُفضل في الرقبة للأبقار لتجنب التفاعلات الموضعية",
+    "booster_dose": "بعد 3-6 أسابيع من الجرعة الأولى",
+    "revaccination_interval": "سنوياً للبالغين — قبل الولادة بـ 3-4 أسابيع للأمهات لتعزيز مناعة اللبأ",
+    "vaccination_type": "دوري",
+    "usage_context": "وقاية دورية — من أهم اللقاحات للماشية. جرعة واحدة غير كافية — تحتاج منشطة خلال 3-6 أسابيع",
+    "source": "Merck Veterinary Manual, UMN Extension"
+  },
+  {
+    "vaccine_number": 13,
+    "vaccine_name": "لقاح CD&T (التسمم المعوي والكزاز)",
+    "scientific_name": "CD&T Vaccine (Clostridium perfringens C&D + Tetanus Toxoid)",
+    "target_disease": "التسمم المعوي (Enterotoxemia) والكزاز (Tetanus)",
+    "manufacturer": "متعددة",
+    "vaccine_type": "لقاح ميت (Toxoid)",
+    "target_strains": [
+      "Clostridium perfringens Type C",
+      "Clostridium perfringens Type D",
+      "Clostridium tetani"
+    ],
+    "target_species": [
+      "أغنام",
+      "ماعز",
+      "أبقار"
+    ],
+    "age_at_vaccination": "6-8 أسابيع للحملان والجديان — 2-3 أشهر للعجول",
+    "dose": "2 مل تحت الجلد",
+    "route": "تحت الجلد (S/C)",
+    "booster_dose": "بعد 4 أسابيع من الجرعة الأولى — ضروري لمناعة كافية",
+    "revaccination_interval": "سنوياً — قبل الولادة بـ 3-4 أسابيع للأمهات",
+    "vaccination_type": "دوري",
+    "usage_context": "وقاية دورية — الأساسي للأغنام والماعز. Type C يصيب الصغار في الأسابيع الأولى. Type D يصيب الأكبر سناً عند الإفراط في الأكل",
+    "source": "Merck Veterinary Manual, SD State Extension"
+  },
+  {
+    "vaccine_number": 14,
+    "vaccine_name": "لقاح الجمرة الخبيثة (Anthrax)",
+    "scientific_name": "Anthrax Spore Vaccine (Bacillus anthracis Sterne Strain)",
+    "target_disease": "الجمرة الخبيثة (Anthrax)",
+    "manufacturer": "VSVRI / جهات بيطرية رسمية",
+    "vaccine_type": "لقاح حي (جراثيم بدون كبسولة)",
+    "target_strains": [
+      "Bacillus anthracis Sterne Strain"
+    ],
+    "target_species": [
+      "أبقار",
+      "أغنام",
+      "ماعز"
+    ],
+    "age_at_vaccination": "6 أشهر فصاعداً",
+    "dose": "1 مل تحت الجلد",
+    "route": "تحت الجلد (S/C) — لا يُعطى مع مضادات حيوية",
+    "booster_dose": "غير مطلوب",
+    "revaccination_interval": "سنوياً في المناطق الموبوءة — قبل موسم الذروة بشهر",
+    "vaccination_type": "دوري — في المناطق الموبوءة فقط",
+    "usage_context": "وقاية دورية في المناطق الموبوءة فقط. مرض مشترك خطير — يتطلب إشراف بيطري رسمي. لا يُعطى مع أو بعد مضادات حيوية بـ 7 أيام على الأقل",
+    "source": "Merck Veterinary Manual, WOAH"
+  },
+  {
+    "vaccine_number": 15,
+    "vaccine_name": "لقاح الحمى التيفودية (Leptospirosis)",
+    "scientific_name": "Leptospira Vaccine (Lepto 5-Way)",
+    "target_disease": "الليبتوسبيرا (Leptospirosis)",
+    "manufacturer": "Zoetis / Boehringer Ingelheim",
+    "vaccine_type": "لقاح ميت (Bacterin)",
+    "target_strains": [
+      "L. pomona",
+      "L. hardjo",
+      "L. grippotyphosa",
+      "L. canicola",
+      "L. icterohaemorrhagiae"
+    ],
+    "target_species": [
+      "أبقار"
+    ],
+    "age_at_vaccination": "4-6 أشهر فصاعداً",
+    "dose": "2 مل عضلي أو تحت الجلد",
+    "route": "عضلي (I/M) أو تحت الجلد (S/C)",
+    "booster_dose": "بعد 3-4 أسابيع من الجرعة الأولى",
+    "revaccination_interval": "كل 6-12 شهراً حسب خطورة المنطقة",
+    "vaccination_type": "دوري",
+    "usage_context": "وقاية دورية — مهم في المناطق الرطبة وقرب المستنقعات. مرض مشترك يصيب الإنسان",
+    "source": "Merck Veterinary Manual"
+  },
+  {
+    "vaccine_number": 16,
+    "vaccine_name": "لقاح الأمراض التنفسية BRD (IBR + BVD + PI3 + BRSV)",
+    "scientific_name": "BRD Combination Vaccine (Modified Live)",
+    "target_disease": "أمراض الجهاز التنفسي في الأبقار (BRD Complex)",
+    "manufacturer": "Zoetis (Bovi-Shield), Merck Animal Health (Pyramid), Boehringer Ingelheim",
+    "vaccine_type": "لقاح حي مضعف (Modified Live Vaccine - MLV)",
+    "target_strains": [
+      "Infectious Bovine Rhinotracheitis (IBR)",
+      "Bovine Viral Diarrhoea (BVD Type 1 & 2)",
+      "Parainfluenza-3 (PI3)",
+      "Bovine Respiratory Syncytial Virus (BRSV)"
+    ],
+    "target_species": [
+      "أبقار"
+    ],
+    "age_at_vaccination": "2-3 أشهر فصاعداً",
+    "dose": "2 مل تحت الجلد أو عضلي",
+    "route": "تحت الجلد (S/C) أو عضلي (I/M) — أنواع intranasal متاحة للعجول الصغيرة",
+    "booster_dose": "بعد 3-4 أسابيع",
+    "revaccination_interval": "سنوياً — قبل موسم الضغط (الشتاء، تغيير البيئة، الشحن)",
+    "vaccination_type": "دوري",
+    "usage_context": "وقاية دورية — ضروري قبل نقل الحيوانات أو تغيير البيئة. لقاح Nasalgen 3 / Inforce يُعطى داخل الأنف ويمنح مناعة سريعة قبل السفر",
+    "source": "Merck Veterinary Manual, UMN Extension"
+  },
+  {
+    "vaccine_number": 17,
+    "vaccine_name": "لقاح الجلد العقدي (Lumpy Skin Disease)",
+    "scientific_name": "Lumpy Skin Disease Vaccine (LSD - Neethling Strain)",
+    "target_disease": "مرض الجلد العقدي (Lumpy Skin Disease)",
+    "manufacturer": "VSVRI / MEVAC — مصر",
+    "vaccine_type": "لقاح حي مضعف",
+    "target_strains": [
+      "Neethling Capripoxvirus"
+    ],
+    "target_species": [
+      "أبقار",
+      "جاموس"
+    ],
+    "age_at_vaccination": "3 أشهر فصاعداً",
+    "dose": "1 مل تحت الجلد",
+    "route": "تحت الجلد (S/C)",
+    "booster_dose": "غير مطلوب — جرعة واحدة تمنح مناعة لسنة",
+    "revaccination_interval": "سنوياً",
+    "vaccination_type": "دوري",
+    "usage_context": "وقاية دورية — أساسي في مصر وأفريقيا. لا يُجمع مع لقاحات أخرى في نفس اليوم",
+    "source": "Merck Veterinary Manual, WOAH"
+  },
+  {
+    "vaccine_number": 18,
+    "vaccine_name": "لقاح التسمم الدموي (Hemorrhagic Septicemia)",
+    "scientific_name": "Hemorrhagic Septicemia Vaccine (Pasteurella multocida)",
+    "target_disease": "التسمم الدموي (Hemorrhagic Septicemia)",
+    "manufacturer": "VSVRI / جهات بيطرية رسمية",
+    "vaccine_type": "لقاح ميت (Bacterin)",
+    "target_strains": [
+      "Pasteurella multocida Type B:2 and E:2"
+    ],
+    "target_species": [
+      "أبقار",
+      "جاموس"
+    ],
+    "age_at_vaccination": "6 أشهر فصاعداً",
+    "dose": "2-5 مل عضلي أو تحت الجلد حسب المنتج",
+    "route": "عضلي (I/M) أو تحت الجلد (S/C)",
+    "booster_dose": "بعد 4 أسابيع من الجرعة الأولى",
+    "revaccination_interval": "سنوياً — قبل موسم الأمطار في المناطق الموبوءة",
+    "vaccination_type": "دوري",
+    "usage_context": "وقاية دورية — مهم جداً في مصر وجنوب آسيا وأفريقيا. يُعطى قبل موسم الذروة",
+    "source": "Merck Veterinary Manual, WOAH"
+  },
+  {
+    "vaccine_number": 19,
+    "vaccine_name": "لقاح البابيزيا والثيليريا (Tick Fever)",
+    "scientific_name": "Babesia / Theileria Vaccine",
+    "target_disease": "البابيزيا (Babesiosis) والثيليريا (Theileriosis)",
+    "manufacturer": "جهات بيطرية متخصصة",
+    "vaccine_type": "لقاح حي (دم ملقح — Blood Vaccine)",
+    "target_strains": [
+      "Babesia bovis",
+      "Babesia bigemina",
+      "Theileria parva"
+    ],
+    "target_species": [
+      "أبقار"
+    ],
+    "age_at_vaccination": "3-9 أشهر — العجول الصغيرة تستجيب أفضل",
+    "dose": "حسب البروتوكول البيطري",
+    "route": "تحت الجلد (S/C)",
+    "booster_dose": "غير مطلوب عادةً",
+    "revaccination_interval": "حسب مستوى الضغط الطفيلي في المنطقة",
+    "vaccination_type": "دوري — في المناطق الموبوءة",
+    "usage_context": "وقاية في المناطق الموبوءة بالقراد — يُعطى للعجول قبل التعرض للقراد. مراقبة الحيوان بعد التطعيم لأنه قد يسبب مرضاً خفيفاً",
+    "source": "Merck Veterinary Manual, NADIS"
+  },
+  {
+    "vaccine_number": 20,
+    "vaccine_name": "لقاح الإجهاض الفيروسي (BVD Vaccine)",
+    "scientific_name": "Bovine Viral Diarrhoea Vaccine (BVD)",
+    "target_disease": "التهاب الأمعاء الفيروسي والإجهاض (Bovine Viral Diarrhoea)",
+    "manufacturer": "Zoetis / Merck Animal Health / Boehringer Ingelheim",
+    "vaccine_type": "لقاح حي مضعف أو ميت — حسب المنتج",
+    "target_strains": [
+      "BVD Type 1",
+      "BVD Type 2"
+    ],
+    "target_species": [
+      "أبقار"
+    ],
+    "age_at_vaccination": "2-3 أشهر فصاعداً",
+    "dose": "2 مل تحت الجلد أو عضلي",
+    "route": "تحت الجلد (S/C) أو عضلي (I/M)",
+    "booster_dose": "بعد 3-4 أسابيع",
+    "revaccination_interval": "سنوياً — للأبقار الحوامل قبل التلقيح بـ 30 يوماً",
+    "vaccination_type": "دوري",
+    "usage_context": "وقاية دورية — مهم جداً للقطعان التي تعاني من إجهاضات متكررة. لا يُعطى اللقاح الحي للحوامل",
+    "source": "Merck Veterinary Manual"
+  }
+]
