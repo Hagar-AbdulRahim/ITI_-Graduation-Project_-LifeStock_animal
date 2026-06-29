@@ -142,11 +142,20 @@ const diagnoseSymptoms = async ({
   // نوع الحيوان: من الـ animal لو مسجل، أو من الـ species المُدخلة في الاستشارة العامة
   const effectiveSpecies = animal ? animal.species : species;
 
-  // ── 2. RAG: البحث في قاعدة المعرفة (PDF الأمراض + PDF التحصينات) ──────────
-  const knowledgeResults = await searchKnowledgeBase(fullSymptomsText, null, 5);
-  const knowledgeContext = knowledgeResults
-    .map((r) => r.text)
-    .join("\n\n---\n\n");
+  // ── 2. RAG: البحث في قاعدة المعرفة — أمراض + لقاحات بشكل منفصل ──────────────
+  const [diseaseResults, vaccineResults] = await Promise.all([
+    searchKnowledgeBase(fullSymptomsText, "disease", 4),
+    searchKnowledgeBase(fullSymptomsText, "vaccine", 2),
+  ]);
+  const knowledgeResults = [...diseaseResults, ...vaccineResults];
+  const knowledgeContext = [
+    diseaseResults.map((r) => r.text).join("\n\n---\n\n"),
+    vaccineResults.length
+      ? "=== لقاحات ذات صلة ===\n" + vaccineResults.map((r) => r.text).join("\n\n---\n\n")
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 
   // ── 3. Context-Aware: تاريخ الحيوان + تطعيمات + أوبئة (فقط لو الحيوان مسجل) ─
   let contextText;
