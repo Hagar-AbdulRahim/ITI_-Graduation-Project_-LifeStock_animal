@@ -2,7 +2,8 @@
 // ────────────────────────────────────────────────────────────
 // صفحة التشخيص البيطري بالذكاء الاصطناعي — LivestockCare AI
 // ────────────────────────────────────────────────────────────
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
   AlertTriangle, 
   Activity, 
@@ -15,20 +16,18 @@ import {
   Info,
   Calendar,
   Layers,
-  ChevronDown
+  ChevronDown,
+  BookOpen
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-// ── Mock Animal Vitals for diagnosis database ────────────────
-const ANIMAL_LIST = [
-  { id: 'cow-442', name: 'البقرة #442', type: 'أبقار حلوب', weight: 620, age: '3.8 سنة' },
-  { id: 'cow-402', name: 'البقرة #402', type: 'أبقار حلوب', weight: 680, age: '4.2 سنة' },
-  { id: 'calf-109', name: 'العجل #109', type: 'تسمين عجول', weight: 240, age: '8 أشهر' },
-  { id: 'horse-82', name: 'الحصان #82', type: 'خيول أصيلة', weight: 510, age: '5.5 سنة' },
-];
+import diagnosisAgent from '../services/AiServices/diagnosisِAgent';
 
 export default function DiagnosisPage() {
-  const [selectedAnimal, setSelectedAnimal] = useState(ANIMAL_LIST[0]);
+  const [searchParams] = useSearchParams();
+  const animalId = searchParams.get('animalId');
+  
+  const [species, setSpecies] = useState('cattle');
+  
   const [symptoms, setSymptoms] = useState({
     lethargy: true,
     fever: true,
@@ -37,29 +36,57 @@ export default function DiagnosisPage() {
     nasalDischarge: true,
     lameness: false
   });
-  const [duration, setDuration] = useState('1-3'); // '24h', '1-3', '4+'
+  const [duration, setDuration] = useState('1-3');
   const [isLoading, setIsLoading] = useState(false);
-  const [showResults, setShowResults] = useState(true);
+  const [showResults, setShowResults] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [apiResult, setApiResult] = useState(null);
 
   // Toggle symptom checkboxes
   const handleSymptomToggle = (key) => {
     setSymptoms(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Run AI Diagnosis simulation
-  const runAiDiagnosis = () => {
+  // Run AI Diagnosis
+  const runAiDiagnosis = async () => {
     setIsLoading(true);
+    setShowResults(false);
+    setApiResult(null);
     toast('جاري معالجة المؤشرات ومقارنة البيانات البيولوجية...', {
       icon: '🧠',
       duration: 1200
     });
     
-    setTimeout(() => {
+    try {
+      const sympsMap = {
+        lethargy: 'خمول',
+        fever: 'حرارة مرتفعة',
+        cough: 'كحة',
+        noFeed: 'نقص العلف',
+        nasalDischarge: 'إفرازات أنفية',
+        lameness: 'عرج'
+      };
+      
+      const activeSymptoms = Object.keys(symptoms)
+        .filter(k => symptoms[k])
+        .map(k => sympsMap[k]);
+
+      // Call the diagnosis agent endpoint with animal_id and symptoms
+      const res = await diagnosisAgent.diagnoseByText(animalId, activeSymptoms);
+
+      if (res?.data || res) {
+        setApiResult(res.data || res);
+        setShowResults(true);
+        toast.success('تم الانتهاء من تحليل التشخيص الذكي!');
+      } else {
+        toast.error('لم يتم العثور على بيانات التشخيص');
+      }
+    } catch (error) {
+      console.error('Diagnosis Error:', error);
+      toast.error('حدث خطأ أثناء الاتصال بمحرك التشخيص');
+    } finally {
       setIsLoading(false);
-      setShowResults(true);
-      toast.success('تم الانتهاء من تحليل التشخيص الذكي!');
-    }, 1500);
+    }
   };
 
   return (
@@ -94,25 +121,31 @@ export default function DiagnosisPage() {
 
           {/* Animal Dropdown selection */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-stone-500 block">الحيوان المعني</label>
+            <label className="text-xs font-bold text-stone-500 block">
+              {animalId ? 'الحيوان المعني' : 'الفصيلة المستهدفة'}
+            </label>
             <div className="relative">
-              <select
-                value={selectedAnimal.id}
-                onChange={(e) => {
-                  const anim = ANIMAL_LIST.find(a => a.id === e.target.value);
-                  if (anim) setSelectedAnimal(anim);
-                }}
-                className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#2d5a1b]/20 focus:border-[#2d5a1b] appearance-none cursor-pointer"
-              >
-                {ANIMAL_LIST.map(anim => (
-                  <option key={anim.id} value={anim.id}>
-                    {anim.name} ({anim.type})
-                  </option>
-                ))}
-              </select>
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none">
-                <ChevronDown className="w-4 h-4" />
-              </div>
+              {animalId ? (
+                <div className="w-full bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-sm text-emerald-700 font-bold flex items-center justify-between">
+                  <span>تم ربط الحيوان بنجاح</span>
+                  <span className="text-xs bg-emerald-100 px-2 py-0.5 rounded-full">ID: {animalId}</span>
+                </div>
+              ) : (
+                <>
+                  <select
+                    value={species}
+                    onChange={(e) => setSpecies(e.target.value)}
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#2d5a1b]/20 focus:border-[#2d5a1b] appearance-none cursor-pointer"
+                  >
+                    <option value="cattle">أبقار (Cattle)</option>
+                    <option value="sheep">أغنام (Sheep)</option>
+                    <option value="goat">ماعز (Goat)</option>
+                  </select>
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none">
+                    <ChevronDown className="w-4 h-4" />
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -297,13 +330,13 @@ export default function DiagnosisPage() {
         <div className="lg:col-span-7 space-y-6">
           
           {/* Main results box */}
-          {showResults ? (
+          {showResults && apiResult ? (
             <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-6 relative">
               
               {/* Alert Ribbon/Badge */}
               <div className="absolute left-6 top-6 flex items-center gap-2 px-3 py-1 bg-red-50 text-red-600 border border-red-200 rounded-xl text-xs font-bold animate-pulse">
                 <AlertTriangle className="w-3.5 h-3.5" />
-                <span>تنبيه عالي</span>
+                <span>تحليل مكتمل</span>
               </div>
 
               <h2 className="text-base font-bold text-stone-800 mb-6 pb-2 border-b border-stone-100">نتيجة التشخيص</h2>
@@ -315,25 +348,16 @@ export default function DiagnosisPage() {
                 <div className="md:col-span-4 flex flex-col gap-3">
                   <span className="text-[10px] text-stone-400 block mb-1">مقاييس الطوارئ</span>
                   
-                  {/* Infection card */}
+                  {/* Severity card */}
                   <div className="p-3.5 rounded-xl border border-stone-100 bg-stone-50/50 flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center">
                       <AlertTriangle className="w-4 h-4" />
                     </div>
                     <div>
-                      <span className="text-[10px] text-stone-400 block">خطر العدوى</span>
-                      <span className="text-xs font-black text-red-600">حرج</span>
-                    </div>
-                  </div>
-
-                  {/* Severity card */}
-                  <div className="p-3.5 rounded-xl border border-stone-100 bg-stone-50/50 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-                      <Activity className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-stone-400 block">مؤشر الشدة</span>
-                      <span className="text-xs font-black text-stone-700">100/78</span>
+                      <span className="text-[10px] text-stone-400 block">مؤشر الخطورة</span>
+                      <span className="text-xs font-black text-red-600">
+                        {apiResult.severity}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -342,58 +366,62 @@ export default function DiagnosisPage() {
                 <div className="md:col-span-8 space-y-3">
                   <span className="text-[10px] text-stone-400 block mb-1">التطابق الأساسي</span>
 
-                  {/* Primary Diagnosis (BRD) */}
-                  <div className="p-4 bg-red-50 border border-red-200/60 rounded-2xl">
-                    <h3 className="text-sm font-black text-red-800 mb-1.5">مرض الجهاز التنفسي البقري (BRD)</h3>
-                    <span className="text-[11px] text-red-600 font-bold flex items-center gap-1">
-                      <span>👁️</span>
-                      <span>89% درجة ثقة الذكاء الاصطناعي</span>
+                  {/* Primary Diagnosis */}
+                  <div className="p-4 bg-emerald-50 border border-emerald-200/60 rounded-2xl">
+                    <h3 className="text-sm font-black text-emerald-800 mb-1.5">
+                      {apiResult.diagnosis || 'لم يتم تحديد المرض بدقة'}
+                    </h3>
+                    <span className="text-[11px] text-emerald-600 font-bold flex items-center gap-1">
+                      <span>🧠</span>
+                      <span>تم التشخيص بواسطة الذكاء الاصطناعي</span>
                     </span>
-                  </div>
-
-                  {/* Secondary Diagnosis (Manheimia) */}
-                  <div className="p-3.5 bg-stone-50 border border-stone-200 rounded-xl">
-                    <h4 className="text-xs font-bold text-stone-700 mb-1">بديل: مانهيميا هيموليتيكا</h4>
-                    <p className="text-[10px] text-stone-500 leading-normal">
-                      تطابق بنسبة 12% بناءً على ارتفاع الحرارة.
-                    </p>
                   </div>
                 </div>
 
               </div>
 
               {/* Recommended Actions */}
-              <div className="mt-8 pt-6 border-t border-stone-100 space-y-4">
-                <h3 className="text-xs font-bold text-stone-500">الإجراءات الموصى بها</h3>
+              {apiResult.prevention_tips && apiResult.prevention_tips.length > 0 && (
+                <div className="mt-8 pt-6 border-t border-stone-100 space-y-4">
+                  <h3 className="text-xs font-bold text-stone-500">الإجراءات الموصى بها</h3>
 
-                <div className="space-y-3">
-                  {/* Action 1: Isolation */}
-                  <div className="flex gap-4 p-4 rounded-xl border border-stone-100 bg-stone-50/50">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-50 text-[#2d5a1b] flex items-center justify-center flex-shrink-0">
-                      <ShieldAlert className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-stone-800 mb-1">عزل الحيوان فوراً</h4>
-                      <p className="text-[11px] text-stone-500 leading-relaxed">
-                        انقل {selectedAnimal.name} إلى قطاع الحجر الصحي (البوابة الجنوبية) لمنع انتشار المرض في القطيع.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Action 2: Medication */}
-                  <div className="flex gap-4 p-4 rounded-xl border border-stone-100 bg-stone-50/50">
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
-                      <Activity className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-stone-800 mb-1">إعطاء المضادات الحيوية</h4>
-                      <p className="text-[11px] text-stone-500 leading-relaxed">
-                        العلاج المعتمد: جرعة طولاتروميسين بناءً على الوزن (تقريباً 25 مل).
-                      </p>
-                    </div>
+                  <div className="space-y-3">
+                    {apiResult.prevention_tips.map((tip, idx) => (
+                      <div key={idx} className="flex gap-4 p-4 rounded-xl border border-stone-100 bg-stone-50/50">
+                        <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                          <Activity className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-[12px] font-bold text-stone-800 leading-relaxed pt-2">
+                            {tip}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* Knowledge Sources */}
+              {apiResult.knowledge_sources && apiResult.knowledge_sources.length > 0 && (
+                <div className="mt-8 pt-6 border-t border-stone-100 space-y-4">
+                  <h3 className="text-xs font-bold text-stone-500">مصادر المعرفة</h3>
+                  <div className="flex flex-col gap-2">
+                    {apiResult.knowledge_sources.map((source, idx) => (
+                      <a 
+                        key={idx} 
+                        href={source} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-2"
+                      >
+                        <BookOpen className="w-4 h-4" />
+                        {source}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Action Buttons Row */}
               <div className="mt-6 flex items-center gap-3">
@@ -481,8 +509,8 @@ export default function DiagnosisPage() {
         </div>
       </div>
 
-      {/* ── MODAL: Detailed Report ── */}
-      {showReport && (
+      {/* MODAL: Detailed Report - Only show if animalId (not general) and report open */}
+      {showReport && animalId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
           <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl border border-stone-100 flex flex-col max-h-[90vh]">
             
@@ -504,22 +532,14 @@ export default function DiagnosisPage() {
             <div className="p-6 space-y-6 overflow-y-auto text-sm text-stone-700">
               
               {/* Metadata */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-stone-50 rounded-xl border border-stone-200 text-xs">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-stone-50 rounded-xl border border-stone-200 text-xs">
                 <div>
-                  <span className="text-stone-400 block mb-1">المعرف</span>
-                  <span className="font-bold text-stone-800">{selectedAnimal.name}</span>
+                  <span className="text-stone-400 block mb-1">معرف الحيوان</span>
+                  <span className="font-bold text-stone-800">{animalId}</span>
                 </div>
                 <div>
-                  <span className="text-stone-400 block mb-1">فصيلة / نوع</span>
-                  <span className="font-bold text-stone-800">{selectedAnimal.type}</span>
-                </div>
-                <div>
-                  <span className="text-stone-400 block mb-1">الوزن التقديري</span>
-                  <span className="font-bold text-stone-800">{selectedAnimal.weight} كجم</span>
-                </div>
-                <div>
-                  <span className="text-stone-400 block mb-1">العمر</span>
-                  <span className="font-bold text-stone-800">{selectedAnimal.age}</span>
+                  <span className="text-stone-400 block mb-1">الفصيلة / نوع</span>
+                  <span className="font-bold text-stone-800">{species}</span>
                 </div>
               </div>
 
@@ -553,38 +573,9 @@ export default function DiagnosisPage() {
                   <span>النتيجة السريرية الأولية (الذكاء الاصطناعي)</span>
                 </h4>
                 <p className="text-xs text-stone-700 leading-relaxed">
-                  مؤشرات شدة تطابق بـ <strong>89%</strong> مع <strong>مرض الجهاز التنفسي البقري (BRD)</strong>.
-                  الخطر مرتفع للانتشار إلى الحيوانات المجاورة بسبب رصد إفرازات أنفية وسعال وخمول. يوصى بعزل الحيوان في قطاع الحجر فوراً والبدء في بروتوكول العلاج.
+                  مؤشرات شدة تطابق مع <strong>{apiResult?.diagnosis || 'مرض غير محدد'}</strong>.
+                  مؤشر الخطورة: {apiResult?.severity}
                 </p>
-              </div>
-
-              {/* Prescription */}
-              <div className="space-y-3">
-                <h4 className="font-bold text-stone-800 text-xs">بروتوكول العلاج الدوائي والجرعات</h4>
-                <table className="w-full text-xs border border-stone-200 rounded-xl overflow-hidden">
-                  <thead>
-                    <tr className="bg-stone-50 text-stone-500 font-bold border-b border-stone-200">
-                      <th className="p-3 text-right">الدواء الموصى به</th>
-                      <th className="p-3 text-right">طريقة الإعطاء</th>
-                      <th className="p-3 text-right">الجرعة المقدرة</th>
-                      <th className="p-3 text-right">الفترة الزمنية</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-stone-100 text-stone-600">
-                    <tr>
-                      <td className="p-3 font-semibold text-stone-800">طولاترومايسين (Draxxin)</td>
-                      <td className="p-3">حقن تحت الجلد (SC)</td>
-                      <td className="p-3">25 مل (2.5 مل لكل 100 كجم)</td>
-                      <td className="p-3">جرعة واحدة طويلة المفعول</td>
-                    </tr>
-                    <tr>
-                      <td className="p-3 font-semibold text-stone-800">فلونيكسين ميغلومين (خافض حرارة)</td>
-                      <td className="p-3">حقن وريدي بطيء (IV)</td>
-                      <td className="p-3">12 مل (2 مل لكل 100 كجم)</td>
-                      <td className="p-3">يومياً لمدة ٣ أيام</td>
-                    </tr>
-                  </tbody>
-                </table>
               </div>
 
             </div>
@@ -593,12 +584,12 @@ export default function DiagnosisPage() {
             <div className="px-6 py-4 border-t border-stone-200 flex justify-end gap-3 bg-stone-50">
               <button 
                 onClick={() => {
-                  toast.success('تم تحميل التقرير الطبي بصيغة PDF');
+                  toast.success('تم حفظ التقرير بالملف الطبي');
                   setShowReport(false);
                 }}
                 className="px-4 py-2 bg-[#2d5a1b] hover:bg-[#3d6b47] text-white text-xs font-bold rounded-xl shadow-sm transition-colors"
               >
-                تنزيل PDF
+                حفظ التقرير
               </button>
               <button 
                 onClick={() => setShowReport(false)}
