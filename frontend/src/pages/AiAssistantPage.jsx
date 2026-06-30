@@ -3,6 +3,8 @@
 // صفحة مساعد الذكاء الاصطناعي — LivestockCare AI
 // ────────────────────────────────────────────────────────────
 import React, { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { chatWithAI } from '../services/AiServices/ChatAi';
 import { 
   TrendingUp, 
   ClipboardCheck, 
@@ -99,6 +101,8 @@ const MOCK_SESSIONS = [
 ];
 
 export default function AiAssistantPage() {
+  const [searchParams] = useSearchParams();
+  const animalId = searchParams.get('animalId');
   const [activeSession, setActiveSession] = useState(MOCK_SESSIONS[0]);
   const [messages, setMessages] = useState(MOCK_SESSIONS[0].messages);
   const [inputValue, setInputValue] = useState('');
@@ -145,16 +149,21 @@ export default function AiAssistantPage() {
         text: 'لعلاج حالات الانتفاخ الحاد في الأبقار، يوصى بالخطوات التالية فوراً:\n١. إدخال خرطوم معدي لتصريف الغازات المتراكمة.\n٢. تجريع الحيوان بزيت معدني أو مستحضرات مضادة للرغوة (مثل السيليكون المذاب).\n٣. دفع الحيوان للمشي ببطء لتنشيط حركة الكرش.\n٤. في الحالات الشديدة جداً، قد يتطلب الأمر استخدام مبزل الكرش (Trocars) لإنقاذ حياة الحيوان.',
         hasActionSteps: false
       };
+    } else if (query.includes('التهاب')) {
+      return {
+        text: 'لقد سجلت وجود التهاب. هذا العرض قد يشير إلى إصابة موضعية أو بداية عدوى جهازية. هل تلاحظ أي انتفاخ أو إحمرار في المنطقة المصابة؟ يوصى بعزل الحيوان مبدئياً ومراقبة درجة حرارته.',
+        hasActionSteps: true
+      };
     } else {
       return {
-        text: 'أفهم استفسارك. لقد قمت بتسجيل الملاحظة الطبية، وسأقوم بتحليل البيانات الحيوية ومطابقتها مع السجلات السابقة للقطيع لتزويدك بتقرير دقيق قريباً. هل هناك أعراض إضافية تود إضافتها؟',
+        text: `أفهم استفسارك. لقد قمت بتسجيل: "${text}". سأقوم بتحليل هذه المعلومات الحيوية ومطابقتها مع السجلات السابقة لتزويدك بتقرير دقيق قريباً. هل هناك تفاصيل أو أعراض إضافية تود إضافتها؟`,
         hasActionSteps: false
       };
     }
   };
 
   // Send Message Logic
-  const handleSendMessage = (textToSend = inputValue) => {
+  const handleSendMessage = async (textToSend = inputValue) => {
     if (!textToSend.trim() && !attachedFile) return;
 
     // Add user message
@@ -170,18 +179,49 @@ export default function AiAssistantPage() {
     setAttachedFile(null);
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const responseData = getMockResponse(textToSend);
-      const aiMsg = {
-        id: `msg-ai-${Date.now()}`,
-        sender: 'ai',
-        text: responseData.text,
-        hasActionSteps: responseData.hasActionSteps
-      };
-      setMessages(prev => [...prev, aiMsg]);
-      setIsTyping(false);
-    }, 1200);
+    if (animalId) {
+      try {
+        const historyToSend = messages.map(m => ({
+          role: m.sender === 'user' ? 'user' : 'model',
+          parts: m.text
+        }));
+        
+        const res = await chatWithAI(animalId, textToSend, historyToSend);
+        const responseText = res?.reply || res?.message || res?.response || res?.text || (typeof res === 'string' ? res : 'تم استلام الرسالة.');
+        
+        const aiMsg = {
+          id: `msg-ai-${Date.now()}`,
+          sender: 'ai',
+          text: responseText,
+          hasActionSteps: false
+        };
+        setMessages(prev => [...prev, aiMsg]);
+      } catch (error) {
+        console.error("AI Chat Error:", error);
+        toast.error('حدث خطأ أثناء محادثة الذكاء الاصطناعي');
+        setMessages(prev => [...prev, {
+          id: `msg-ai-${Date.now()}`,
+          sender: 'ai',
+          text: 'عذراً، حدث خطأ في الاتصال بالخادم. يرجى المحاولة لاحقاً.',
+          hasActionSteps: false
+        }]);
+      } finally {
+        setIsTyping(false);
+      }
+    } else {
+      // Simulate AI response if no animalId
+      setTimeout(() => {
+        const responseData = getMockResponse(textToSend);
+        const aiMsg = {
+          id: `msg-ai-${Date.now()}`,
+          sender: 'ai',
+          text: responseData.text,
+          hasActionSteps: responseData.hasActionSteps
+        };
+        setMessages(prev => [...prev, aiMsg]);
+        setIsTyping(false);
+      }, 1200);
+    }
   };
 
   // Suggestion chip trigger

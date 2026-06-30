@@ -184,6 +184,15 @@ const AppRoutes = () => {
         }
       />
 
+      <Route
+        path="/diagnosis"
+        element={
+          <ProtectedRoute>
+            <DiagnosisPage />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/farms" replace />} />
     </Routes>
