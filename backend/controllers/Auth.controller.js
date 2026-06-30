@@ -98,7 +98,10 @@ const verifyEmail = async (req, res) => {
 const resendVerification = async (req, res) => {
   try {
     const { email } = req.body;
-    const user = await User.findOne({ email }).select("+email_verification_token +email_verification_expires");
+    // ✅ نجيب email_verification_sent_at صراحةً لأنها select: false في الـ model
+    const user = await User.findOne({ email }).select(
+      "+email_verification_token +email_verification_expires +email_verification_sent_at"
+    );
     if (!user) return res.json({ success: true, message: "لو الإيميل ده مسجل وغير محقق، هيوصلك رابط تحقق جديد." });
     if (user.is_email_verified) {
       return res.json({
@@ -107,15 +110,21 @@ const resendVerification = async (req, res) => {
         message: "هذا الحساب محقق بالفعل — يمكنك تسجيل الدخول.",
       });
     }
-    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
-    // منع الـ spam — لا نريد إعادة إرسال الرابط إذا أُرسل قبل دقيقتين
-    if (user.email_verification_sent_at && user.email_verification_sent_at > twoMinutesAgo) {
-      return res.status(429).json({ success: false, message: "يرجى الانتظار قبل إعادة الإرسال" });
+    // منع الـ spam — دقيقة واحدة بين كل طلب
+    const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+    if (user.email_verification_sent_at && user.email_verification_sent_at > oneMinuteAgo) {
+      const secondsLeft = Math.ceil(
+        (user.email_verification_sent_at.getTime() + 60 * 1000 - Date.now()) / 1000
+      );
+      return res.status(429).json({
+        success: false,
+        message: `يرجى الانتظار ${secondsLeft} ثانية قبل إعادة الإرسال`,
+      });
     }
     const rawToken = user.generateVerificationToken();
     await user.save({ validateBeforeSave: false });
     await sendVerificationEmail(user, rawToken);
-    res.json({ success: true, message: "تم إرسال رابط تحقق جديد." });
+    res.json({ success: true, message: "تم إرسال رابط تحقق جديد — تحقق من بريدك الإلكتروني." });
   } catch (err) {
     res.status(500).json({ success: false, message: "خطأ في الخادم", error: err.message });
   }

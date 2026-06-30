@@ -14,6 +14,9 @@ import { getRoleHomePath } from '../../utils/roleRedirect';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [showResend, setShowResend] = useState(false);
+  const [resendEmail, setResendEmail] = useState('');
+  const [resendLoading, setResendLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading } = useSelector((state) => state.auth);
@@ -25,12 +28,44 @@ const Login = () => {
   } = useForm();
 
   const onSubmit = async (data) => {
-    try {
-      const result = await dispatch(loginUser(data)).unwrap();
+    const action = await dispatch(loginUser(data));
+
+    if (loginUser.fulfilled.match(action)) {
       toast.success('تم تسجيل الدخول بنجاح');
-      navigate(getRoleHomePath(result.user?.role));
-    } catch (error) {
-      toast.error(error || 'بيانات الدخول غير صحيحة');
+      navigate(getRoleHomePath(action.payload.user?.role));
+      return;
+    }
+
+    // action.payload هو الـ object اللي بعتناه في rejectWithValue بالظبط
+    const payload = action.payload;
+    const isUnverified =
+      payload !== null &&
+      typeof payload === 'object' &&
+      payload.email_verified === false;
+
+    if (isUnverified) {
+      setShowResend(true);
+      setResendEmail(data.email);
+      toast.error('يرجى تفعيل بريدك الإلكتروني أولاً');
+    } else {
+      const msg =
+        typeof payload === 'string'
+          ? payload
+          : payload?.message || 'بيانات الدخول غير صحيحة';
+      toast.error(msg);
+    }
+  };
+
+  const handleResend = async () => {
+    setResendLoading(true);
+    try {
+      await axios.post('http://localhost:5000/api/auth/resend-verification', { email: resendEmail });
+      toast.success('تم إرسال رابط التفعيل — تحقق من بريدك');
+      setShowResend(false);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'فشل الإرسال، حاول تاني');
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -136,6 +171,17 @@ const Login = () => {
             >
               {loading ? 'جاري الدخول...' : 'دخول'}
             </Button>
+
+            {showResend && (
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resendLoading}
+                className="w-full py-2.5 border border-[#154b23] rounded-full text-[#154b23] font-bold text-sm hover:bg-[#154b23]/5 transition-colors disabled:opacity-60"
+              >
+                {resendLoading ? 'جاري الإرسال...' : 'إعادة إرسال رابط التفعيل'}
+              </button>
+            )}
 
             <div className="flex items-center justify-center gap-2 my-4">
               <span className="h-px flex-1 bg-gray-200"></span>

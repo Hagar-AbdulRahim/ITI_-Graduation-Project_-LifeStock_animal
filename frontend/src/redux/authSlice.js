@@ -12,16 +12,20 @@ export const loginUser = createAsyncThunk(
     } catch (error) {
       const responseData = error.response?.data;
       const status = error.response?.status;
-      
-      // If email is not verified (status 403 or email_verified is false)
-      if (status === 403 && (responseData?.email_verified === false || responseData?.message?.includes('تفعيل') || responseData?.message?.includes('verify') || responseData?.message?.includes('مفعل'))) {
-        try {
-          // Automatically resend verification email
-          await authService.resendVerification(credentials.email);
-        } catch (resendError) {
-          console.error('Failed to resend verification:', resendError);
-        }
-        return rejectWithValue('بريدك الإلكتروني غير مفعل. تم إرسال رابط تفعيل جديد إلى بريدك الإلكتروني.');
+
+      // If email is not verified (status 403) — reject with the full object
+      // so Login.jsx can detect email_verified: false and show the resend button
+      if (
+        status === 403 &&
+        (responseData?.email_verified === false ||
+          responseData?.message?.includes('تفعيل') ||
+          responseData?.message?.includes('verify') ||
+          responseData?.message?.includes('مفعل'))
+      ) {
+        return rejectWithValue({
+          email_verified: false,
+          message: responseData?.message || 'بريدك الإلكتروني غير مفعل',
+        });
       }
 
       if (responseData?.errors && Array.isArray(responseData.errors)) {

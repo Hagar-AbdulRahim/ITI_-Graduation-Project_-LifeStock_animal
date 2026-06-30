@@ -121,7 +121,7 @@ const NotificationsPage = () => {
 
   const handleGenerateTest = async () => {
     try {
-      await api.post('/api/notifications/test')
+      await api.post('/api/notifications/test-run')
       fetchNotifs()
       toast.success('تم إنشاء إشعارات تجريبية بنجاح')
     } catch (err) {
