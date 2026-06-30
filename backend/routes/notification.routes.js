@@ -117,9 +117,21 @@ router.post("/test-run", async (req, res) => {
     await runVaccinationReminderJob();
 
     // 6. الإشعارات اللي اتخزنت
-    const recent = await Notification.find({ type: "vaccination_reminder" })
+    let recent = await Notification.find({ type: "vaccination_reminder" })
       .sort({ created_at: -1 })
       .limit(10);
+
+    // إذا لم يتم إنشاء إشعارات حقيقية، ننشئ إشعار تجريبي لاختبار الواجهة
+    if (recent.length === 0) {
+      const dummyNotification = await Notification.create({
+        user_id: req.user._id,
+        title: "إشعار تجريبي جديد 🎉",
+        message: "هذا الإشعار تم توليده تلقائياً لاختبار تصميم وشكل صفحة الإشعارات وعمل الأزرار (مقروء/حذف).",
+        type: ["vaccination", "health", "alert", "outbreak_alert"][Math.floor(Math.random() * 4)],
+        is_read: false
+      });
+      recent = [dummyNotification];
+    }
 
     return res.json({
       success: true,
