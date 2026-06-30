@@ -44,10 +44,13 @@ const {
 const validate    = require("../middelwares/validationMW");
 const { protect } = require("../middelwares/Auth.middleware");
 
+// تطبيق الحماية على كافة المسارات أدناه
 router.use(protect);
 
+// مسار جلب كافة الحيوانات داخل مزرعة محددة
 router.get("/farm/:farmId", getAnimalsByFarm);
 
+// مسار إضافة حيوان جديد
 router.post(
   "/",
   upload.single("image"),
@@ -56,6 +59,7 @@ router.post(
   createAnimal
 );
 
+// مسار جلب بيانات حيوان واحد تفصيلياً
 router.get(
   "/:id",
   ...animalIdValidator,
@@ -63,6 +67,7 @@ router.get(
   getAnimalById
 );
 
+// مسار تحديث بيانات حيوان
 router.put(
   "/:id",
   upload.single("image"),
@@ -72,6 +77,7 @@ router.put(
   updateAnimal
 );
 
+// مسار حذف حيوان
 router.delete(
   "/:id",
   ...animalIdValidator,

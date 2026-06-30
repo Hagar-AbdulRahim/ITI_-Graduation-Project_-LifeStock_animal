@@ -1,6 +1,26 @@
 const { body, param } = require("express-validator");
 
+/**
+ * يقبل صيغ تاريخ بسيطة شائعة عند المزارعين بالإضافة للصيغة الرسمية:
+ *   "2026-06-27"  أو  "27-06-2026"  أو  "27/06/2026"
+ * بيرجع true لو أي صيغة منهم نتج عنها تاريخ صحيح
+ */
+const isSimpleDate = (value) => {
+  if (!value) return false;
+  // لو الصيغة DD-MM-YYYY أو DD/MM/YYYY نحوّلها لـ YYYY-MM-DD قبل الفحص
+  const dmy = /^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/.exec(value);
+  const dateStr = dmy ? `${dmy[3]}-${dmy[2].padStart(2, "0")}-${dmy[1].padStart(2, "0")}` : value;
+  const parsed = new Date(dateStr);
+  return !isNaN(parsed.getTime());
+};
+
+const dateField = (fieldName, label) =>
+  body(fieldName)
+    .custom((value) => isSimpleDate(value))
+    .withMessage(`${label} غير صحيح — استخدمي صيغة بسيطة مثل 2026-06-27 أو 27-06-2026`);
+
 // ── Create Vaccination ────────────────────────────────────────────────────────
+// يدعم النوعين معاً: "recurring" (دوري) و "one_time" (طارئ مرة واحدة)
 const createVaccinationValidator = [
   body("animal_id")
     .notEmpty().withMessage("معرّف الحيوان مطلوب")
@@ -11,25 +31,29 @@ const createVaccinationValidator = [
     .notEmpty().withMessage("اسم التطعيم مطلوب")
     .isLength({ min: 2, max: 150 }).withMessage("اسم التطعيم يجب أن يكون بين 2 و150 حرف"),
 
+  body("vaccine_type")
+    .optional()
+    .isIn(["one_time", "recurring"]).withMessage("نوع اللقاح يجب أن يكون one_time أو recurring"),
+
+  // ── حقول النوع "recurring" — مطلوبة شرطياً فقط لو vaccine_type = recurring ──
   body("last_date")
-    .notEmpty().withMessage("تاريخ آخر جرعة مطلوب")
-    .isISO8601().withMessage("التاريخ يجب أن يكون بصيغة YYYY-MM-DD")
-    .custom((value) => {
-      if (new Date(value) > new Date()) {
-        throw new Error("تاريخ التطعيم لا يمكن أن يكون في المستقبل");
-      }
-      return true;
-    }),
+    .if((value, { req }) => (req.body.vaccine_type || "recurring") === "recurring")
+    .notEmpty().withMessage("تاريخ آخر جرعة مطلوب للقاحات الدورية")
+    .bail()
+    .custom(isSimpleDate).withMessage("تاريخ آخر جرعة غير صحيح — استخدمي صيغة بسيطة مثل 2026-06-27")
+    .custom((value) => new Date(value) <= new Date())
+    .withMessage("تاريخ آخر جرعة لا يمكن أن يكون في المستقبل"),
 
   body("next_due_date")
-    .notEmpty().withMessage("موعد الجرعة القادمة مطلوب")
-    .isISO8601().withMessage("التاريخ يجب أن يكون بصيغة YYYY-MM-DD")
-    .custom((value, { req }) => {
-      if (new Date(value) <= new Date(req.body.last_date)) {
-        throw new Error("موعد الجرعة القادمة يجب أن يكون بعد تاريخ آخر جرعة");
-      }
-      return true;
-    }),
+    .optional({ checkFalsy: true })
+    .custom(isSimpleDate).withMessage("موعد الجرعة القادمة غير صحيح — استخدمي صيغة بسيطة مثل 2026-12-27"),
+
+  // ── حقول النوع "one_time" — مطلوبة شرطياً فقط لو vaccine_type = one_time ────
+  body("scheduled_date")
+    .if((value, { req }) => req.body.vaccine_type === "one_time")
+    .notEmpty().withMessage("موعد إعطاء اللقاح مطلوب للقاحات الطارئة")
+    .bail()
+    .custom(isSimpleDate).withMessage("موعد اللقاح غير صحيح — استخدمي صيغة بسيطة مثل 2026-07-10"),
 
   body("dose_ml")
     .optional()
@@ -59,8 +83,16 @@ const updateVaccinationValidator = [
     .isLength({ min: 2, max: 150 }).withMessage("اسم التطعيم يجب أن يكون بين 2 و150 حرف"),
 
   body("next_due_date")
+    .optional({ checkFalsy: true })
+    .custom(isSimpleDate).withMessage("التاريخ غير صحيح — استخدمي صيغة بسيطة مثل 2026-12-27"),
+
+  body("scheduled_date")
+    .optional({ checkFalsy: true })
+    .custom(isSimpleDate).withMessage("التاريخ غير صحيح — استخدمي صيغة بسيطة مثل 2026-07-10"),
+
+  body("completed")
     .optional()
-    .isISO8601().withMessage("التاريخ يجب أن يكون بصيغة YYYY-MM-DD"),
+    .isBoolean().withMessage("completed يجب أن يكون true أو false"),
 
   body("dose_ml")
     .optional()

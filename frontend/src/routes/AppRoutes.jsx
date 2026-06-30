@@ -1,48 +1,72 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import ProtectedRoute from './ProtectedRoute';
+import React from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import ProtectedRoute from './ProtectedRoute'
+import RoleRoute from './RoleRoute'
 
 // Auth Pages
-import Login from '../pages/Auth/Login';
-import Register from '../pages/Auth/Register';
-import VerifyEmail from '../pages/Auth/VerifyEmail';
-import ForgotPassword from '../pages/Auth/ForgotPassword';
-import ResetPassword from '../pages/Auth/ResetPassword';
-import VerifyOtp from '../pages/Auth/VerifyOtp';
+import Login from '../pages/Auth/Login'
+import Register from '../pages/Auth/Register'
+import VerifyEmail from '../pages/Auth/VerifyEmail'
+import ForgotPassword from '../pages/Auth/ForgotPassword'
+import ResetPassword from '../pages/Auth/ResetPassword'
+import VerifyOtp from '../pages/Auth/VerifyOtp'
 
 // Feature Pages
-import FarmsPage from '../pages/Farms/FarmsPage';
+import FarmsPage from '../pages/Farms/FarmsPage'
 // import FarmDetailsPage removed; details page merged into farm card
-import AddFarmPage from '../pages/Farms/AddFarmPage';
-import AnimalsListPage from '../pages/Animals/AnimalsListPage';
-import AnimalProfilePage from '../pages/AnimalProfilePage';
-import AddAnimalPage from '../pages/Animals/AddAnimalPage';
-import EditAnimalPage from '../pages/Animals/EditAnimalPage';
-import AddVaccinationPage from '../pages/Animals/AddVaccinationPage';
-import AddMedicalRecordPage from '../pages/Animals/AddMedicalRecordPage';
-import AnimalMedicalRecordsPage from '../pages/Animals/AnimalMedicalRecordsPage';
-import AnimalVaccinationsPage from '../pages/Animals/AnimalVaccinationsPage';
-import EditVaccinationPage from '../pages/Animals/EditVaccinationPage';
-import NotificationsPage from '../pages/NotificationsPage';
-import VaccineAgentPage from '../pages/VaccineAgentPage';
+import AddFarmPage from '../pages/Farms/AddFarmPage'
+import AnimalsListPage from '../pages/Animals/AnimalsListPage'
+import AnimalProfilePage from '../pages/AnimalProfilePage'
+import AddAnimalPage from '../pages/Animals/AddAnimalPage'
+import EditAnimalPage from '../pages/Animals/EditAnimalPage'
+import AddVaccinationPage from '../pages/Animals/AddVaccinationPage'
+import AddMedicalRecordPage from '../pages/Animals/AddMedicalRecordPage'
+import AnimalMedicalRecordsPage from '../pages/Animals/AnimalMedicalRecordsPage'
+import AnimalVaccinationsPage from '../pages/Animals/AnimalVaccinationsPage'
+import EditVaccinationPage from '../pages/Animals/EditVaccinationPage'
+import NotificationsPage from '../pages/NotificationsPage'
+import VaccineAgentPage from '../pages/VaccineAgentPage'
 
 // Dashboard & Layout Pages
-import DashboardPage from '../pages/dashboard/DashboardPage';
-import MainLayout from '../layout/MainLayout';
-import LandingPage from '../pages/Home/LandingPage';
-import AiAssistantPage from '../pages/AiAssistantPage';
-import DiagnosisPage from '../pages/DiagnosisPage';
-import ImageAnalysisPage from '../pages/ImageAnalysis/ImageAnalysisPage';
-import VaccinationsPage from '../pages/Vaccinations/VaccinationsPage';
+import DashboardPage from '../pages/dashboard/DashboardPage'
+import MainLayout from '../layout/MainLayout'
+import LandingPage from '../pages/Home/LandingPage'
+import AiAssistantPage from '../pages/AiAssistantPage'
+import DiagnosisPage from '../pages/DiagnosisPage'
+import ImageAnalysisPage from '../pages/ImageAnalysis/ImageAnalysisPage'
+import VaccinationsPage from '../pages/Vaccinations/VaccinationsPage'
+
+// Admin Portal
+import AdminLayout from '../layout/AdminLayout'
+import AdminDashboardPage from '../pages/admin/AdminDashboardPage'
+import AdminUsersPage from '../pages/admin/AdminUsersPage'
+import AdminUserDetailPage from '../pages/admin/AdminUserDetailPage'
+import AdminFarmsPage from '../pages/admin/AdminFarmsPage'
+import AdminAnimalsPage from '../pages/admin/AdminAnimalsPage'
+import AdminHealthCasesPage from '../pages/admin/AdminHealthCasesPage'
+import AdminConsultationsPage from '../pages/admin/AdminConsultationsPage'
+import AdminOutbreaksPage from '../pages/admin/AdminOutbreaksPage'
+import AdminNotificationsPage from '../pages/admin/AdminNotificationsPage'
+import AdminSettingsPage from '../pages/admin/AdminSettingsPage'
+
+// Doctor Portal
+import DoctorLayout from '../layout/DoctorLayout'
+import DoctorDashboardPage from '../pages/doctor/DoctorDashboardPage'
+import DoctorCasesPage from '../pages/doctor/DoctorCasesPage'
+import DoctorConsultationsPage from '../pages/doctor/DoctorConsultationsPage'
+import DoctorOutbreaksPage from '../pages/doctor/DoctorOutbreaksPage'
 
 // ComingSoon component for placeholder pages in the dashboard flow
 const ComingSoon = ({ title }) => (
-  <div dir="rtl" className="flex flex-col items-center justify-center h-[60vh] text-stone-400 font-cairo">
+  <div
+    dir="rtl"
+    className="flex flex-col items-center justify-center h-[60vh] text-stone-400 font-cairo"
+  >
     <div className="text-5xl mb-4">🚧</div>
     <p className="text-xl font-bold text-stone-600">{title}</p>
     <p className="text-sm mt-2">هذه الصفحة قيد التطوير</p>
   </div>
-);
+)
 
 const AppRoutes = () => {
   return (
@@ -88,7 +112,6 @@ const AppRoutes = () => {
         {/* Farm overview dashboard */}
         <Route index element={<DashboardPage />} />
 
-
         {/* Animals list within the farm dashboard */}
         <Route path="animals" element={<AnimalsListPage />} />
 
@@ -97,7 +120,10 @@ const AppRoutes = () => {
         <Route path="diagnosis" element={<DiagnosisPage />} />
         <Route path="image-analysis" element={<ImageAnalysisPage />} />
         <Route path="vaccinations" element={<VaccinationsPage />} />
-        <Route path="emergencies" element={<ComingSoon title="حالات الطوارئ" />} />
+        <Route
+          path="emergencies"
+          element={<ComingSoon title="حالات الطوارئ" />}
+        />
         <Route path="library" element={<ComingSoon title="المكتبة" />} />
         <Route path="reports" element={<ComingSoon title="التقارير" />} />
       </Route>
@@ -192,11 +218,48 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      {/* Admin Portal */}
+      <Route
+        path="/admin"
+        element={
+          <RoleRoute allowedRoles={['admin']}>
+            <AdminLayout />
+          </RoleRoute>
+        }
+      >
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<AdminDashboardPage />} />
+        <Route path="users" element={<AdminUsersPage />} />
+        <Route path="users/:id" element={<AdminUserDetailPage />} />
+        <Route path="farms" element={<AdminFarmsPage />} />
+        <Route path="animals" element={<AdminAnimalsPage />} />
+        <Route path="health-cases" element={<AdminHealthCasesPage />} />
+        <Route path="consultations" element={<AdminConsultationsPage />} />
+        <Route path="outbreaks" element={<AdminOutbreaksPage />} />
+        <Route path="notifications" element={<AdminNotificationsPage />} />
+        <Route path="settings" element={<AdminSettingsPage />} />
+      </Route>
+
+      {/* Doctor Portal */}
+      <Route
+        path="/doctor"
+        element={
+          <RoleRoute allowedRoles={['doctor', 'admin']}>
+            <DoctorLayout />
+          </RoleRoute>
+        }
+      >
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<DoctorDashboardPage />} />
+        <Route path="cases" element={<DoctorCasesPage />} />
+        <Route path="consultations" element={<DoctorConsultationsPage />} />
+        <Route path="outbreaks" element={<DoctorOutbreaksPage />} />
+      </Route>
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/farms" replace />} />
     </Routes>
-  );
-};
+  )
+}
 
-export default AppRoutes;
+export default AppRoutes

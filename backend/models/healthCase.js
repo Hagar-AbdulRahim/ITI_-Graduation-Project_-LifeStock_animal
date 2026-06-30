@@ -13,15 +13,14 @@ const healthCaseSchema = new mongoose.Schema(
       required: true,
     },
 
-    // ── Denormalized fields لتسريع الـ Outbreak Aggregation ──────────────────
-    // بدل الـ $lookup على كل query، بنحفظ المحافظة مباشرة هنا
+    // ── Denormalized — لتسريع الـ Outbreak Aggregation (بدون $lookup) ───────
     governorate: {
       type: String,
       required: true,
       trim: true,
     },
 
-    // ── Input ──────────────────────────────────────────────────────────────
+    // ── الإدخال ──────────────────────────────────────────────────────────────
     symptoms: {
       type: [String],
       required: true,
@@ -32,36 +31,57 @@ const healthCaseSchema = new mongoose.Schema(
     },
     input_type: {
       type: String,
-      enum: ["text", "voice", "image"],
+      enum: ["text", "voice", "image", "text+image", "voice+image"],
       default: "text",
     },
     image_url: {
       type: String,
       default: null,
     },
+    image_findings: {
+      type: String, // وصف الـ Vision AI للصورة
+      default: null,
+    },
 
-    // ── AI Output ──────────────────────────────────────────────────────────
+    // ── نتيجة الـ AI ─────────────────────────────────────────────────────────
     ai_diagnosis: {
       type: String,
       trim: true,
       default: null,
     },
+    confidence: {
+      type: String,
+      enum: ["عالية", "متوسطة", "منخفضة"],
+      default: null,
+    },
     severity: {
       type: String,
-      enum: ["green", "yellow", "red"],  // بسيطة / متابعة / طارئة
+      enum: ["green", "yellow", "red"],
       default: null,
+    },
+    matched_symptoms: {
+      type: [String],
+      default: [],
     },
     suggested_actions: {
       type: [String],
       default: [],
     },
-    ai_raw_response: {
-      type: mongoose.Schema.Types.Mixed, // الـ JSON كامل من الـ AI
+    vet_required: {
+      type: Boolean,
+      default: false,
+    },
+    vet_urgency: {
+      type: String,
       default: null,
-      select: false, // مش بنرجعه في كل query
+    },
+    ai_raw_response: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+      select: false,
     },
 
-    // ── Follow-up ──────────────────────────────────────────────────────────
+    // ── المتابعة ─────────────────────────────────────────────────────────────
     vet_consulted: {
       type: Boolean,
       default: false,
@@ -74,6 +94,37 @@ const healthCaseSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    // ── مراجعة الطبيب البيطري ─────────────────────────────────────────────
+    vet_notes: {
+      type: String,
+      default: null,
+    },
+    recommended_treatment: {
+      type: String,
+      default: null,
+    },
+    reviewed_by: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    reviewed_at: {
+      type: Date,
+      default: null,
+    },
+
+    // ── حالات تاريخية مُدخَلة عبر Onboarding Agent (مش تشخيص AI حالي) ──────────
+    is_historical: {
+      type: Boolean,
+      default: false,
+    },
+    reported_date: {
+      // التاريخ التقريبي اللي ذكره المزارع وقت onboarding، يختلف عن created_at
+      // (وقت الإدخال الفعلي في النظام)
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
@@ -81,22 +132,10 @@ const healthCaseSchema = new mongoose.Schema(
 );
 
 // ── Indexes ──────────────────────────────────────────────────────────────────
-
-// الأهم: الـ Outbreak Detection Cron Job بيستخدم الاتنين دول
 healthCaseSchema.index({ governorate: 1, created_at: -1 });
-healthCaseSchema.index({ governorate: 1, ai_diagnosis: 1, created_at: -1 });
-
-// للـ Animal Profile (تاريخ الحيوان المرضي)
+healthCaseSchema.index({ governorate: 1, ai_diagnosis: 1, created_at: -1 }); // أهم index للـ Outbreak
 healthCaseSchema.index({ animal_id: 1, created_at: -1 });
-
-// للـ Dashboard
 healthCaseSchema.index({ user_id: 1, severity: 1, created_at: -1 });
 healthCaseSchema.index({ resolved: 1, severity: 1 });
-
-// Text index للبحث في الأعراض والتشخيصات
-healthCaseSchema.index(
-  { symptoms: "text", ai_diagnosis: "text" },
-  { default_language: "arabic" }
-);
 
 module.exports = mongoose.model("HealthCase", healthCaseSchema);
