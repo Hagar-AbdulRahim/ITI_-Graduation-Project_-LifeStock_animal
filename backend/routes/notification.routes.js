@@ -53,6 +53,22 @@ router.put("/read-all", async (req, res) => {
   }
 });
 
+// ── حذف إشعار ─────────────────────────────────────────────────────────────────
+router.delete("/:id", async (req, res) => {
+  try {
+    const deleted = await Notification.findOneAndDelete({
+      _id: req.params.id,
+      user_id: req.user._id
+    });
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: "الإشعار غير موجود" });
+    }
+    res.json({ success: true, message: "تم حذف الإشعار بنجاح" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "خطأ في الخادم" });
+  }
+});
+
 // ── debug شامل ────────────────────────────────────────────────────────────────
 router.post("/test-run", async (req, res) => {
   try {
