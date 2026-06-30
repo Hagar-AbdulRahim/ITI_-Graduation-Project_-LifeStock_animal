@@ -26,6 +26,8 @@ import AnimalVaccinationsPage from '../pages/Animals/AnimalVaccinationsPage'
 import EditVaccinationPage from '../pages/Animals/EditVaccinationPage'
 import NotificationsPage from '../pages/NotificationsPage'
 import VaccineAgentPage from '../pages/VaccineAgentPage'
+import AnimalHealthCasesPage from '../pages/Animals/AnimalHealthCasesPage'
+import HealthCaseDetailPage from '../pages/Animals/HealthCaseDetailPage'
 
 // Dashboard & Layout Pages
 import DashboardPage from '../pages/dashboard/DashboardPage'
@@ -174,6 +176,22 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <AnimalMedicalRecordsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/animals/:animalId/health-cases"
+        element={
+          <ProtectedRoute>
+            <AnimalHealthCasesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/health-cases/:caseId"
+        element={
+          <ProtectedRoute>
+            <HealthCaseDetailPage />
           </ProtectedRoute>
         }
       />
