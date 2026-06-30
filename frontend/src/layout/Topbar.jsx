@@ -1,10 +1,21 @@
-// layouts/Topbar.jsx
-import { useSelector } from 'react-redux'
+import { useEffect } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
+import { fetchNotifications } from '../redux/notificationSlice'
 
 export default function Topbar() {
-  const user = useSelector((state) => state.auth.user)
-  const navigate = useNavigate()
+  const user        = useSelector((state) => state.auth.user)
+  const unreadCount = useSelector((state) => state.notifications.unread_count)
+  const dispatch    = useDispatch()
+  const navigate    = useNavigate()
+
+  // جلب عدد الإشعارات غير المقروءة عند تحميل الـ Topbar
+  useEffect(() => {
+    dispatch(fetchNotifications())
+    // تحديث كل دقيقة
+    const interval = setInterval(() => dispatch(fetchNotifications()), 60000)
+    return () => clearInterval(interval)
+  }, [dispatch])
 
   return (
     <header
@@ -22,12 +33,12 @@ export default function Topbar() {
           />
         ) : (
           <div className="w-9 h-9 rounded-lg bg-[#2d5a1b] text-white flex items-center justify-center text-sm font-bold shadow-sm">
-            {user?.name?.charAt(0) || 'س'}
+            {user?.name?.charAt(0) || 'م'}
           </div>
         )}
         <div className="leading-tight">
           <p className="text-sm font-semibold text-stone-800">
-            {user?.name || 'د. سارة ميار'}
+            {user?.name || 'مزارع'}
           </p>
         </div>
       </div>
@@ -61,6 +72,7 @@ export default function Topbar() {
         type="button"
         onClick={() => navigate('/notifications')}
         className="relative p-2 rounded-lg hover:bg-stone-100 transition-colors"
+        title="الإشعارات"
       >
         <svg
           className="w-5 h-5 text-stone-600"
@@ -71,8 +83,13 @@ export default function Topbar() {
         >
           <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
         </svg>
-        {/* Badge */}
-        <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+
+        {/* Badge — بيظهر بس لو فيه إشعارات غير مقروءة */}
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center">
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
+        )}
       </button>
 
       {/* Help */}
