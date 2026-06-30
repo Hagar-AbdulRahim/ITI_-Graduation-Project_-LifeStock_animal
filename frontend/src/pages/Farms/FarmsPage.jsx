@@ -7,22 +7,29 @@ import { fetchMyFarms } from '../../redux/farmSlice';
 import { updateFarm, deleteFarm } from '../../services/farmService';
 
 // ─── TOP NAVBAR ──────────────────────────────────────
-const TopNavbar = () => (
+const TopNavbar = ({ searchQuery, setSearchQuery }) => {
+  const navigate = useNavigate();
+  return (
   <header className="bg-white h-20 border-b border-gray-100 px-8 flex items-center justify-between sticky top-0 z-20 font-cairo">
     <div className="flex-1 max-w-xl">
       <div className="relative flex items-center w-full max-w-md">
         <Search className="w-4 h-4 text-gray-400 absolute right-4" />
         <input
           type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="البحث عن مزرعة بالاسم أو الموقع..."
-          className="w-full bg-gray-50 border border-gray-100 rounded-full py-2.5 pr-11 pl-4 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-[#2a5c2a]/20 focus:border-[#2a5c2a] transition-all"
+          className="w-full bg-[#fbf9f6] border border-gray-200 rounded-full py-2.5 pr-11 pl-4 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-[#154b23]/20 focus:border-[#154b23] transition-all"
         />
       </div>
     </div>
 
     <div className="flex items-center gap-6">
       <div className="flex items-center gap-4 text-gray-400">
-        <button className="hover:text-gray-600 transition-colors relative">
+        <button 
+          onClick={() => navigate('/notifications')}
+          className="hover:text-gray-600 transition-colors relative"
+        >
           <Bell className="w-5 h-5" />
           <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
         </button>
@@ -31,18 +38,11 @@ const TopNavbar = () => (
         </button>
       </div>
       <div className="h-8 w-px bg-gray-200"></div>
-      <div className="flex items-center gap-3">
-        <div className="text-left" dir="ltr">
-          <p className="text-sm font-bold text-gray-900">د. سارة ميار</p>
-          <p className="text-[11px] text-gray-500 font-medium">طبيبة بيطرية أولى</p>
-        </div>
-        <div className="w-10 h-10 rounded-full bg-indigo-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
-          <img src="https://i.pravatar.cc/150?u=sarah" alt="Dr Sarah" className="w-full h-full object-cover" />
-        </div>
-      </div>
+
     </div>
   </header>
-);
+  );
+};
 
 const FarmCard = ({ farm }) => {
   const navigate = useNavigate();
@@ -64,73 +64,70 @@ const FarmCard = ({ farm }) => {
   };
 
   return (
-    <div
-
-      className="bg-white border border-gray-200 rounded-[20px] shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col font-cairo cursor-pointer group relative"
-    >
+    <div className="bg-white border border-gray-100 rounded-[24px] shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col font-cairo cursor-pointer group relative">
       {/* Management button positioned at top */}
-      <div className="absolute top-2 left-2 z-10">
+      <div className="absolute top-3 left-3 z-10">
         <button
           onClick={(e) => { e.stopPropagation(); navigate(`/farms/${farm._id}`); }}
-          className="text-xs py-0.5 px-1 rounded bg-[var(--user-primary-green)] text-white hover:bg-[#1e4520]"
+          className="text-xs font-bold py-1.5 px-3 rounded-lg bg-white/90 backdrop-blur-sm text-[#154b23] hover:bg-white transition-colors shadow-sm"
         >
           إدارة المزرعة
         </button>
       </div>
 
-      <div className="relative h-[160px] w-full overflow-hidden bg-[#eaf5eb] flex items-center justify-center">
+      <div className="relative h-[160px] w-full overflow-hidden bg-[#154b23]/5 flex items-center justify-center">
         {/* Placeholder decorative pattern instead of an image for farms */}
-        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#2a5c2a 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-        <Map className="w-16 h-16 text-[#2a5c2a] opacity-30" />
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#154b23 1px, transparent 1px)', backgroundSize: '16px 16px' }}></div>
+        <Map className="w-16 h-16 text-[#154b23] opacity-20" />
 
         {/* Farm Name Badge centered over pattern */}
-        <div className="z-10 bg-white/90 backdrop-blur-sm px-6 py-2.5 rounded-full shadow-sm border border-white/50 text-center transform group-hover:-translate-y-1 transition-transform duration-500">
-          <h3 className="font-bold text-[#1e4520] text-[15px]">{farm.name}</h3>
+        <div className="z-10 bg-white shadow-sm border border-gray-100 px-6 py-2.5 rounded-full transform group-hover:-translate-y-1 transition-transform duration-300">
+          <h3 className="font-bold text-[#154b23] text-[15px]">{farm.name}</h3>
         </div>
       </div>
 
-      <div className="p-5 flex flex-col flex-grow bg-white">
+      <div className="p-6 flex flex-col flex-grow bg-white">
 
-        <div className="grid grid-cols-1 gap-y-3 my-2 text-[13px]">
-          <div className="flex items-center gap-2 flex-row-reverse justify-end">
+        <div className="grid grid-cols-1 gap-y-4 my-2 text-[13px]">
+          <div className="flex items-center gap-3 flex-row-reverse justify-end">
             <div className="text-right">
-              <p className="text-gray-400 font-medium">الموقع</p>
-              <p className="font-bold text-gray-900">{farm.governorate || 'غير محدد'}</p>
+              <p className="text-gray-400 font-medium mb-0.5">الموقع</p>
+              <p className="font-bold text-gray-900 text-sm">{farm.governorate || 'غير محدد'}</p>
             </div>
-            <div className="w-8 h-8 rounded-xl bg-[#f5f7f5] flex items-center justify-center flex-shrink-0">
-              <MapPin className="w-4 h-4 text-[#2a5c2a]" />
+            <div className="w-10 h-10 rounded-2xl bg-[#154b23]/5 flex items-center justify-center flex-shrink-0">
+              <MapPin className="w-5 h-5 text-[#154b23]" />
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-row-reverse justify-end">
+          <div className="flex items-center gap-3 flex-row-reverse justify-end">
             <div className="text-right">
-              <p className="text-gray-400 font-medium">إجمالي الحيوانات</p>
-              <p className="font-bold text-gray-900">{farm.total_animals || 0} رأس</p>
+              <p className="text-gray-400 font-medium mb-0.5">إجمالي الحيوانات</p>
+              <p className="font-bold text-gray-900 text-sm">{farm.total_animals || 0} رأس</p>
             </div>
-            <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-              <LayoutGrid className="w-4 h-4 text-blue-500" />
+            <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+              <LayoutGrid className="w-5 h-5 text-blue-500" />
             </div>
           </div>
         </div>
 
         {farm.description && (
-          <p className="text-gray-500 text-[11px] mt-3 line-clamp-2 leading-relaxed bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+          <p className="text-gray-500 text-[12px] mt-4 line-clamp-2 leading-relaxed bg-[#fbf9f6] p-3 rounded-xl border border-gray-100">
             {farm.description}
           </p>
         )}
 
         {/* Action buttons */}
-        <div className="flex gap-2 mt-4">
+        <div className="flex gap-2 mt-5 pt-4 border-t border-gray-50">
           <button
             onClick={(e) => { e.stopPropagation(); setEditMode(true); }}
-            className="text-xs py-0.5 px-1 bg-[#2a5c2a] text-white rounded hover:bg-[#1e4520]"
+            className="flex-1 text-xs py-2 bg-[#fbf9f6] text-gray-700 font-bold rounded-xl hover:bg-gray-100 transition-colors"
           >
             تعديل
           </button>
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDeleteConfirm(true); }}
-            className="text-xs py-0.5 px-1 bg-red-600 text-white rounded hover:bg-red-700"
+            className="flex-1 text-xs py-2 bg-red-50 text-red-600 font-bold rounded-xl hover:bg-red-100 transition-colors"
           >
             حذف
           </button>
@@ -173,66 +170,76 @@ const FarmsPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { farms, loading, error } = useSelector((state) => state.farm);
+  const [searchQuery, setSearchQuery] = React.useState('');
 
   useEffect(() => {
     dispatch(fetchMyFarms());
   }, [dispatch]);
 
-  const displayFarms = farms || [];
+  const displayFarms = (farms || []).filter(farm => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      (farm.name && farm.name.toLowerCase().includes(query)) ||
+      (farm.governorate && farm.governorate.toLowerCase().includes(query))
+    );
+  });
 
   return (
     <div className="min-h-screen bg-[#f5f7f5] flex flex-col font-cairo" dir="rtl">
-      <TopNavbar />
+      <TopNavbar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
       <main className="max-w-[1400px] w-full mx-auto px-8 py-8 flex-1 flex flex-col">
         {/* Header */}
-        <div className="flex items-start justify-between mb-8">
+        <div className="flex items-start justify-between mb-2">
           <div className="text-right">
             <h1 className="text-[26px] font-bold text-gray-900 leading-tight">المزارع الخاصة بي</h1>
-            <p className="text-[13px] text-gray-500 font-medium mt-1">
+            <p className="text-[14px] text-gray-500 font-medium mt-2">
               إدارة منشآتك الزراعية، متابعة الإنتاج، والتحكم في القطاعات.
             </p>
           </div>
           <button
             onClick={() => navigate('/farms/add')}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#2a5c2a] text-white rounded-xl text-sm font-bold hover:bg-[#1e4520] transition-colors shadow-sm shadow-green-900/10"
+            className="flex items-center gap-2 px-6 py-3 bg-[#154b23] text-white rounded-xl text-sm font-bold hover:bg-[#0f3619] transition-all shadow-md shadow-[#154b23]/20 active:scale-95"
           >
             <Plus className="w-4 h-4" />
-            إضافة مزرعة جديدة
+            إضافة مزرعة
           </button>
         </div>
 
         {/* Alerts / Loading */}
         {loading.farms && displayFarms.length === 0 && (
           <div className="flex-1 flex items-center justify-center">
-            <Loader2 className="w-8 h-8 text-[#2a5c2a] animate-spin" />
+            <Loader2 className="w-8 h-8 text-[#154b23] animate-spin" />
           </div>
         )}
 
         {/* Content */}
         {!loading.farms && displayFarms.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center py-20 text-center bg-white rounded-[20px] border border-gray-200 shadow-sm">
-            <div className="w-20 h-20 rounded-full bg-[#eaf5eb] flex items-center justify-center mb-5">
-              <Leaf className="w-10 h-10 text-[#2a5c2a]" />
+          <div className="flex-1 flex flex-col items-center justify-center py-20 text-center bg-white rounded-[32px] border border-gray-100 shadow-sm mt-4">
+            <div className="w-24 h-24 rounded-full bg-[#154b23]/5 flex items-center justify-center mb-6">
+              <Leaf className="w-12 h-12 text-[#154b23]" />
             </div>
-            <p className="text-gray-900 font-bold text-xl mb-2">لا تمتلك أي مزارع بعد</p>
-            <p className="text-gray-500 text-sm font-medium mb-6">قم بإضافة مزرعتك الأولى للبدء في إدارة النظام والحيوانات.</p>
+            <p className="text-gray-900 font-bold text-2xl mb-3">لا تمتلك أي مزارع بعد</p>
+            <p className="text-gray-500 text-sm font-medium mb-8 max-w-md">قم بإضافة مزرعتك الأولى للبدء في إدارة النظام والحيوانات والاستفادة من الذكاء الاصطناعي في المراقبة.</p>
             <button
               onClick={() => navigate('/farms/add')}
-              className="bg-[#2a5c2a] hover:bg-[#1e4520] text-white px-6 py-3 rounded-xl text-sm font-bold transition-colors shadow-sm shadow-green-900/10"
+              className="bg-[#154b23] hover:bg-[#0f3619] text-white px-8 py-3.5 rounded-2xl text-sm font-bold transition-all shadow-md shadow-[#154b23]/20 active:scale-95 flex items-center gap-2"
             >
-              إضافة مزرعة الآن
+              <Plus className="w-5 h-5" />
+              إضافة مزرعتك الأولى
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 flex-1 items-start content-start">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 flex-1 items-start content-start mt-4">
             {displayFarms.map((farm) => (
               <FarmCard
                 key={farm._id}
                 farm={farm}
-
               />
             ))}
+            
+
           </div>
         )}
       </main>

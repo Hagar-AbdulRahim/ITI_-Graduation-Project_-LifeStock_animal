@@ -17,6 +17,7 @@ import {
   ChevronDown,
   Loader2,
   Trash2,
+  Bot,
 } from 'lucide-react'
 import cowImg from '../assets/images/cow.jpg'
 import {
@@ -224,7 +225,18 @@ export default function AnimalProfilePage() {
         </div>
 
         {/* Action Buttons - Horizontal Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <button
+            onClick={() => navigate(`/diagnosis?animalId=${id}`)}
+            className="flex flex-col items-center gap-2 p-4 bg-white border-2 border-emerald-100 rounded-2xl hover:border-emerald-300 hover:bg-emerald-50 transition-all shadow-sm"
+          >
+            <Zap className="w-6 h-6 text-emerald-500" />
+            <span className="text-xs font-bold text-gray-700 text-center">
+              تشخيص الذكاء الاصطناعي
+            </span>
+          </button>
+
+
           <button
             onClick={() => navigate(`/animals/${id}/medical-records`)}
             className="flex flex-col items-center gap-2 p-4 bg-white border-2 border-red-100 rounded-2xl hover:border-red-300 hover:bg-red-50 transition-all shadow-sm"
@@ -356,88 +368,6 @@ export default function AnimalProfilePage() {
             </div>
           </div>
 
-          {/* Quick Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {/* Health Status */}
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl border-2 border-green-200 p-5 text-center shadow-md">
-              <ShieldCheck className="w-8 h-8 text-green-600 mx-auto mb-2" />
-              <p className="text-xs text-gray-600 font-semibold">
-                الحالة الصحية
-              </p>
-              <p className="text-lg font-black text-green-700">
-                {profile.status}
-              </p>
-              <span className="inline-block text-[10px] text-green-700 bg-green-200 px-2 py-1 rounded-full mt-2 font-bold">
-                {profile.statusTag}
-              </span>
-            </div>
-
-            {/* Risk Level */}
-            <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl border-2 border-amber-200 p-5 text-center shadow-md">
-              <AlertTriangle className="w-8 h-8 text-amber-600 mx-auto mb-2" />
-              <p className="text-xs text-gray-600 font-semibold">
-                مستوى المخاطر
-              </p>
-              <p className="text-lg font-black text-amber-700">
-                {profile.risk}
-              </p>
-              <span className="inline-block text-[10px] text-amber-700 bg-amber-200 px-2 py-1 rounded-full mt-2 font-bold">
-                {profile.riskTag}
-              </span>
-            </div>
-
-            {/* Last Checkup */}
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border-2 border-blue-200 p-5 text-center shadow-md">
-              <Calendar className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-              <p className="text-xs text-gray-600 font-semibold">آخر فحص</p>
-              <p className="text-lg font-black text-blue-700">
-                {profile.lastCheck}
-              </p>
-            </div>
-
-            {/* Weight */}
-            <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-2xl border-2 border-indigo-200 p-5 text-center shadow-md">
-              <Heart className="w-8 h-8 text-indigo-600 mx-auto mb-2" />
-              <p className="text-xs text-gray-600 font-semibold">
-                الوزن الحالي
-              </p>
-              <p className="text-lg font-black text-indigo-700">
-                {profile.weight}
-              </p>
-            </div>
-          </div>
-
-          {/* Animal Info Grid */}
-          <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-md p-6">
-            <h3 className="text-lg font-black text-gray-900 mb-5 pb-3 border-b-2 border-gray-200">
-              البيانات الأساسية
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-200">
-                <span className="font-bold text-gray-700">العمر</span>
-                <span className="font-black text-gray-900 text-lg">
-                  {profile.age}
-                </span>
-              </div>
-              <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-200">
-                <span className="font-bold text-gray-700">رقم التسجيل</span>
-                <span className="font-mono font-bold text-gray-900">
-                  {profile.regNo}
-                </span>
-              </div>
-              <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-200">
-                <span className="font-bold text-gray-700">تاريخ الميلاد</span>
-                <span className="font-bold text-gray-900">
-                  {profile.birthDate}
-                </span>
-              </div>
-              <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-200">
-                <span className="font-bold text-gray-700">معدل الإنتاج</span>
-                <span className="font-bold text-gray-900">{profile.yield}</span>
-              </div>
-            </div>
-          </div>
-
           {/* Vitals Summary row (4 cards) */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {/* Health General Index */}
@@ -565,66 +495,6 @@ export default function AnimalProfilePage() {
                   </span>
                 </span>
               </div>
-            </div>
-          </div>
-
-          {/* Vaccination History table */}
-          <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-md p-6 space-y-4">
-            <div className="flex items-center justify-between border-b-2 border-gray-200 pb-4">
-              <h3 className="text-lg font-black text-gray-900 flex items-center gap-2">
-                <Syringe className="w-6 h-6 text-blue-600" />
-                تاريخ التطعيمات
-              </h3>
-              <button
-                onClick={() => toast.success('تنزيل السجل بالكامل...')}
-                className="text-sm font-bold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-              >
-                تحميل السجل
-              </button>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-right text-sm">
-                <thead>
-                  <tr className="bg-blue-50 border-b-2 border-blue-200 text-gray-700 font-black text-xs">
-                    <th className="p-4">اللقاح</th>
-                    <th className="p-4">تاريخ الاعطاء</th>
-                    <th className="p-4">رقم التشغيلة</th>
-                    <th className="p-4">الجرعة القادمة</th>
-                    <th className="p-4 text-left">الحالة</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 text-gray-800">
-                  {profile.vaccinations?.map((vac, index) => (
-                    <tr
-                      key={index}
-                      className="hover:bg-blue-50/50 transition-colors"
-                    >
-                      <td className="p-4 font-bold text-gray-900">
-                        {vac.name}
-                      </td>
-                      <td className="p-4 text-gray-600">{vac.date}</td>
-                      <td className="p-4 font-mono text-gray-600 text-xs">
-                        {vac.batch}
-                      </td>
-                      <td className={`p-4 font-bold ${vac.nextDateColor}`}>
-                        {vac.nextDate}
-                      </td>
-                      <td className="p-4 text-left">
-                        <span
-                          className={`inline-block text-xs font-bold px-3 py-1.5 rounded-lg ${
-                            vac.status === 'محدث'
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-amber-100 text-amber-700'
-                          }`}
-                        >
-                          {vac.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           </div>
         </div>
