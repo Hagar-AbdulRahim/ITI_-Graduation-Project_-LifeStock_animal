@@ -10,12 +10,10 @@ import {
   Syringe,
   HeartPulse,
   ChevronRight,
-  Sparkles,
   Trash2,
   CheckCircle2,
   EyeOff,
   Filter,
-  X,
 } from 'lucide-react'
 import api from '../services/api'
 import toast from 'react-hot-toast'
@@ -31,7 +29,25 @@ const TYPE_META = {
     bar: 'from-blue-400 to-cyan-400',
     badge: 'bg-blue-100 text-blue-700',
   },
+  vaccination_reminder: {
+    label: 'تذكير تطعيم',
+    icon: Syringe,
+    bg: 'from-sky-100 to-blue-100',
+    ring: 'border-blue-200',
+    text: 'text-blue-600',
+    bar: 'from-blue-400 to-cyan-400',
+    badge: 'bg-blue-100 text-blue-700',
+  },
   health: {
+    label: 'صحة',
+    icon: HeartPulse,
+    bg: 'from-rose-100 to-pink-100',
+    ring: 'border-rose-200',
+    text: 'text-rose-600',
+    bar: 'from-rose-400 to-pink-400',
+    badge: 'bg-rose-100 text-rose-700',
+  },
+  health_case: {
     label: 'صحة',
     icon: HeartPulse,
     bg: 'from-rose-100 to-pink-100',
@@ -90,9 +106,8 @@ const NotificationsPage = () => {
   const [error, setError] = useState(null)
   const [actionId, setActionId] = useState(null)
   const [filter, setFilter] = useState('all') // 'all' | 'unread' | 'read'
-  const [testLoading, setTestLoading] = useState(false)
 
-  /* fetch */
+  /* جلب الإشعارات من الباك إند */
   const fetchNotifs = async (silent = false) => {
     if (!silent) setLoading(true)
     try {
@@ -113,37 +128,34 @@ const NotificationsPage = () => {
 
   useEffect(() => {
     fetchNotifs()
+    // تحديث تلقائي كل 30 ثانية
     const interval = setInterval(() => fetchNotifs(true), 30000)
     return () => clearInterval(interval)
   }, [])
 
-  /* toggle read */
+  /* تعيين كمقروء / غير مقروء */
   const handleToggleRead = async (notif, e) => {
     e?.stopPropagation()
     setActionId(notif._id)
-    const newState = !notif.is_read
     try {
       await api.put(`/api/notifications/${notif._id}/read`)
       setNotifications((prev) =>
-        prev.map((n) => (n._id === notif._id ? { ...n, is_read: newState } : n))
+        prev.map((n) => (n._id === notif._id ? { ...n, is_read: !notif.is_read } : n))
       )
-      toast.success(newState ? '✓ تمت القراءة' : '↩ تعيين كغير مقروء', { duration: 1500 })
+      toast.success(!notif.is_read ? '✓ تمت القراءة' : '↩ تعيين كغير مقروء', { duration: 1500 })
     } catch {
-      setNotifications((prev) =>
-        prev.map((n) => (n._id === notif._id ? { ...n, is_read: newState } : n))
-      )
-      toast.success(newState ? '✓ تمت القراءة محلياً' : '↩ غير مقروء', { duration: 1500 })
+      toast.error('فشل تحديث حالة الإشعار')
     } finally {
       setActionId(null)
     }
   }
 
-  /* delete */
+  /* حذف إشعار */
   const handleDelete = async (id, e) => {
     e?.stopPropagation()
     setActionId(`del-${id}`)
     try {
-      if (!id.startsWith('demo-')) await api.delete(`/api/notifications/${id}`)
+      await api.delete(`/api/notifications/${id}`)
       setNotifications((prev) => prev.filter((n) => n._id !== id))
       toast.success('🗑 تم حذف الإشعار', { duration: 1500 })
     } catch {
@@ -153,7 +165,7 @@ const NotificationsPage = () => {
     }
   }
 
-  /* mark all read */
+  /* تعيين الكل كمقروء */
   const handleMarkAllRead = async () => {
     try {
       await api.put('/api/notifications/read-all')
@@ -164,21 +176,7 @@ const NotificationsPage = () => {
     }
   }
 
-  /* test run */
-  const handleTestRun = async () => {
-    setTestLoading(true)
-    try {
-      await api.post('/api/notifications/test-run')
-      await fetchNotifs()
-      toast.success('⚡ تم تشغيل نظام فحص الإشعارات')
-    } catch {
-      toast.error('فشل تشغيل النظام')
-    } finally {
-      setTestLoading(false)
-    }
-  }
-
-  /* filtered list */
+  /* الفلترة */
   const filtered = notifications.filter((n) => {
     if (filter === 'unread') return !n.is_read
     if (filter === 'read') return n.is_read
@@ -195,7 +193,7 @@ const NotificationsPage = () => {
       <header className="sticky top-0 z-30 bg-white/70 backdrop-blur-2xl border-b border-white/60 shadow-[0_2px_20px_rgba(0,0,0,0.06)]">
         <div className="max-w-5xl mx-auto px-4 sm:px-8 py-4 flex items-center justify-between gap-4">
 
-          {/* back + title */}
+          {/* زر الرجوع + العنوان */}
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate(-1)}
@@ -220,7 +218,7 @@ const NotificationsPage = () => {
             </div>
           </div>
 
-          {/* actions */}
+          {/* أزرار الإجراءات */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => fetchNotifs(false)}
@@ -229,17 +227,19 @@ const NotificationsPage = () => {
             >
               <RotateCw className="w-4 h-4" />
             </button>
-            <button
-              onClick={handleMarkAllRead}
-              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-l from-[#1e4520] to-[#2a5c2a] text-white text-xs font-bold shadow-md hover:shadow-lg hover:shadow-green-900/20 transition-all hover:-translate-y-0.5 active:translate-y-0"
-            >
-              <CheckCheck className="w-4 h-4" />
-              تعيين الكل مقروء
-            </button>
+            {unreadCount > 0 && (
+              <button
+                onClick={handleMarkAllRead}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-l from-[#1e4520] to-[#2a5c2a] text-white text-xs font-bold shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 active:translate-y-0"
+              >
+                <CheckCheck className="w-4 h-4" />
+                <span className="hidden sm:inline">تعيين الكل مقروء</span>
+              </button>
+            )}
           </div>
         </div>
 
-        {/* ── FILTER TABS ── */}
+        {/* ── تاب الفلترة ── */}
         <div className="max-w-5xl mx-auto px-4 sm:px-8 pb-3 flex items-center gap-2">
           {[
             { key: 'all', label: 'الكل', count: notifications.length },
@@ -270,15 +270,15 @@ const NotificationsPage = () => {
       {/* ── MAIN ── */}
       <main className="max-w-5xl mx-auto px-4 sm:px-8 py-8">
 
-        {/* error banner */}
+        {/* بنر الخطأ */}
         {error && (
-          <div className="mb-6 flex items-start gap-3 p-4 bg-amber-50/80 border border-amber-200/50 rounded-2xl text-amber-700 text-sm font-bold backdrop-blur-sm shadow-sm">
+          <div className="mb-6 flex items-start gap-3 p-4 bg-amber-50/80 border border-amber-200/50 rounded-2xl text-amber-700 text-sm font-bold">
             <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
 
-        {/* loading */}
+        {/* تحميل */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-36">
             <div className="relative w-20 h-20">
@@ -288,29 +288,25 @@ const NotificationsPage = () => {
             <p className="mt-6 text-gray-400 font-bold text-sm animate-pulse">جاري مزامنة الإشعارات…</p>
           </div>
 
-        /* empty */
+        /* لا توجد إشعارات */
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-28 text-center">
             <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-100 shadow-inner flex items-center justify-center mb-6">
               <BellOff className="w-12 h-12 text-gray-300" />
             </div>
             <h3 className="text-xl font-black text-gray-700 mb-2">
-              {filter === 'all' ? 'لا توجد إشعارات' : filter === 'unread' ? 'لا توجد إشعارات غير مقروءة' : 'لا توجد إشعارات مقروءة'}
+              {filter === 'all'
+                ? 'لا توجد إشعارات'
+                : filter === 'unread'
+                ? 'لا توجد إشعارات غير مقروءة'
+                : 'لا توجد إشعارات مقروءة'}
             </h3>
-            <p className="text-sm text-gray-400 font-medium mb-8 max-w-xs">
-              كل شيء في مزارعك يعمل بكفاءة وأمان تام.
+            <p className="text-sm text-gray-400 font-medium max-w-xs">
+              ستصلك الإشعارات تلقائياً عند وجود تحديثات في مزرعتك.
             </p>
-            <button
-              onClick={handleTestRun}
-              disabled={testLoading}
-              className="flex items-center gap-2 px-6 py-3 border-2 border-dashed border-[#2a5c2a]/30 text-[#2a5c2a] rounded-2xl text-sm font-bold hover:border-[#2a5c2a] hover:bg-green-50 transition-all disabled:opacity-60"
-            >
-              {testLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              تشغيل نظام فحص الإشعارات
-            </button>
           </div>
 
-        /* list */
+        /* قائمة الإشعارات */
         ) : (
           <div className="flex flex-col gap-3">
             {filtered.map((notif) => {
@@ -318,104 +314,91 @@ const NotificationsPage = () => {
               const Icon = meta.icon
               const isDeleting = actionId === `del-${notif._id}`
               const isToggling = actionId === notif._id
+              const displayText = notif.message || notif.body || ''
 
               return (
                 <div
                   key={notif._id}
-                  className={`group relative flex flex-col sm:flex-row gap-4 p-5 rounded-3xl border transition-all duration-300 overflow-hidden cursor-pointer
+                  className={`relative flex flex-col gap-3 p-5 rounded-3xl border transition-all duration-300 overflow-hidden
                     ${notif.is_read
-                      ? 'bg-white/60 border-gray-100 shadow-sm hover:shadow-md hover:bg-white/80 opacity-75 hover:opacity-100'
-                      : 'bg-white border-gray-100 shadow-[0_4px_24px_rgba(42,92,42,0.07)] hover:shadow-[0_8px_32px_rgba(42,92,42,0.12)]'
+                      ? 'bg-white/60 border-gray-100 shadow-sm opacity-80'
+                      : 'bg-white border-gray-100 shadow-[0_4px_24px_rgba(42,92,42,0.07)]'
                     }`}
-                  onClick={(e) => handleToggleRead(notif, e)}
                 >
-                  {/* unread side bar */}
+                  {/* شريط غير مقروء */}
                   {!notif.is_read && (
                     <div className={`absolute right-0 top-4 bottom-4 w-1 rounded-l-full bg-gradient-to-b ${meta.bar}`} />
                   )}
 
-                  {/* icon */}
-                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${meta.bg} ${meta.text} border ${meta.ring} flex items-center justify-center flex-shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105`}>
-                    <Icon className="w-6 h-6" />
-                  </div>
-
-                  {/* body */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2 mb-1">
-                      <h3 className={`text-[15px] leading-snug ${notif.is_read ? 'font-semibold text-gray-700' : 'font-black text-gray-900'}`}>
-                        {notif.title}
-                      </h3>
-                      {!notif.is_read && (
-                        <span className="px-2 py-0.5 rounded-full bg-[#2a5c2a] text-white text-[10px] font-black uppercase tracking-wide">
-                          جديد
-                        </span>
-                      )}
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${meta.badge}`}>
-                        {meta.label}
-                      </span>
+                  {/* الصف العلوي: الأيقونة + المحتوى */}
+                  <div className="flex gap-4">
+                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${meta.bg} ${meta.text} border ${meta.ring} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                      <Icon className="w-6 h-6" />
                     </div>
 
-                    <p className="text-sm text-gray-500 font-medium leading-relaxed line-clamp-2">
-                      {notif.message}
-                    </p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <h3 className={`text-[15px] leading-snug ${notif.is_read ? 'font-semibold text-gray-700' : 'font-black text-gray-900'}`}>
+                          {notif.title}
+                        </h3>
+                        {!notif.is_read && (
+                          <span className="px-2 py-0.5 rounded-full bg-[#2a5c2a] text-white text-[10px] font-black">
+                            جديد
+                          </span>
+                        )}
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${meta.badge}`}>
+                          {meta.label}
+                        </span>
+                      </div>
 
-                    <span className="inline-block mt-2 text-[11px] text-gray-400 font-bold bg-gray-50 border border-gray-100 px-2 py-0.5 rounded-lg">
-                      🕐 {relativeTime(notif.created_at)}
-                    </span>
+                      <p className="text-sm text-gray-500 font-medium leading-relaxed line-clamp-2">
+                        {displayText}
+                      </p>
+
+                      <span className="inline-block mt-2 text-[11px] text-gray-400 font-bold bg-gray-50 border border-gray-100 px-2 py-0.5 rounded-lg">
+                        🕐 {relativeTime(notif.created_at)}
+                      </span>
+                    </div>
                   </div>
 
-                  {/* action buttons */}
+                  {/* أزرار الإجراءات — دايماً ظاهرة */}
                   <div
-                    className="flex sm:flex-col items-center gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 self-start mt-1 border-t sm:border-t-0 pt-3 sm:pt-0 w-full sm:w-auto"
+                    className="flex items-center gap-2 pt-3 border-t border-gray-100"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    {/* read toggle */}
+                    {/* تعيين كمقروء / غير مقروء */}
                     <button
+                      id={`read-btn-${notif._id}`}
                       onClick={(e) => handleToggleRead(notif, e)}
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all border
                         ${notif.is_read
-                          ? 'text-gray-400 hover:bg-gray-100 hover:text-gray-700'
-                          : 'text-[#2a5c2a] hover:bg-green-50'
+                          ? 'text-gray-500 border-gray-200 hover:bg-gray-50'
+                          : 'text-[#2a5c2a] border-green-200 bg-green-50 hover:bg-green-100'
                         }`}
-                      title={notif.is_read ? 'تعيين كغير مقروء' : 'تعيين كمقروء'}
                     >
                       {isToggling
                         ? <Loader2 className="w-4 h-4 animate-spin" />
                         : notif.is_read
-                          ? <><EyeOff className="w-4 h-4" /><span className="hidden sm:inline">غير مقروء</span></>
-                          : <><CheckCircle2 className="w-4 h-4" /><span className="hidden sm:inline">مقروء</span></>
+                          ? <><EyeOff className="w-4 h-4" /><span>غير مقروء</span></>
+                          : <><CheckCircle2 className="w-4 h-4" /><span>تعيين كمقروء</span></>
                       }
                     </button>
 
-                    {/* delete */}
+                    {/* حذف */}
                     <button
+                      id={`delete-btn-${notif._id}`}
                       onClick={(e) => handleDelete(notif._id, e)}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-400 hover:bg-rose-50 hover:text-rose-600 transition-all"
-                      title="حذف الإشعار"
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-rose-500 border border-rose-200 bg-rose-50 hover:bg-rose-100 hover:text-rose-700 transition-all"
                     >
                       {isDeleting
                         ? <Loader2 className="w-4 h-4 animate-spin" />
-                        : <><Trash2 className="w-4 h-4" /><span className="hidden sm:inline">حذف</span></>
+                        : <><Trash2 className="w-4 h-4" /><span>حذف</span></>
                       }
                     </button>
                   </div>
                 </div>
               )
             })}
-          </div>
-        )}
-
-        {/* footer test run button when list exists */}
-        {!loading && notifications.length > 0 && (
-          <div className="flex justify-center mt-10">
-            <button
-              onClick={handleTestRun}
-              disabled={testLoading}
-              className="flex items-center gap-2 px-5 py-2.5 border border-dashed border-gray-300 text-gray-400 rounded-2xl text-xs font-bold hover:border-[#2a5c2a] hover:text-[#2a5c2a] hover:bg-green-50 transition-all disabled:opacity-50"
-            >
-              {testLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-              تشغيل نظام فحص الإشعارات
-            </button>
           </div>
         )}
       </main>

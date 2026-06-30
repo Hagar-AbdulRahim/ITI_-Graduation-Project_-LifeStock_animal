@@ -11,7 +11,7 @@ import toast from 'react-hot-toast';
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import { getRoleHomePath } from '../../utils/roleRedirect';
-
+import api from '../../services/api';
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showResend, setShowResend] = useState(false);
@@ -59,7 +59,7 @@ const Login = () => {
   const handleResend = async () => {
     setResendLoading(true);
     try {
-      await axios.post('http://localhost:5000/api/auth/resend-verification', { email: resendEmail });
+      await api.post('/api/auth/resend-verification', { email: resendEmail });
       toast.success('تم إرسال رابط التفعيل — تحقق من بريدك');
       setShowResend(false);
     } catch (err) {

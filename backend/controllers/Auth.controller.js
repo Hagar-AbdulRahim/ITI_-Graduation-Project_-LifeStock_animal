@@ -133,7 +133,9 @@ const resendVerification = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email }).select(
+      "+password +email_verification_sent_at +email_verification_token +email_verification_expires"
+    );
     if (!user || !user.is_active) {
       return res.status(401).json({ success: false, message: "البريد الإلكتروني أو كلمة المرور غير صحيحة" });
     }
@@ -145,6 +147,14 @@ const login = async (req, res) => {
       return res.status(401).json({ success: false, message: "البريد الإلكتروني أو كلمة المرور غير صحيحة" });
     }
     if (!user.is_email_verified) {
+      // إرسال رابط التفعيل تلقائياً إذا لم يتم إرساله خلال آخر دقيقة
+      const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+      if (!user.email_verification_sent_at || user.email_verification_sent_at < oneMinuteAgo) {
+        const rawToken = user.generateVerificationToken();
+        await user.save({ validateBeforeSave: false });
+        await sendVerificationEmail(user, rawToken);
+        return res.status(403).json({ success: false, message: "يرجى التحقق من بريدك الإلكتروني أولاً. تم إرسال رابط تفعيل جديد إلى بريدك الآن.", email_verified: false });
+      }
       return res.status(403).json({ success: false, message: "يرجى التحقق من بريدك الإلكتروني أولاً.", email_verified: false });
     }
     sendTokens(res, user);

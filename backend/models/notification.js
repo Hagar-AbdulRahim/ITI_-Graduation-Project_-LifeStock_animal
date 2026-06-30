@@ -14,12 +14,14 @@ const notificationSchema = new mongoose.Schema(
     },
     message: {
       type: String,
-      required: true,
+      trim: true,
+    },
+    body: {
+      type: String,
       trim: true,
     },
     type: {
       type: String,
-      enum: ['vaccination', 'health', 'alert', 'general'],
       default: 'general',
     },
     is_read: {
@@ -36,20 +38,7 @@ const notificationSchema = new mongoose.Schema(
       ref: 'Vaccination',
       default: null,
     },
-    type: {
-      type: String,
-      enum: [
-        'vaccination_reminder',
-        'outbreak_alert',
-        'health_case',
-        'general',
-      ],
-      default: 'general',
-    },
-    title: { type: String, required: true },
-    body: { type: String, required: true },
     data: { type: mongoose.Schema.Types.Mixed, default: {} },
-    is_read: { type: Boolean, default: false },
     sent_via_fcm: { type: Boolean, default: false },
   },
   {

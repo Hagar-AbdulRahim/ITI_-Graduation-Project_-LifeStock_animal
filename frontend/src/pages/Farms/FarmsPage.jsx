@@ -7,13 +7,17 @@ import { fetchMyFarms } from '../../redux/farmSlice';
 import { updateFarm, deleteFarm } from '../../services/farmService';
 
 // ─── TOP NAVBAR ──────────────────────────────────────
-const TopNavbar = () => (
+const TopNavbar = ({ searchQuery, setSearchQuery }) => {
+  const navigate = useNavigate();
+  return (
   <header className="bg-white h-20 border-b border-gray-100 px-8 flex items-center justify-between sticky top-0 z-20 font-cairo">
     <div className="flex-1 max-w-xl">
       <div className="relative flex items-center w-full max-w-md">
         <Search className="w-4 h-4 text-gray-400 absolute right-4" />
         <input
           type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="البحث عن مزرعة بالاسم أو الموقع..."
           className="w-full bg-[#fbf9f6] border border-gray-200 rounded-full py-2.5 pr-11 pl-4 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-[#154b23]/20 focus:border-[#154b23] transition-all"
         />
@@ -22,7 +26,10 @@ const TopNavbar = () => (
 
     <div className="flex items-center gap-6">
       <div className="flex items-center gap-4 text-gray-400">
-        <button className="hover:text-gray-600 transition-colors relative">
+        <button 
+          onClick={() => navigate('/notifications')}
+          className="hover:text-gray-600 transition-colors relative"
+        >
           <Bell className="w-5 h-5" />
           <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
         </button>
@@ -31,18 +38,11 @@ const TopNavbar = () => (
         </button>
       </div>
       <div className="h-8 w-px bg-gray-200"></div>
-      <div className="flex items-center gap-3">
-        <div className="text-left" dir="ltr">
-          <p className="text-sm font-bold text-gray-900">د. سارة ميار</p>
-          <p className="text-[11px] text-gray-500 font-medium">طبيبة بيطرية أولى</p>
-        </div>
-        <div className="w-10 h-10 rounded-full bg-indigo-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
-          <img src="https://i.pravatar.cc/150?u=sarah" alt="Dr Sarah" className="w-full h-full object-cover" />
-        </div>
-      </div>
+
     </div>
   </header>
-);
+  );
+};
 
 const FarmCard = ({ farm }) => {
   const navigate = useNavigate();
@@ -170,16 +170,24 @@ const FarmsPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { farms, loading, error } = useSelector((state) => state.farm);
+  const [searchQuery, setSearchQuery] = React.useState('');
 
   useEffect(() => {
     dispatch(fetchMyFarms());
   }, [dispatch]);
 
-  const displayFarms = farms || [];
+  const displayFarms = (farms || []).filter(farm => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      (farm.name && farm.name.toLowerCase().includes(query)) ||
+      (farm.governorate && farm.governorate.toLowerCase().includes(query))
+    );
+  });
 
   return (
     <div className="min-h-screen bg-[#f5f7f5] flex flex-col font-cairo" dir="rtl">
-      <TopNavbar />
+      <TopNavbar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
       <main className="max-w-[1400px] w-full mx-auto px-8 py-8 flex-1 flex flex-col">
         {/* Header */}
@@ -231,19 +239,7 @@ const FarmsPage = () => {
               />
             ))}
             
-            {/* Add New Farm Card inside grid */}
-            {!loading.farms && (
-              <div 
-                onClick={() => navigate('/farms/add')}
-                className="bg-[#154b23]/5 border-2 border-dashed border-[#154b23]/20 rounded-[24px] h-[320px] flex flex-col items-center justify-center text-[#154b23] hover:bg-[#154b23]/10 hover:border-[#154b23]/40 transition-all cursor-pointer group"
-              >
-                <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Plus className="w-8 h-8" />
-                </div>
-                <h3 className="font-bold text-lg">إضافة مزرعة</h3>
-                <p className="text-sm opacity-70 mt-1">إنشاء منشأة جديدة</p>
-              </div>
-            )}
+
           </div>
         )}
       </main>
