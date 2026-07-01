@@ -101,10 +101,17 @@ export const fetchProfile = createAsyncThunk(
   }
 );
 
+// ─── استعادة بيانات الجلسة من localStorage عند بدء التشغيل ───
+const savedToken = localStorage.getItem('accessToken');
+const savedUser = (() => {
+  try { return JSON.parse(localStorage.getItem('authUser')); }
+  catch { return null; }
+})();
+
 const initialState = {
-  user: null,
-  accessToken: null,
-  isAuthenticated: false,
+  user: savedUser || null,
+  accessToken: savedToken || null,
+  isAuthenticated: !!(savedToken && savedUser),
   loading: false,
   error: null,
 };
@@ -120,14 +127,21 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.loading = false;
       state.error = null;
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('authUser');
     },
     updateToken: (state, action) => {
       state.accessToken = action.payload;
+      if (action.payload) {
+        localStorage.setItem('accessToken', action.payload);
+      }
     },
     setCredentials: (state, action) => {
       state.user = action.payload.user;
       state.accessToken = action.payload.access_token;
       state.isAuthenticated = true;
+      localStorage.setItem('accessToken', action.payload.access_token);
+      localStorage.setItem('authUser', JSON.stringify(action.payload.user));
     },
     clearError: (state) => {
       state.error = null;
@@ -144,6 +158,8 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.accessToken = action.payload.access_token;
       state.isAuthenticated = true;
+      localStorage.setItem('accessToken', action.payload.access_token);
+      localStorage.setItem('authUser', JSON.stringify(action.payload.user));
     });
     builder.addCase(loginUser.rejected, (state, action) => {
       state.loading = false;
@@ -160,6 +176,8 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.accessToken = action.payload.access_token;
       state.isAuthenticated = true;
+      localStorage.setItem('accessToken', action.payload.access_token);
+      localStorage.setItem('authUser', JSON.stringify(action.payload.user));
     });
     builder.addCase(loginWithGoogle.rejected, (state, action) => {
       state.loading = false;
@@ -184,6 +202,8 @@ const authSlice = createSlice({
       state.user = null;
       state.accessToken = null;
       state.isAuthenticated = false;
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('authUser');
     });
 
     // Fetch Profile

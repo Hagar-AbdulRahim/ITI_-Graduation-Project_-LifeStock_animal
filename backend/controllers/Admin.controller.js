@@ -3,17 +3,38 @@ const Farm          = require("../models/farm");
 const Animal        = require("../models/animal");
 const HealthCase    = require("../models/healthCase");
 const Consultation  = require("../models/Consultation");
-const OutbreakReport = require("../models/Outbreakreport");
 const Notification  = require("../models/notification");
 const Vaccination   = require("../models/vaccination");
+const mongoose      = require("mongoose");
 const { sendNotification } = require("../services/notificationService");
 const { parsePagination, paginatedResponse } = require("../utils/accessControl");
+
+// OutbreakReport — لأن ملف Outbreakreport.js الأساسي نسي المطور يعرّف فيه الـ Schema
+let OutbreakModel;
+try {
+  OutbreakModel = mongoose.model("OutbreakReport");
+} catch {
+  const outbreakSchema = new mongoose.Schema({
+    disease_name: { type: String, required: true },
+    governorate: { type: String, required: true },
+    cases_count: { type: Number, required: true },
+    ai_warning_message: { type: String },
+    status: { type: String, enum: ["active", "resolved"], default: "active" },
+    detected_at: { type: Date, default: Date.now },
+    resolved_at: { type: Date }
+  });
+  OutbreakModel = mongoose.model("OutbreakReport", outbreakSchema);
+}
+
+const getOutbreakModel = () => OutbreakModel;
 
 // ════════════════════════════════════════════════════════════════════════════
 // GET /api/admin/dashboard/stats
 // ════════════════════════════════════════════════════════════════════════════
 const getDashboardStats = async (req, res) => {
   try {
+    const OutbreakModel = getOutbreakModel();
+
     const [
       totalUsers,
       totalFarms,
@@ -26,7 +47,7 @@ const getDashboardStats = async (req, res) => {
       Farm.countDocuments({ is_active: true }),
       Animal.countDocuments({ is_active: true }),
       Animal.countDocuments({ is_active: true, health_status: { $in: ["sick", "critical"] } }),
-      OutbreakReport.countDocuments({ status: "active" }),
+      OutbreakModel ? OutbreakModel.countDocuments({ status: "active" }) : Promise.resolve(0),
       Consultation.countDocuments({ doctor_status: "pending" }),
     ]);
 
@@ -348,11 +369,14 @@ const getConsultations = async (req, res) => {
 // ════════════════════════════════════════════════════════════════════════════
 const getOutbreaks = async (req, res) => {
   try {
+    const OutbreakModel = getOutbreakModel();
+    if (!OutbreakModel) return res.json({ success: true, count: 0, data: [] });
+
     const filter = {};
     if (req.query.status) filter.status = req.query.status;
     if (req.query.governorate) filter.governorate = req.query.governorate;
 
-    const outbreaks = await OutbreakReport.find(filter).sort({ detected_at: -1 });
+    const outbreaks = await OutbreakModel.find(filter).sort({ detected_at: -1 });
     res.json({ success: true, count: outbreaks.length, data: outbreaks });
   } catch (err) {
     console.error("getOutbreaks error:", err);
@@ -362,9 +386,12 @@ const getOutbreaks = async (req, res) => {
 
 const createOutbreak = async (req, res) => {
   try {
+    const OutbreakModel = getOutbreakModel();
+    if (!OutbreakModel) return res.status(503).json({ success: false, message: "نموذج الفاشية غير متوفر" });
+
     const { disease_name, governorate, cases_count, ai_warning_message, status } = req.body;
 
-    const existing = await OutbreakReport.findOne({ disease_name, governorate, status: "active" });
+    const existing = await OutbreakModel.findOne({ disease_name, governorate, status: "active" });
     if (existing) {
       existing.cases_count = cases_count || existing.cases_count;
       existing.ai_warning_message = ai_warning_message || existing.ai_warning_message;
@@ -372,7 +399,7 @@ const createOutbreak = async (req, res) => {
       return res.json({ success: true, message: "تم تحديث تقرير الفاشية", data: existing });
     }
 
-    const outbreak = await OutbreakReport.create({
+    const outbreak = await OutbreakModel.create({
       disease_name,
       governorate,
       cases_count,
@@ -389,7 +416,10 @@ const createOutbreak = async (req, res) => {
 
 const resolveOutbreak = async (req, res) => {
   try {
-    const outbreak = await OutbreakReport.findByIdAndUpdate(
+    const OutbreakModel = getOutbreakModel();
+    if (!OutbreakModel) return res.status(503).json({ success: false, message: "نموذج الفاشية غير متوفر" });
+
+    const outbreak = await OutbreakModel.findByIdAndUpdate(
       req.params.id,
       { status: "resolved", resolved_at: new Date() },
       { new: true }

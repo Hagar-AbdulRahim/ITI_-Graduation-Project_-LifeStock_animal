@@ -27,7 +27,7 @@ export default function AdminAnimalsPage() {
   useEffect(() => { fetchAnimals(); }, [fetchAnimals]);
 
   const columns = [
-    { key: 'tag', label: 'رقم الوسم', render: (r) => r.tag_number },
+    { key: 'tag', label: 'رقم الوسم', render: (r) => <span className="font-bold text-stone-700">{r.tag_number}</span> },
     { key: 'species', label: 'النوع', render: (r) => SPECIES_LABELS[r.species] || r.species },
     { key: 'farm', label: 'المزرعة', render: (r) => r.farm_id?.name || '—' },
     { key: 'gov', label: 'المحافظة', render: (r) => r.farm_id?.governorate || '—' },
@@ -35,9 +35,9 @@ export default function AdminAnimalsPage() {
       key: 'health',
       label: 'الحالة الصحية',
       render: (r) => (
-        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-          r.health_status === 'healthy' ? 'bg-green-100 text-green-700' :
-          r.health_status === 'critical' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+        <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
+          r.health_status === 'healthy' ? 'bg-green-50 text-[#2a5c2a] border border-green-200/50' :
+          r.health_status === 'critical' ? 'bg-red-50 text-red-600 border border-red-200/50' : 'bg-amber-50 text-amber-600 border border-amber-200/50'
         }`}>
           {HEALTH_STATUS_LABELS[r.health_status] || r.health_status}
         </span>
@@ -46,15 +46,29 @@ export default function AdminAnimalsPage() {
   ];
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-black text-stone-800">جميع الحيوانات</h2>
-      <select value={healthStatus} onChange={(e) => { setHealthStatus(e.target.value); setPage(1); }} className="border border-stone-200 rounded-xl px-3 py-2 text-sm">
-        <option value="">كل الحالات</option>
-        <option value="healthy">سليم</option>
-        <option value="sick">مريض</option>
-        <option value="critical">حرج</option>
-      </select>
-      <DataTable columns={columns} data={animals} loading={loading} pagination={pagination} onPageChange={setPage} />
+    <div className="space-y-6 relative z-10">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-2xl font-black text-stone-800 drop-shadow-sm">سجل الحيوانات</h2>
+        <p className="text-sm text-stone-500 font-medium">إدارة ومتابعة الحيوانات المسجلة وحالاتها الصحية.</p>
+      </div>
+
+      <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300">
+        <div className="flex flex-wrap items-center gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-bold text-stone-600">تصفية حسب الحالة:</label>
+            <select value={healthStatus} onChange={(e) => { setHealthStatus(e.target.value); setPage(1); }} className="border-none bg-stone-50 shadow-inner rounded-xl px-4 py-2.5 text-sm font-medium text-stone-700 outline-none focus:ring-2 focus:ring-[#2a5c2a]/20 transition-all cursor-pointer">
+              <option value="">جميع الحالات</option>
+              <option value="healthy">سليم</option>
+              <option value="sick">مريض</option>
+              <option value="critical">حرج</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="overflow-hidden rounded-2xl border border-stone-100/80 bg-white/50">
+          <DataTable columns={columns} data={animals} loading={loading} pagination={pagination} onPageChange={setPage} />
+        </div>
+      </div>
     </div>
   );
 }

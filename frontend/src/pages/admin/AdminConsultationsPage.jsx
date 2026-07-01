@@ -25,18 +25,33 @@ export default function AdminConsultationsPage() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const columns = [
-    { key: 'user', label: 'المستخدم', render: (r) => r.user_id?.name || '—' },
-    { key: 'governorate', label: 'المحافظة' },
-    { key: 'diagnosis', label: 'التشخيص', render: (r) => r.ai_diagnosis?.slice(0, 50) || '—' },
-    { key: 'severity', label: 'الخطورة' },
-    { key: 'status', label: 'حالة الرد', render: (r) => (r.doctor_status === 'responded' ? 'تم الرد' : 'معلق') },
-    { key: 'date', label: 'التاريخ', render: (r) => new Date(r.created_at).toLocaleDateString('ar-EG') },
+    { key: 'user', label: 'المستخدم', render: (r) => <span className="font-bold text-stone-700">{r.user_id?.name || '—'}</span> },
+    { key: 'governorate', label: 'المحافظة', render: (r) => <span className="text-stone-600">{r.governorate}</span> },
+    { key: 'diagnosis', label: 'التشخيص', render: (r) => <span className="text-stone-600">{r.ai_diagnosis?.slice(0, 50) || '—'}</span> },
+    { key: 'symptoms', label: 'الأعراض', className: 'whitespace-normal leading-relaxed text-xs min-w-[250px]', render: (r) => <span className="text-stone-500 text-xs">{r.symptoms?.join('، ') || '—'}</span> },
+    { key: 'prevention', label: 'طرق الوقاية', className: 'whitespace-normal leading-relaxed text-xs min-w-[250px]', render: (r) => <span className="text-stone-500 text-xs">{r.suggested_actions?.join('، ') || '—'}</span> },
+    { key: 'treatment', label: 'العلاج', className: 'whitespace-normal leading-relaxed text-xs min-w-[250px]', render: (r) => <span className="text-[#2a5c2a] text-xs font-bold">{r.doctor_response || '—'}</span> },
+    { key: 'severity', label: 'الخطورة', render: (r) => <span className="text-stone-500 font-bold">{r.severity || '—'}</span> },
+    { key: 'status', label: 'حالة الرد', render: (r) => (
+      <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${r.doctor_status === 'responded' ? 'bg-green-50 text-[#2a5c2a] border border-green-200/50' : 'bg-amber-50 text-amber-600 border border-amber-200/50'}`}>
+        {r.doctor_status === 'responded' ? 'تم الرد' : 'معلق'}
+      </span>
+    ) },
+    { key: 'date', label: 'التاريخ', render: (r) => <span className="text-xs text-stone-400">{new Date(r.created_at).toLocaleDateString('ar-EG')}</span> },
   ];
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-black text-stone-800">الاستشارات العامة</h2>
-      <DataTable columns={columns} data={items} loading={loading} pagination={pagination} onPageChange={setPage} />
+    <div className="space-y-6 relative z-10">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-2xl font-black text-stone-800 drop-shadow-sm">الاستشارات العامة</h2>
+        <p className="text-sm text-stone-500 font-medium">متابعة استشارات المزارعين الموجهة للأطباء البيطريين عبر المنصة.</p>
+      </div>
+
+      <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300">
+        <div className="overflow-x-auto custom-scrollbar rounded-2xl border border-stone-100/80 bg-white/50 mt-2 pb-2">
+          <DataTable columns={columns} data={items} loading={loading} pagination={pagination} onPageChange={setPage} />
+        </div>
+      </div>
     </div>
   );
 }
