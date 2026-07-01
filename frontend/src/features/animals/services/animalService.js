@@ -64,7 +64,7 @@ export const animalService = {
    * @param {string} id - Animal MongoDB ObjectId
    */
   getAnimalMedicalHistory: async (id) => {
-    const response = await api.get(`${BASE_URL}/${id}/health-cases`);
+    const response = await api.get(`/api/health-cases/animal/${id}`);
     return response.data;
   },
 

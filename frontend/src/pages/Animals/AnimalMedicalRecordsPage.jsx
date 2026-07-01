@@ -165,10 +165,11 @@ const AnimalMedicalRecordsPage = () => {
           </div>
           {!selectedCaseId && (
             <button
-              onClick={() => navigate(`/animals/${id}/medical-records/add`)}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl text-xs font-bold hover:bg-red-700 transition-colors shadow-sm"
+              disabled
+              title="هذه الميزة غير متاحة حاليًا"
+              className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-500 rounded-xl text-xs font-bold cursor-not-allowed shadow-sm border border-gray-300"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 opacity-50" />
               إضافة فحص طبي
             </button>
           )}

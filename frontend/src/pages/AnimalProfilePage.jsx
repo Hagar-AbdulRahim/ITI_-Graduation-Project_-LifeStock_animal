@@ -310,10 +310,11 @@ export default function AnimalProfilePage() {
         </button>
 
         <button
-          onClick={() => navigate(`/animals/${id}/medical-records/add`)}
-          className="flex items-center justify-center gap-2 p-3 bg-gradient-to-br from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all shadow-md font-bold text-sm"
+          disabled
+          title="هذه الميزة غير متاحة حاليًا"
+          className="flex items-center justify-center gap-2 p-3 bg-gray-200 text-gray-500 rounded-xl cursor-not-allowed font-bold text-sm border border-gray-300"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-5 h-5 opacity-50" />
           سجل طبي
         </button>
 
