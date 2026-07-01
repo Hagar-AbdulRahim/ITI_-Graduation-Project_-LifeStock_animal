@@ -14,7 +14,7 @@ const userOwnsFarm = async (farmId, userId) => {
 // ── Create Animal ─────────────────────────────────────────────────────────────
 const createAnimal = async (req, res) => {
   try {
-    const { farm_id, tag_number, species, gender, age_value, age_unit, weight_kg, breed, notes } =
+    const { farm_id, name, tag_number, species, gender, age_value, age_unit, weight_kg, breed, notes } =
       req.body;
 
     // verify the farm belongs to the current user
@@ -26,9 +26,12 @@ const createAnimal = async (req, res) => {
     // مسار الصورة لو تم رفعها عبر multer
     const imagePath = req.file ? `/uploads/animals/${req.file.filename}` : null;
 
+    const normalizedTagNumber = (tag_number || "").toString().trim() || `TAG-${Date.now()}`;
+
     const animal = await Animal.create({
       farm_id,
-      tag_number: tag_number.trim(), // exact value، بدون أي تعديل إضافي
+      name: name ? name.trim() : null,
+      tag_number: normalizedTagNumber,
       species,
       gender,
       age_value,
@@ -133,7 +136,7 @@ const updateAnimal = async (req, res) => {
     }
 
     const allowedFields = [
-      "tag_number", "species", "gender", "age_value", "age_unit",
+      "name", "tag_number", "species", "gender", "age_value", "age_unit",
       "weight_kg", "health_status", "notes", "breed",
     ];
     const updates = {};

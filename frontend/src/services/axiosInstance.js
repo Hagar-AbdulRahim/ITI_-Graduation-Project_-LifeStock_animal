@@ -1,7 +1,14 @@
 import axios from 'axios'
 
+// نشيل أي "/" أو "/api" زيادة في الآخر عشان مانكررش المسار
+// كده يشتغل صح سواء الـ .env مكتوب فيه:
+//   VITE_API_BASE_URL=http://127.0.0.1:5000
+//   VITE_API_BASE_URL=http://127.0.0.1:5000/api
+const RAW_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
+const API_BASE_URL = RAW_BASE_URL.replace(/\/api\/?$/, '').replace(/\/$/, '') + '/api'
+
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api',
+  baseURL: API_BASE_URL,
 
   timeout: 10000,
 

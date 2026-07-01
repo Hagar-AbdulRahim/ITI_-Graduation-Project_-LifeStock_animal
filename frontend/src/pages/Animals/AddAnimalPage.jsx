@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
-import { ArrowRight, Save, X, Loader2, ImagePlus } from 'lucide-react';
+import { ArrowRight, Save, X, Loader2 } from 'lucide-react';
 import { addNewAnimal } from '../../redux/animalSlice';
 import { fetchMyFarms } from '../../redux/farmSlice';
-import cowsFieldBg from '../../assets/images/cows-field-bg.jpg';
 
 // ─── Backend Animal Model (for reference) ─────────────────────────────────────
 // Required: farm_id, name, species (cattle|sheep|goat), gender (male|female), birth_date
@@ -19,18 +18,15 @@ const AddAnimalPage = () => {
   const dispatch = useDispatch();
 
   const { loading, error } = useSelector((state) => state.animal);
-
+  const farms = useSelector((state) => state.farm?.farms || []);
 
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm({
     defaultValues: { age_unit: 'months' },
   });
-
-  const selectedImage = watch('image');
 
   useEffect(() => {
     dispatch(fetchMyFarms());
@@ -38,9 +34,14 @@ const AddAnimalPage = () => {
 
   const onSubmit = async (data) => {
     const formData = new FormData();
-    const actualFarmId = farmId ? farmId : (farms && farms.length > 0 ? farms[0]._id : null);
+    const actualFarmId = farmId || (farms && farms.length > 0 ? farms[0]._id : null);
 
-    if (actualFarmId) formData.append('farm_id', actualFarmId);
+    if (!actualFarmId) {
+      return;
+    }
+
+    formData.append('farm_id', actualFarmId);
+    if (data.name) formData.append('name', data.name.trim());
     formData.append('species', data.species);
     formData.append('gender', data.gender);
     formData.append('age_value', Number(data.age_value));
@@ -52,10 +53,6 @@ const AddAnimalPage = () => {
     if (data.breed) formData.append('breed', data.breed.trim());
     if (data.weight_kg) formData.append('weight_kg', Number(data.weight_kg));
     if (data.notes) formData.append('notes', data.notes.trim());
-
-    if (data.image && data.image[0]) {
-      formData.append('image', data.image[0]);
-    }
 
     try {
       await dispatch(addNewAnimal(formData)).unwrap();
@@ -76,17 +73,7 @@ const AddAnimalPage = () => {
   return (
     <div className="min-h-screen font-cairo relative" dir="rtl">
       {/* ── Background Image ─────────────────────────────────────── */}
-      <div
-        className="fixed inset-0 z-0"
-        style={{
-          backgroundImage: `url(${cowsFieldBg})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }}
-      />
-      {/* ── Overlay ──────────────────────────────────────────────── */}
-      <div className="fixed inset-0 z-0 bg-black/40 backdrop-blur-[2px]" />
+      <div className="fixed inset-0 z-0 bg-gradient-to-br from-[#e4f0e7] via-[#f7faf7] to-[#e8f1e2]" />
       {/* ── Sticky Header ─────────────────────────────────────────── */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-20 shadow-sm">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -128,32 +115,6 @@ const AddAnimalPage = () => {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-              {/* Image Upload Big Box */}
-              <div className="md:col-span-2 mb-2">
-                <label className={labelCls}>صورة الحيوان (اختياري)</label>
-                <div className={`relative w-full h-40 bg-gray-50 hover:bg-gray-100 transition-all border-2 border-dashed ${errors.image ? 'border-red-400' : 'border-gray-300'} rounded-2xl flex flex-col items-center justify-center cursor-pointer group overflow-hidden`}>
-                  <input
-                    type="file"
-                    accept="image/jpeg, image/png, image/jpg, image/webp"
-                    {...register('image', {
-                      validate: {
-                        lessThan5MB: files => !files || files.length === 0 || files[0].size <= 5 * 1024 * 1024 || 'حجم الصورة يجب أن لا يتجاوز 5 ميجابايت'
-                      }
-                    })}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                  />
-                  <ImagePlus className={`w-10 h-10 mb-3 transition-colors ${selectedImage && selectedImage.length > 0 ? 'text-[#2a5c2a]' : 'text-gray-400 group-hover:text-[#2a5c2a]'}`} />
-                  {selectedImage && selectedImage.length > 0 ? (
-                    <p className="text-[14px] font-bold text-[#2a5c2a]">{selectedImage[0].name}</p>
-                  ) : (
-                    <>
-                      <p className="text-[14px] font-bold text-gray-600 group-hover:text-[#2a5c2a] transition-colors">اضغط هنا لرفع صورة الحيوان</p>
-                      <p className="text-[12px] text-gray-400 mt-1">يُسمح بـ: JPEG, JPG, PNG, WEBP (الحد الأقصى: 5MB)</p>
-                    </>
-                  )}
-                </div>
-                {errors.image && <p className="text-[12px] text-red-500 mt-2 font-medium">{errors.image.message}</p>}
-              </div>
 
               {/* Age */}
               <div className="flex gap-2">
@@ -179,6 +140,18 @@ const AddAnimalPage = () => {
                   </select>
                   {errors.age_unit && <p className="text-[11px] text-red-500 mt-1">{errors.age_unit.message}</p>}
                 </div>
+              </div>
+
+              {/* Name */}
+              <div>
+                <label className={labelCls}>اسم الحيوان</label>
+                <input
+                  type="text"
+                  {...register('name', { maxLength: { value: 100, message: 'اسم الحيوان طويل جداً' } })}
+                  placeholder="مثال: بيسكو"
+                  className={inputCls(errors.name)}
+                />
+                {errors.name && <p className="text-[11px] text-red-500 mt-1">{errors.name.message}</p>}
               </div>
 
               {/* Tag Number */}

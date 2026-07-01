@@ -4,10 +4,10 @@ import { useNavigate } from 'react-router-dom'
 import { fetchNotifications } from '../redux/notificationSlice'
 
 export default function Topbar() {
-  const user        = useSelector((state) => state.auth.user)
+  const user = useSelector((state) => state.auth.user)
   const unreadCount = useSelector((state) => state.notifications.unread_count)
-  const dispatch    = useDispatch()
-  const navigate    = useNavigate()
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
 
   // جلب عدد الإشعارات غير المقروءة عند تحميل الـ Topbar
   useEffect(() => {
@@ -38,7 +38,9 @@ export default function Topbar() {
         )}
         <div className="leading-tight">
           <p className="text-sm font-semibold text-stone-800">
-            {user?.name || 'مزارع'}
+            {user?.name || 'المستخدم'}
+
+
           </p>
         </div>
       </div>
@@ -105,6 +107,6 @@ export default function Topbar() {
           <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01" />
         </svg>
       </button>
-    </header>
+    </header >
   )
 }

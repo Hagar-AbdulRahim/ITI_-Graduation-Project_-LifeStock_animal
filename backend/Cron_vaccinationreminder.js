@@ -28,7 +28,7 @@ const sendBatch = async (vaccinations, flagField, timestampField, messageSuffix)
     const farm   = animal?.farm_id;
     if (!animal || !farm) { skippedCount++; continue; }
 
-    const user = await User.findById(farm.user_id);
+    const user = await User.findById(farm.user_id).select('+push_subscription');
     if (!user || !user.is_active) { skippedCount++; continue; }
 
     const speciesLabel = SPECIES_LABELS[animal.species] || animal.species;

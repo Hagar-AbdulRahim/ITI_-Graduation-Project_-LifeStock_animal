@@ -1,7 +1,8 @@
+// ════════════════════════════════════════════════════════════════════════════
+// models/vaccination.js
+// ════════════════════════════════════════════════════════════════════════════
 const mongoose = require("mongoose");
 
-// مدة التذكير التلقائي الموحّدة للقاحات الدورية — تُستخدم فقط لو المزارع
-// لم يحدد next_due_date بنفسه عند إضافة لقاح من النوع "recurring"
 const DEFAULT_BOOSTER_MONTHS = 12;
 
 const vaccinationSchema = new mongoose.Schema(
@@ -19,10 +20,6 @@ const vaccinationSchema = new mongoose.Schema(
       maxlength: 150,
     },
 
-    // ── نوع اللقاح يحدد إزاي نتعامل مع التواريخ ──────────────────────────────
-    // one_time:  لقاح طارئ يُعطى مرة واحدة فقط — موعد مُجدَّل في المستقبل،
-    //            بعد إعطائه تنتهي الدورة بالكامل ومفيش "جرعة قادمة" بعده
-    // recurring: لقاح دوري يتكرر — له تاريخ آخر جرعة + موعد الجرعة القادمة
     vaccine_type: {
       type: String,
       enum: ["one_time", "recurring"],
@@ -30,23 +27,26 @@ const vaccinationSchema = new mongoose.Schema(
       default: "recurring",
     },
 
-    // ── حقول خاصة بـ "recurring" فقط ──────────────────────────────────────────
+    is_first_dose: {
+      type: Boolean,
+      default: false,
+    },
+
     last_date: {
-      // تاريخ آخر جرعة فعلية أُخذت (مطلوب فقط لو recurring)
       type: Date,
       required: function () {
-        return this.vaccine_type === "recurring";
+        return this.vaccine_type === "recurring" && !this.is_first_dose;
       },
       validate: {
         validator: function (v) {
-          if (this.vaccine_type !== "recurring") return true;
+          if (this.vaccine_type !== "recurring" || this.is_first_dose) return true;
           return v <= new Date();
         },
         message: "تاريخ آخر جرعة لا يمكن أن يكون في المستقبل",
       },
     },
+
     next_due_date: {
-      // موعد الجرعة القادمة المتوقعة (مطلوب فقط لو recurring)
       type: Date,
       required: function () {
         return this.vaccine_type === "recurring";
@@ -64,16 +64,13 @@ const vaccinationSchema = new mongoose.Schema(
       default: false,
     },
 
-    // ── حقول خاصة بـ "one_time" فقط ───────────────────────────────────────────
     scheduled_date: {
-      // الموعد المُجدَّل لإعطاء اللقاح الطارئ في المستقبل (مطلوب فقط لو one_time)
       type: Date,
       required: function () {
         return this.vaccine_type === "one_time";
       },
     },
     completed: {
-      // هل تم إعطاء اللقاح الطارئ فعلاً في موعده؟ — يخص one_time فقط
       type: Boolean,
       default: false,
     },
@@ -82,7 +79,6 @@ const vaccinationSchema = new mongoose.Schema(
       default: null,
     },
 
-    // ── حقول مشتركة بين النوعين ────────────────────────────────────────────────
     dose_ml: {
       type: Number,
       min: [0.1, "الجرعة يجب أن تكون أكبر من صفر"],
@@ -106,8 +102,6 @@ const vaccinationSchema = new mongoose.Schema(
       default: null,
     },
 
-    // ── مصدر الإضافة — مين سجّل التطعيم ده ──────────────────────────────────────
-    // مهم للفرونت عشان يميّز بصرياً بين اقتراح من الـ AI وإدخال يدوي من المزارع
     added_by: {
       type: String,
       enum: ["user", "onboarding_agent"],
@@ -115,7 +109,6 @@ const vaccinationSchema = new mongoose.Schema(
     },
 
     reminder_sent: {
-      // إشعار "قبل الميعاد بيوم" — للنوعين معاً (next_due_date أو scheduled_date)
       type: Boolean,
       default: false,
     },
@@ -124,7 +117,6 @@ const vaccinationSchema = new mongoose.Schema(
       default: null,
     },
     day_of_reminder_sent: {
-      // إشعار "يوم الميعاد نفسه" — مستقل عن reminder_sent تماماً
       type: Boolean,
       default: false,
     },
@@ -138,32 +130,29 @@ const vaccinationSchema = new mongoose.Schema(
   }
 );
 
-/**
- * الموعد الفعلي للتذكير، بغض النظر عن نوع اللقاح —
- * يُستخدم من الـ Cron Job بدل ما يفرّق بين next_due_date وscheduled_date
- * كل مرة، فيبقى عنده حقل واحد موحّد يستعلم عليه
- */
 vaccinationSchema.virtual("reminder_date").get(function () {
   return this.vaccine_type === "one_time" ? this.scheduled_date : this.next_due_date;
 });
 
-vaccinationSchema.set("toJSON",   { virtuals: true });
+vaccinationSchema.set("toJSON", { virtuals: true });
 vaccinationSchema.set("toObject", { virtuals: true });
 
-// ── حساب next_due_date تلقائياً لو لم يُحدَّد يدوياً (recurring فقط) ───────────
 vaccinationSchema.pre("validate", function () {
-  if (this.vaccine_type === "recurring" && !this.next_due_date && this.last_date) {
-    const lastDate =
-      this.last_date instanceof Date ? this.last_date : new Date(this.last_date);
+  if (this.vaccine_type !== "recurring" || this.next_due_date) return;
 
-    if (isNaN(lastDate.getTime())) return;
+  const baseDate = this.is_first_dose
+    ? new Date()
+    : this.last_date instanceof Date
+      ? this.last_date
+      : new Date(this.last_date);
 
-    const calculatedDate = new Date(lastDate);
-    calculatedDate.setMonth(calculatedDate.getMonth() + DEFAULT_BOOSTER_MONTHS);
+  if (isNaN(baseDate?.getTime())) return;
 
-    this.next_due_date                 = calculatedDate;
-    this.next_due_date_auto_calculated = true;
-  }
+  const calculatedDate = new Date(baseDate);
+  calculatedDate.setMonth(calculatedDate.getMonth() + DEFAULT_BOOSTER_MONTHS);
+
+  this.next_due_date = calculatedDate;
+  this.next_due_date_auto_calculated = true;
 });
 
 vaccinationSchema.index({ next_due_date: 1, reminder_sent: 1 });
