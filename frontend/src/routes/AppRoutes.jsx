@@ -58,6 +58,9 @@ import DoctorCasesPage from '../pages/doctor/DoctorCasesPage'
 import DoctorConsultationsPage from '../pages/doctor/DoctorConsultationsPage'
 import DoctorOutbreaksPage from '../pages/doctor/DoctorOutbreaksPage'
 
+// Emergency
+import EmergencyPage from '../pages/EmergencyPage'
+
 // ComingSoon component for placeholder pages in the dashboard flow
 const ComingSoon = ({ title }) => (
   <div
@@ -120,12 +123,9 @@ const AppRoutes = () => {
         {/* Mock/ComingSoon subpages inside the dashboard */}
         <Route path="ai-assistant" element={<AiAssistantPage />} />
         <Route path="diagnosis" element={<DiagnosisPage />} />
-        <Route path="image-analysis" element={<ImageAnalysisPage />} />
+        <Route path="emergencies" element={<EmergencyPage />} />
         <Route path="vaccinations" element={<VaccinationsPage />} />
-        <Route
-          path="emergencies"
-          element={<ComingSoon title="حالات الطوارئ" />}
-        />
+        
         <Route path="library" element={<ComingSoon title="المكتبة" />} />
         <Route path="reports" element={<ComingSoon title="التقارير" />} />
       </Route>

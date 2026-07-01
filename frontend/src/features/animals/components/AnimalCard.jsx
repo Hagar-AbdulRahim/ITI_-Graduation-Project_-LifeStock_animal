@@ -5,11 +5,15 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MoreVertical } from 'lucide-react';
-import {
-  SPECIES_MAP,
-  HEALTH_STATUS_MAP,
-  calculateAge,
-} from '../utils/formatters';
+import { SPECIES_MAP } from '../utils/formatters';
+
+const SPECIES_GRADIENT = {
+  cattle: 'from-amber-100 to-amber-50',
+  sheep: 'from-sky-100 to-sky-50',
+  goat: 'from-emerald-100 to-emerald-50',
+  horse: 'from-orange-100 to-orange-50',
+  pig: 'from-pink-100 to-pink-50',
+};
 
 // Icons based on the design
 const BreedIcon = () => (
@@ -55,26 +59,29 @@ const AnimalCard = ({ animal }) => {
     };
   }
 
-  // Default images keyed by backend species enum: cattle | sheep | goat
-  const defaultImages = {
-    cattle: 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&q=80&w=400&h=250',
-    sheep: 'https://images.unsplash.com/photo-1484557985045-edf25e08da73?auto=format&fit=crop&q=80&w=400&h=250',
-    goat: 'https://images.unsplash.com/photo-1501706362039-c06b2d715385?auto=format&fit=crop&q=80&w=400&h=250',
+  const displayName = animal?.name || animal?.tag_number || 'بدون اسم';
+  const speciesEmoji = {
+    cattle: '🐄',
+    sheep: '🐑',
+    goat: '🐐',
+    horse: '🐎',
+    pig: '🐷',
   };
+  const emoji = speciesEmoji[animal?.species] || '🐾';
+  const speciesLabel = species.label;
+  const gradient = SPECIES_GRADIENT[animal?.species] || 'from-gray-100 to-gray-50';
 
-  // const imageUrl = animal?.image || animal?.imageUrl || defaultImages[animal?.species] || defaultImages.cattle;
-  const imageUrl = animal?.image
-    ? `http://localhost:5000${animal.image}`
-    : animal?.imageUrl || defaultImages[animal?.species] || defaultImages.cattle;
   return (
     <div className="bg-white border border-gray-200 rounded-[20px] shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col font-cairo">
-      {/* Top Image Area */}
-      <div className="relative h-[200px] w-full bg-gray-200">
-        <img src={imageUrl} alt={animal?.name} className="w-full h-full object-cover" />
-        {/* Status Badge */}
-        <div className={`absolute top-4 left-4 px-3 py-1 rounded-full flex items-center gap-1.5 text-[11px] font-bold shadow-sm ${healthStyle.badgeBg} ${healthStyle.badgeText}`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${healthStyle.dot}`} />
-          {healthStyle.label}
+      {/* Emblem area without animal image */}
+      <div className={`relative h-[180px] w-full bg-gradient-to-br ${gradient} flex items-center justify-center`}>        
+        <div className="text-center">
+          <span className="text-6xl select-none">{emoji}</span>
+          <p className="text-[12px] font-bold text-gray-700 mt-2">{speciesLabel}</p>
+        </div>
+        <div className={`absolute top-3 left-3 px-2.5 py-1 rounded-full flex items-center gap-1.5 text-[11px] font-bold shadow-sm ${h.badgeBg} ${h.badgeText}`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${h.dot}`} />
+          {h.label}
         </div>
       </div>
 
@@ -84,7 +91,7 @@ const AnimalCard = ({ animal }) => {
         <div className="flex items-start justify-between mb-1">
           <div className="flex-1">
             <h3 className="font-bold text-gray-900 text-lg truncate mb-0.5">
-              {animal?.name || 'بدون اسم'}
+              {displayName}
             </h3>
             <p className="text-[12px] text-gray-500 font-medium truncate">
               رقم التعريف: #{animal?.tag_number || '---'}
@@ -108,7 +115,7 @@ const AnimalCard = ({ animal }) => {
             <div className="flex items-center gap-1.5 text-gray-400 font-medium">
               <CalendarIcon /> العمر
             </div>
-            <span className="font-bold text-gray-900 pr-5">{calculateAge(animal?.birth_date) || 'غير محدد'}</span>
+            <span className="font-bold text-gray-900 pr-5">{animal?.age_value != null ? `${animal.age_value} ${animal.age_unit === 'years' ? 'سنة' : 'شهر'}` : 'غير محدد'}</span>
           </div>
 
           <div className="flex flex-col gap-1 items-start">

@@ -19,15 +19,22 @@ import {
   Trash2,
   Bot,
 } from 'lucide-react'
-import cowImg from '../assets/images/cow.jpg'
 import {
   fetchAnimalById,
   fetchAnimalVaccinations,
   fetchAnimalMedicalHistory,
   fetchAnimalDiagnosisHistory,
   clearAnimalState,
+  deleteExistingAnimal,
 } from '../redux/animalSlice'
-import { animalService } from '../features/animals/services/animalService'
+
+const SPECIES_EMOJI = {
+  cattle: '🐄',
+  sheep: '🐑',
+  goat: '🐐',
+  horse: '🐎',
+  pig: '🐷',
+};
 
 export default function AnimalProfilePage() {
   const { id } = useParams()
@@ -46,6 +53,7 @@ export default function AnimalProfilePage() {
 
   // Use whichever is available
   const animalData = animal || fallbackAnimal || null
+  const farmIdForNavigation = animalData?.farm_id?._id || animalData?.farm_id || null
 
   useEffect(() => {
     // Clear stale animal data from a previous profile visit
@@ -60,7 +68,7 @@ export default function AnimalProfilePage() {
   // ── Map backend data → UI profile object ──
   const buildProfile = (a) => ({
     id: a.tag_number || a._id,
-    name: 'حيوان #' + (a.tag_number || a._id.toString().substring(18)), // Since name is removed, just give a fallback label
+    name: a.name || `حيوان #${a.tag_number || a._id?.toString().substring(18)}`,
     species:
       a.species === 'cattle'
         ? 'أبقار'
@@ -135,8 +143,8 @@ export default function AnimalProfilePage() {
     if (!noteText.trim()) return
 
     const newNote = {
-      author: 'د. سارة ميار',
-      role: 'طبيبة بيطرية أولى',
+      author: 'ملاحظة النظام',
+      role: 'تاريخ الإضافة',
       text: noteText,
       time: 'الآن',
     }
@@ -153,13 +161,13 @@ export default function AnimalProfilePage() {
       )
     ) {
       try {
-        await animalService.deleteAnimal(id)
+        await dispatch(deleteExistingAnimal(id)).unwrap()
         toast.success('تم حذف الحيوان بنجاح')
         navigate(
-          animal?.farm_id ? `/farms/${animal.farm_id}/animals` : '/farms',
+          farmIdForNavigation ? `/farms/${farmIdForNavigation}/animals` : '/farms',
         )
       } catch (err) {
-        toast.error('حدث خطأ أثناء محاولة الحذف')
+        toast.error(err || 'حدث خطأ أثناء محاولة الحذف')
       }
     }
   }
@@ -211,8 +219,8 @@ export default function AnimalProfilePage() {
           <div className="flex items-center gap-1.5 text-xs text-gray-500">
             <Link
               to={
-                animalData?.farm_id
-                  ? `/farms/${animalData.farm_id}/animals`
+                farmIdForNavigation
+                  ? `/farms/${farmIdForNavigation}/animals`
                   : '/farms'
               }
               className="hover:text-[#2d5a1b] hover:underline transition-all font-semibold"
@@ -332,19 +340,8 @@ export default function AnimalProfilePage() {
         <div className="lg:col-span-8 space-y-6">
           {/* Profile Card */}
           <div className="bg-gradient-to-r from-white to-blue-50 rounded-3xl border-2 border-blue-100 shadow-lg p-6 flex items-center gap-6">
-            <div className="relative w-24 h-24 rounded-2xl border-3 border-blue-200 shadow-md overflow-hidden flex-shrink-0">
-              <img
-                src={
-                  animalData?.image
-                    ? `http://localhost:5000${animalData.image}`
-                    : cowImg
-                }
-                alt={profile.name}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.src = cowImg
-                }}
-              />
+            <div className="relative w-24 h-24 rounded-2xl border-3 border-blue-200 shadow-md bg-white flex items-center justify-center flex-shrink-0">
+              <span className="text-5xl">{SPECIES_EMOJI[animalData?.species] || '🐾'}</span>
               <div className="absolute -bottom-1 -left-1 w-6 h-6 bg-green-500 rounded-full border-3 border-white flex items-center justify-center text-white text-xs font-bold">
                 ✓
               </div>

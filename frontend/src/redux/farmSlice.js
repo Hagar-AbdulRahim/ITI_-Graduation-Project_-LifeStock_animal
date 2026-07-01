@@ -32,7 +32,7 @@ export const fetchFarmAnimals = createAsyncThunk(
   async (farmId, { rejectWithValue }) => {
     try {
       const result = await animalService.getAnimalsByFarm(farmId);
-      return result.data; // result = {success, count, data: [...animals]}
+      return Array.isArray(result?.data) ? result.data : [];
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'فشل في تحميل حيوانات المزرعة');
     }

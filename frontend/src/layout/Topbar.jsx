@@ -38,7 +38,11 @@ export default function Topbar() {
         )}
         <div className="leading-tight">
           <p className="text-sm font-semibold text-stone-800">
+<<<<<<< HEAD
+            {user?.name || 'المستخدم'}
+=======
             {user?.name || 'مزارع'}
+>>>>>>> 52adcba520c453d75bfd689973d67617f1cbc1a8
           </p>
         </div>
       </div>
@@ -67,6 +71,8 @@ export default function Topbar() {
         </svg>
       </div>
 
+<<<<<<< HEAD
+=======
       {/* Notification Bell */}
       <button
         type="button"
@@ -105,6 +111,7 @@ export default function Topbar() {
           <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01" />
         </svg>
       </button>
+>>>>>>> 52adcba520c453d75bfd689973d67617f1cbc1a8
     </header>
   )
 }

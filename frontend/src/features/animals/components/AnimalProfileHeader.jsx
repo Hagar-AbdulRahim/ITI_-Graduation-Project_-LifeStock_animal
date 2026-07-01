@@ -1,5 +1,5 @@
 // ─── Animal Profile Header ─────────────────────────────────────────────────
-// Displays animal image, name, tag, species badge, health status, and key stats.
+// Displays animal emblem, name, tag, species badge, health status, and key stats.
 
 import React from 'react';
 import { Tag, MapPin, Edit, Plus } from 'lucide-react';
@@ -8,7 +8,6 @@ import {
   SPECIES_MAP,
   GENDER_MAP,
   HEALTH_STATUS_MAP,
-  calculateAge,
 } from '../utils/formatters';
 
 const AnimalProfileHeader = ({ animal }) => {
@@ -16,22 +15,22 @@ const AnimalProfileHeader = ({ animal }) => {
   const species = SPECIES_MAP[animal?.species] || { label: animal?.species || 'غير محدد' };
   const gender = GENDER_MAP[animal?.gender] || { label: animal?.gender, symbol: '', color: 'text-gray-600' };
   const healthStatus = HEALTH_STATUS_MAP[animal?.health_status] || HEALTH_STATUS_MAP.healthy;
-
-  const defaultImages = {
-    cow: 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&q=80&w=400&h=250',
-    sheep: 'https://images.unsplash.com/photo-1484557985045-edf25e08da73?auto=format&fit=crop&q=80&w=400&h=250',
-    horse: 'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?auto=format&fit=crop&q=80&w=400&h=250',
-    pig: 'https://images.unsplash.com/photo-1604847372986-e8353381fa4d?auto=format&fit=crop&q=80&w=400&h=250'
+  const displayName = animal?.name || animal?.tag_number || 'بدون اسم';
+  const speciesEmoji = {
+    cattle: '🐄',
+    sheep: '🐑',
+    goat: '🐐',
+    horse: '🐎',
+    pig: '🐷',
   };
-
-  const imageUrl = animal?.imageUrl || defaultImages[animal?.species?.toLowerCase()] || defaultImages.cow;
+  const emoji = speciesEmoji[animal?.species] || '🐾';
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Image */}
-        <div className="w-32 h-32 rounded-2xl overflow-hidden flex-shrink-0 ring-4 ring-gray-50 shadow-sm relative">
-          <img src={imageUrl} alt={animal?.name} className="w-full h-full object-cover" />
+        {/* Emblem */}
+        <div className="w-32 h-32 rounded-2xl flex-shrink-0 bg-gradient-to-br from-[#f0f7ef] to-[#ffffff] ring-4 ring-gray-50 shadow-sm relative flex items-center justify-center text-5xl">
+          <span>{emoji}</span>
           <div className={`absolute top-0 right-0 w-full h-1 ${healthStatus.badgeColor}`}></div>
         </div>
 
@@ -40,7 +39,7 @@ const AnimalProfileHeader = ({ animal }) => {
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
             <div>
               <div className="flex flex-wrap items-center gap-3 mb-2">
-                <h1 className="text-2xl font-bold text-gray-900">{animal?.name || 'بدون اسم'}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{displayName}</h1>
                 <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${healthStatus.badgeColor}`}>
                   <span className={`inline-block w-1.5 h-1.5 rounded-full ${healthStatus.dot} ml-1.5 align-middle`} />
                   {healthStatus.label}
@@ -90,7 +89,7 @@ const AnimalProfileHeader = ({ animal }) => {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 border-t border-gray-100 pt-4">
             <DetailItem label="النوع" value={species.label} />
             <DetailItem label="السلالة" value={animal?.breed || '—'} />
-            <DetailItem label="العمر" value={calculateAge(animal?.birth_date) || '—'} />
+            <DetailItem label="العمر" value={animal?.age_value != null ? `${animal.age_value} ${animal.age_unit === 'years' ? 'سنة' : 'شهر'}` : '—'} />
             <DetailItem label="الوزن" value={animal?.weight_kg ? `${animal.weight_kg} كجم` : '—'} />
             <DetailItem label="الجنس" value={`${gender.symbol} ${gender.label}`} />
           </div>

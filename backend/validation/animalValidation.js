@@ -6,6 +6,11 @@ const createAnimalValidator = [
     .notEmpty().withMessage("معرّف المزرعة مطلوب")
     .isMongoId().withMessage("معرّف المزرعة غير صحيح"),
 
+  body("name")
+    .optional()
+    .trim()
+    .isLength({ max: 100 }).withMessage("اسم الحيوان يجب ألا يتجاوز 100 حرف"),
+
   body("tag_number")
     .trim()
     .notEmpty().withMessage("رقم الوسم (Tag Number) مطلوب")
@@ -77,6 +82,11 @@ const updateAnimalValidator = [
     .optional()
     .isIn(["healthy", "sick", "critical", "deceased"])
     .withMessage("الحالة الصحية يجب أن تكون: healthy أو sick أو critical أو deceased"),
+
+  body("name")
+    .optional()
+    .trim()
+    .isLength({ max: 100 }).withMessage("اسم الحيوان يجب ألا يتجاوز 100 حرف"),
 
   body("breed")
     .optional()

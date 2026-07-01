@@ -7,6 +7,12 @@ const animalSchema = new mongoose.Schema(
       ref: "Farm",
       required: true,
     },
+    name: {
+      type: String,
+      trim: true,
+      maxlength: 100,
+      default: null,
+    },
     tag_number: {
       type: String,
       required: true,
@@ -87,16 +93,24 @@ animalSchema.virtual("age_in_months").get(function () {
   return this.age_unit === "years" ? this.age_value * 12 : this.age_value;
 });
 
+
+animalSchema.pre("save", function () {
+  if (!this.name || !this.name.trim()) {
+    this.name = this.tag_number ? `حيوان ${this.tag_number}` : "حيوان جديد";
+  }
+});
+
 // ── Cascade: لو الحيوان اتحذف، احذف حالاته وتطعيماته ───────────────────────
-animalSchema.pre("findOneAndDelete", async function (next) {
+
+
+animalSchema.pre("findOneAndDelete", async function () {
   const animal = await this.model.findOne(this.getQuery());
+
   if (animal) {
     await Promise.all([
       mongoose.model("HealthCase").deleteMany({ animal_id: animal._id }),
       mongoose.model("Vaccination").deleteMany({ animal_id: animal._id }),
     ]);
   }
-  next();
 });
-
 module.exports = mongoose.model("Animal", animalSchema);
