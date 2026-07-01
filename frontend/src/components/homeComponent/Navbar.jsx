@@ -76,15 +76,15 @@ const Navbar = () => {
   };
 
   const navbarBg = scrolled || menuOpen
-    ? 'bg-white/95 backdrop-blur-md shadow-lg shadow-black/5 border-b border-gray-100'
-    : 'bg-white/80 backdrop-blur-sm';
+    ? 'bg-[#f8f8f5]/95 backdrop-blur-md shadow-sm border-b border-gray-200/50'
+    : 'bg-[#f8f8f5]/85 backdrop-blur-sm';
 
   // ── Desktop link style
   const desktopLink = ({ isActive }) =>
     `flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
       isActive
-        ? 'bg-[#2E7D32]/10 text-[#2E7D32] font-semibold'
-        : 'text-gray-600 hover:text-[#2E7D32] hover:bg-[#2E7D32]/5'
+        ? 'bg-[#1b4d2c]/10 text-[#1b4d2c] font-semibold'
+        : 'text-gray-600 hover:text-[#1b4d2c] hover:bg-[#1b4d2c]/5'
     }`;
 
   return (
@@ -101,7 +101,7 @@ const Navbar = () => {
               onClick={() => navigate('/')}
               className="flex items-center gap-2.5 flex-shrink-0 group"
             >
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2E7D32] to-[#43A047] flex items-center justify-center shadow-md shadow-green-800/20 group-hover:scale-105 transition-transform">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1b4d2c] to-[#1b4d2c] flex items-center justify-center shadow-md shadow-green-900/20 group-hover:scale-105 transition-transform">
                 <svg viewBox="0 0 24 24" fill="white" className="w-5 h-5">
                   <circle cx="8"  cy="6"  r="1" fill="white" />
                   <circle cx="16" cy="6"  r="1" fill="white" />
@@ -112,7 +112,7 @@ const Navbar = () => {
               </div>
               <div className="leading-tight">
                 <p className="text-sm font-bold text-gray-900">رعاية الماشية</p>
-                <p className="text-[10px] text-[#2E7D32] font-semibold">LivestockCare AI</p>
+                <p className="text-[10px] text-[#1b4d2c] font-semibold">LivestockCare AI</p>
               </div>
             </button>
 
@@ -124,7 +124,7 @@ const Navbar = () => {
                   to={getDynamicPath(link)}
                   className={desktopLink}
                 >
-                  <span className="text-[#2E7D32] opacity-70">{link.icon}</span>
+                  <span className="text-[#1b4d2c] opacity-70">{link.icon}</span>
                   {link.label}
                 </NavLink>
               ))}
@@ -137,9 +137,9 @@ const Navbar = () => {
                 <div className="relative">
                   <button
                     onClick={() => setShowDropdown(!showDropdown)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#2E7D32]/8 hover:bg-[#2E7D32]/15 border border-[#2E7D32]/20 transition-all duration-200"
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#1b4d2c]/8 hover:bg-[#1b4d2c]/15 border border-[#1b4d2c]/20 transition-all duration-200"
                   >
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#2E7D32] to-[#43A047] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#1b4d2c] to-[#1b4d2c] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                       {user?.name ? user.name[0] : 'م'}
                     </div>
                     <span className="text-sm font-semibold text-gray-800 hidden md:block max-w-[100px] truncate">
@@ -176,16 +176,16 @@ const Navbar = () => {
                 <div className="hidden md:flex items-center gap-2">
                   <button
                     onClick={() => navigate('/login')}
-                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-[#2E7D32] hover:bg-[#2E7D32]/5 rounded-lg transition-all duration-200"
+                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-[#1b4d2c] hover:bg-[#1b4d2c]/5 rounded-lg transition-all duration-200"
                   >
                     <IconLogin />
                     تسجيل الدخول
                   </button>
                   <button
                     onClick={() => navigate('/register')}
-                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#2E7D32] to-[#43A047] rounded-lg shadow-md shadow-green-800/20 hover:shadow-lg hover:shadow-green-800/25 hover:scale-[1.02] active:scale-95 transition-all duration-200"
+                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#1b4d2c] to-[#1b4d2c] rounded-lg shadow-md shadow-green-800/20 hover:shadow-lg hover:shadow-green-800/25 hover:scale-[1.02] active:scale-95 transition-all duration-200"
                   >
-                    إنشاء حساب
+                    ابدأ الآن
                   </button>
                 </div>
               )}
@@ -218,12 +218,12 @@ const Navbar = () => {
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? 'bg-[#2E7D32]/10 text-[#2E7D32] font-semibold'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-[#2E7D32]'
+                      ? 'bg-[#1b4d2c]/10 text-[#1b4d2c] font-semibold'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-[#1b4d2c]'
                   }`
                 }
               >
-                <span className="text-[#2E7D32] opacity-80">{link.icon}</span>
+                <span className="text-[#1b4d2c] opacity-80">{link.icon}</span>
                 {link.label}
               </NavLink>
             ))}
@@ -242,16 +242,16 @@ const Navbar = () => {
                 <>
                   <button
                     onClick={() => { navigate('/login'); setMenuOpen(false); }}
-                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold text-[#2E7D32] border border-[#2E7D32]/30 hover:bg-[#2E7D32]/5 transition-colors"
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold text-[#1b4d2c] border border-[#1b4d2c]/30 hover:bg-[#1b4d2c]/5 transition-colors"
                   >
                     <IconLogin />
                     تسجيل الدخول
                   </button>
                   <button
                     onClick={() => { navigate('/register'); setMenuOpen(false); }}
-                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-[#2E7D32] to-[#43A047] shadow-md transition-all active:scale-95"
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-[#1b4d2c] to-[#1b4d2c] shadow-md transition-all active:scale-95"
                   >
-                    إنشاء حساب
+                    ابدأ الآن
                   </button>
                 </>
               )}
