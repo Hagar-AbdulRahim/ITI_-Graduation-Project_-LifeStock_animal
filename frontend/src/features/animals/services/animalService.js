@@ -29,13 +29,22 @@ export const animalService = {
   },
 
   /**
-   * GET /api/animals/:id/vaccinations
+   * GET /api/vaccinations/animal/:id
    * Fetch the vaccination history for a specific animal.
-   * NOTE: Backend team needs to implement this endpoint.
    * @param {string} id - Animal MongoDB ObjectId
    */
   getAnimalVaccinations: async (id) => {
-    const response = await api.get(`${BASE_URL}/${id}/vaccinations`);
+    const response = await api.get(`/api/vaccinations/animal/${id}`);
+    return response.data;
+  },
+
+  /**
+   * GET /api/vaccinations/:id
+   * Fetch a single vaccination by its ID.
+   * @param {string} vacId - Vaccination MongoDB ObjectId
+   */
+  getVaccinationById: async (vacId) => {
+    const response = await api.get(`/api/vaccinations/${vacId}`);
     return response.data;
   },
 
@@ -104,17 +113,17 @@ export const animalService = {
   },
 
   addAnimalVaccination: async (id, data) => {
-    const response = await api.post(`${BASE_URL}/${id}/vaccinations`, data);
+    const response = await api.post('/api/vaccinations', { ...data, animal_id: id });
     return response.data;
   },
 
   updateAnimalVaccination: async (vacId, data) => {
-    const response = await api.put(`${BASE_URL}/vaccinations/${vacId}`, data);
+    const response = await api.put(`/api/vaccinations/${vacId}`, data);
     return response.data;
   },
 
   deleteAnimalVaccination: async (vacId) => {
-    const response = await api.delete(`${BASE_URL}/vaccinations/${vacId}`);
+    const response = await api.delete(`/api/vaccinations/${vacId}`);
     return response.data;
   },
 
