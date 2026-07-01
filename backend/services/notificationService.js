@@ -1,9 +1,12 @@
-const admin        = require("../config/firebase");
-const Notification = require("../models/notification");
+const Notification           = require("../models/notification");
+const { sendPushNotification } = require("./webPushService");
+const User                   = require("../models/user");
 
-// ── بعت FCM + خزن في الداتابيز ────────────────────────────────────────────────
-const sendNotification = async ({ user, title, body, type, data = {}, animal_id = null, vaccination_id = null }) => {
-  // ── خزن في الداتابيز دايماً ───────────────────────────────────────────────
+const sendNotification = async ({
+  user, title, body, type,
+  data = {}, animal_id = null, vaccination_id = null,
+}) => {
+  // ── خزن في الداتابيز دايماً ──────────────────────────────────────────────
   const notification = await Notification.create({
     user_id:        user._id,
     animal_id,
@@ -15,21 +18,29 @@ const sendNotification = async ({ user, title, body, type, data = {}, animal_id 
     sent_via_fcm: false,
   });
 
-  // ── بعت FCM لو عنده token ──────────────────────────────────────────────────
-  if (user.fcm_token && user.notifications_enabled) {
+  // ── بعت Web Push لو عنده subscription ────────────────────────────────────
+  if (user.push_subscription && user.notifications_enabled) {
     try {
-      await admin.messaging().send({
-        token: user.fcm_token,
-        notification: { title, body },
-        data: { ...data, notification_id: notification._id.toString(), type },
-        android: { priority: "high" },
-        apns:    { payload: { aps: { sound: "default" } } },
+      const result = await sendPushNotification(user.push_subscription, {
+        title,
+        body,
+        data: {
+          ...data,
+          notification_id: notification._id.toString(),
+          type,
+          url: "/notifications",
+        },
       });
 
-      await Notification.findByIdAndUpdate(notification._id, { sent_via_fcm: true });
-      console.log(`✅ FCM sent to user: ${user._id}`);
-    } catch (fcmErr) {
-      console.warn(`⚠️  FCM failed for user ${user._id}:`, fcmErr.message);
+      if (result === "expired") {
+        // الـ subscription انتهت — نمسحها من الـ DB
+        await User.findByIdAndUpdate(user._id, { push_subscription: null });
+      } else if (result === true) {
+        await Notification.findByIdAndUpdate(notification._id, { sent_via_fcm: true });
+        console.log(`✅ Web Push sent to user: ${user._id}`);
+      }
+    } catch (err) {
+      console.warn(`⚠️  Web Push failed for user ${user._id}:`, err.message);
     }
   }
 

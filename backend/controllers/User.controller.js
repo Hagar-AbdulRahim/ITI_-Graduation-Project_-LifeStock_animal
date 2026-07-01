@@ -122,4 +122,17 @@ const deleteMe = async (req, res) => {
   }
 };
 
-module.exports = { getMe, updateMe, changePassword, updateFcmToken, deleteMe };
+const updatePushSubscription = async (req, res) => {
+  try {
+    const { subscription } = req.body;
+    await User.findByIdAndUpdate(req.user._id, {
+      push_subscription: subscription || null,
+    });
+    res.json({ success: true, message: subscription ? "تم حفظ الاشتراك" : "تم إلغاء الاشتراك" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "خطأ في الخادم" });
+  }
+};
+
+module.exports = { getMe, updateMe, changePassword, updateFcmToken, deleteMe, updatePushSubscription };
+
