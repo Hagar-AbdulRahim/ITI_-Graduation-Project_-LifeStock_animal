@@ -8,7 +8,6 @@ import { logout } from '../redux/authSlice'
 import toast from 'react-hot-toast'
 
 export default function Sidebar() {
-  const [showEmergencyConfirm, setShowEmergencyConfirm] = useState(false)
   const { farmId } = useParams()
   const { farms } = useSelector((state) => state.farm || { farms: [] })
   const firstFarmId = farms && farms.length > 0 ? farms[0]._id : null
@@ -104,7 +103,7 @@ export default function Sidebar() {
         {/* Emergency Button */}
         <div className="px-3 py-3 border-t border-stone-200">
           <button
-            onClick={() => setShowEmergencyConfirm(true)}
+            onClick={() => navigate(`/farms/${currentFarmId}/emergencies`)}
             className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600
                        text-white text-sm font-bold py-3 rounded-xl transition-all duration-300
                        shadow-lg hover:shadow-red-600/50 hover:scale-[1.03] active:scale-95"
@@ -127,48 +126,6 @@ export default function Sidebar() {
           </button>
         </div>
       </aside>
-
-      {showEmergencyConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div
-            className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-stone-100 p-6 animate-in fade-in zoom-in-95 duration-200"
-            dir="rtl"
-          >
-            <div className="flex items-center gap-2 mb-4 text-red-600 font-bold">
-              <span className="text-xl">🚨</span>
-              <h3 className="text-sm font-bold text-stone-800">
-                تأكيد طلب دعم الطوارئ
-              </h3>
-            </div>
-
-            <p className="text-xs text-stone-500 mb-6 leading-relaxed">
-              أنت على وشك تفعيل دعم الطوارئ. سيقوم هذا الإجراء بإرسال تنبيه عاجل
-              لجميع الأطباء البيطريين المناوبين والمسؤولين عن رعاية الحظيرة
-              وتوفير تفاصيل الاتصال الفورية. هل أنت متأكد من الاستمرار؟
-            </p>
-
-            <div className="flex gap-3 justify-end text-xs">
-              <button
-                onClick={() => {
-                  toast.success(
-                    'تم إرسال بلاغ الطوارئ بنجاح! سيتم التواصل معك فورا.',
-                  )
-                  setShowEmergencyConfirm(false)
-                }}
-                className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all duration-200 shadow-md active:scale-95"
-              >
-                تأكيد الاتصال
-              </button>
-              <button
-                onClick={() => setShowEmergencyConfirm(false)}
-                className="px-4 py-2.5 border border-stone-300 rounded-xl hover:bg-stone-50 text-stone-600 font-semibold transition-all duration-200"
-              >
-                إلغاء
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   )
 }

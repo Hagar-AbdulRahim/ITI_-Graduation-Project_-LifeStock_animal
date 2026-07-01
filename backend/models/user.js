@@ -64,9 +64,10 @@ const userSchema = new mongoose.Schema(
     assigned_governorates: [{ type: String }],
 
     // ── Notifications ─────────────────────────────────────────────────────
-    notifications_enabled: { type: Boolean, default: true },
-    fcm_token:             { type: String,  default: null  },
-    is_active:             { type: Boolean, default: true  },
+   notifications_enabled: { type: Boolean, default: true },
+   fcm_token:             { type: String,  default: null  },
+   push_subscription:     { type: mongoose.Schema.Types.Mixed, default: null },
+   is_active:             { type: Boolean, default: true  },
   },
   { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } }
 );

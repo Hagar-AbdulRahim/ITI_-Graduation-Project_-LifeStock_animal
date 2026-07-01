@@ -29,8 +29,7 @@ export const fetchAnimalVaccinations = createAsyncThunk(
       const result = await animalService.getAnimalVaccinations(id);
       return result.data || [];
     } catch (error) {
-      // Endpoint may not exist yet on backend — return empty gracefully
-      return [];
+      return rejectWithValue(error.response?.data?.message || 'فشل في تحميل سجل التطعيمات');
     }
   }
 );
