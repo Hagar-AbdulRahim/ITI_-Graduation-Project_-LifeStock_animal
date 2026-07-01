@@ -1,8 +1,21 @@
+// ════════════════════════════════════════════════════════════════════════════
+// controllers/Vaccination.controller.js
+// ════════════════════════════════════════════════════════════════════════════
 const Vaccination = require("../models/vaccination");
-const Animal       = require("../models/animal");
-const Farm         = require("../models/farm");
+const Animal = require("../models/animal");
+const Farm = require("../models/farm");
 
-// helper: تأكد إن الحيوان موجود ومرتبط بمزرعة يملكها المستخدم الحالي
+// ── تحويل أي صيغة مدعومة لـ Date موحّد (نفس الدالة في الـ validation) ────────
+const normalizeDate = (value) => {
+  if (!value) return null;
+  const dmy = /^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/.exec(value);
+  const dateStr = dmy
+    ? `${dmy[3]}-${dmy[2].padStart(2, "0")}-${dmy[1].padStart(2, "0")}`
+    : value;
+  const parsed = new Date(dateStr);
+  return isNaN(parsed.getTime()) ? null : parsed;
+};
+
 const userOwnsAnimal = async (animalId, userId) => {
   const animal = await Animal.findOne({ _id: animalId, is_active: true }).populate(
     "farm_id",
@@ -14,22 +27,16 @@ const userOwnsAnimal = async (animalId, userId) => {
 };
 
 // ── Create Vaccination ────────────────────────────────────────────────────────
-// يدعم النوعين معاً في endpoint واحد — التمييز عبر vaccine_type:
-//
-// "recurring" (لقاح دوري): last_date مطلوب، next_due_date اختياري
-//   (لو متبعتش، الموديل بيحسبها تلقائياً)
-//
-// "one_time" (لقاح طارئ مرة واحدة): scheduled_date مطلوب فقط — موعد مستقبلي
-//   بيتم إعطاء اللقاح فيه، ومفيش "جرعة سابقة" أو "جرعة قادمة" لأنها دورة واحدة
 const createVaccination = async (req, res) => {
   try {
     const {
       animal_id,
       vaccine_name,
-      vaccine_type,        // "one_time" | "recurring"
-      last_date,           // مطلوب فقط لو recurring
-      next_due_date,        // اختياري — recurring فقط
-      scheduled_date,       // مطلوب فقط لو one_time
+      vaccine_type,
+      is_first_dose,
+      last_date,
+      next_due_date,
+      scheduled_date,
       dose_ml,
       administered_by,
       batch_number,
@@ -42,14 +49,24 @@ const createVaccination = async (req, res) => {
     }
 
     const type = vaccine_type === "one_time" ? "one_time" : "recurring";
+    const isFirstDose = is_first_dose === true || is_first_dose === "true";
 
-    // ── تحقق منطقي حسب النوع قبل أي محاولة إنشاء ───────────────────────────────
-    if (type === "recurring" && !last_date) {
-      return res.status(400).json({
-        success: false,
-        message: "تاريخ آخر جرعة (last_date) مطلوب للقاحات الدورية",
-      });
+    // ── تحقق منطقي حسب النوع وحالة "أول جرعة" ───────────────────────────────
+    if (type === "recurring") {
+      if (isFirstDose && last_date) {
+        return res.status(400).json({
+          success: false,
+          message: "لا يمكن إدخال تاريخ آخر جرعة (last_date) — هذه أول جرعة للحيوان من هذا اللقاح",
+        });
+      }
+      if (!isFirstDose && !last_date) {
+        return res.status(400).json({
+          success: false,
+          message: "تاريخ آخر جرعة (last_date) مطلوب — إلا إذا كانت هذه أول جرعة (is_first_dose: true)",
+        });
+      }
     }
+
     if (type === "one_time" && !scheduled_date) {
       return res.status(400).json({
         success: false,
@@ -61,9 +78,11 @@ const createVaccination = async (req, res) => {
       animal_id,
       vaccine_name,
       vaccine_type: type,
-      last_date: type === "recurring" ? last_date : undefined,
-      next_due_date: type === "recurring" ? (next_due_date || undefined) : undefined,
-      scheduled_date: type === "one_time" ? scheduled_date : undefined,
+      is_first_dose: type === "recurring" ? isFirstDose : false,
+      // ── استخدام normalizeDate قبل التخزين لتجنب سوء تفسير JS لصيغ DD-MM-YYYY ─
+      last_date: type === "recurring" && !isFirstDose ? normalizeDate(last_date) : null,
+      next_due_date: type === "recurring" ? (normalizeDate(next_due_date) || undefined) : undefined,
+      scheduled_date: type === "one_time" ? normalizeDate(scheduled_date) : undefined,
       dose_ml: dose_ml || null,
       administered_by: administered_by || null,
       batch_number: batch_number || null,
@@ -74,9 +93,11 @@ const createVaccination = async (req, res) => {
     const message =
       type === "one_time"
         ? "تم تسجيل موعد اللقاح الطارئ بنجاح — ستصلك تذكيرات قبل الموعد"
-        : vaccination.next_due_date_auto_calculated
-          ? "تم تسجيل التطعيم — تم حساب موعد الجرعة القادمة تلقائياً"
-          : "تم تسجيل التطعيم بنجاح";
+        : isFirstDose
+          ? "تم تسجيل أول جرعة — تم حساب موعد الجرعة القادمة تلقائياً"
+          : vaccination.next_due_date_auto_calculated
+            ? "تم تسجيل التطعيم — تم حساب موعد الجرعة القادمة تلقائياً"
+            : "تم تسجيل التطعيم بنجاح";
 
     return res.status(201).json({ success: true, message, data: vaccination });
   } catch (err) {
@@ -86,7 +107,6 @@ const createVaccination = async (req, res) => {
 };
 
 // ── Get All Vaccinations for an Animal ────────────────────────────────────────
-// مرتبة دائماً بأقرب موعد تذكير (سواء كان next_due_date أو scheduled_date)
 const getVaccinationsByAnimal = async (req, res) => {
   try {
     const { animalId } = req.params;
@@ -100,8 +120,6 @@ const getVaccinationsByAnimal = async (req, res) => {
       created_at: -1,
     });
 
-    // فرز ثانوي حسب reminder_date (virtual) — موحّد بين النوعين، يتم في الذاكرة
-    // لأنه virtual field ومش ممكن نستخدمه مباشرة في .sort() على مستوى الداتابيز
     const sorted = vaccinations.sort((a, b) => {
       const dateA = a.reminder_date ? new Date(a.reminder_date) : null;
       const dateB = b.reminder_date ? new Date(b.reminder_date) : null;
@@ -165,22 +183,38 @@ const updateVaccination = async (req, res) => {
 
     const allowedFields = [
       "vaccine_name", "last_date", "next_due_date", "scheduled_date",
-      "completed", "dose_ml", "administered_by", "batch_number", "notes",
+      "is_first_dose", "completed", "dose_ml", "administered_by",
+      "batch_number", "notes",
     ];
     const updates = {};
     allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) updates[field] = req.body[field];
     });
 
-    // أي تعديل في موعد التذكير (سواء كان النوع one_time أو recurring)
-    // يستحق تذكيرات جديدة — نصفّر الاثنين معاً بأمان
+    // ── تطبيع التواريخ في الـ updates قبل الحفظ ────────────────────────────────
+    if (updates.last_date) updates.last_date = normalizeDate(updates.last_date);
+    if (updates.next_due_date) updates.next_due_date = normalizeDate(updates.next_due_date);
+    if (updates.scheduled_date) updates.scheduled_date = normalizeDate(updates.scheduled_date);
+
+    // ── منع التناقض: أول جرعة + last_date في نفس الوقت ───────────────────────
+    const willBeFirstDose =
+      updates.is_first_dose !== undefined ? updates.is_first_dose : existing.is_first_dose;
+    const willHaveLastDate =
+      updates.last_date !== undefined ? updates.last_date : existing.last_date;
+
+    if (existing.vaccine_type === "recurring" && willBeFirstDose && willHaveLastDate) {
+      return res.status(400).json({
+        success: false,
+        message: "لا يمكن أن تكون أول جرعة ولها تاريخ آخر جرعة في نفس الوقت",
+      });
+    }
+
     if (updates.next_due_date || updates.scheduled_date) {
       updates.next_due_date_auto_calculated = false;
       updates.reminder_sent = false;
       updates.day_of_reminder_sent = false;
     }
 
-    // لو المزارع أكّد إن اللقاح الطارئ (one_time) تم إعطاؤه فعلاً
     if (updates.completed === true && !existing.completed) {
       updates.completed_at = new Date();
     }
