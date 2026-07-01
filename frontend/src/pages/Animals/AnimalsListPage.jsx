@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  Search, Bell, HelpCircle, Plus, Upload, Filter,
+  Search, Plus, Upload, Filter,
   ChevronRight, ChevronLeft, Loader2, MoreVertical,
   PawPrint, Syringe, HeartPulse, AlertTriangle,
   CalendarDays, Weight, Dna, Thermometer, X
@@ -11,37 +11,15 @@ import { fetchFarmById, fetchFarmAnimals } from '../../redux/farmSlice';
 
 // ─── TOP NAVBAR (Same as FarmDetailsPage) ──────────────────────────────────────
 const TopNavbar = () => (
-  <header className="bg-white h-20 border-b border-gray-100 px-8 flex items-center justify-between sticky top-0 z-20 font-cairo">
-    <div className="flex-1 max-w-xl">
-      <div className="relative flex items-center w-full max-w-md">
+  <header className="bg-white h-20 border-b border-gray-100 px-8 flex items-center sticky top-0 z-20 font-cairo">
+    <div className="w-full max-w-xl mx-auto">
+      <div className="relative flex items-center w-full">
         <Search className="w-4 h-4 text-gray-400 absolute right-4" />
         <input
           type="text"
           placeholder="البحث برقم التعريف أو الاسم / السلالة..."
           className="w-full bg-gray-50 border border-gray-100 rounded-full py-2.5 pr-11 pl-4 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-[#2a5c2a]/20 focus:border-[#2a5c2a] transition-all"
         />
-      </div>
-    </div>
-
-    <div className="flex items-center gap-6">
-      <div className="flex items-center gap-4 text-gray-400">
-        <button className="hover:text-gray-600 transition-colors relative">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
-        <button className="hover:text-gray-600 transition-colors">
-          <HelpCircle className="w-5 h-5" />
-        </button>
-      </div>
-      <div className="h-8 w-px bg-gray-200"></div>
-      <div className="flex items-center gap-3">
-        <div className="text-left" dir="ltr">
-          <p className="text-sm font-bold text-gray-900">د. سارة ميار</p>
-          <p className="text-[11px] text-gray-500 font-medium">طبيبة بيطرية أولى</p>
-        </div>
-        <div className="w-10 h-10 rounded-full bg-indigo-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
-          <img src="https://i.pravatar.cc/150?u=sarah" alt="Dr Sarah" className="w-full h-full object-cover" />
-        </div>
       </div>
     </div>
   </header>
@@ -158,8 +136,6 @@ const AnimalCard = ({ animal, onClick }) => {
   const speciesLabel = SPECIES_MAP[animal?.species] || animal?.species || 'غير محدد';
   const genderLabel = GENDER_MAP[animal?.gender] || '—';
   const ageLabel = formatAge(animal);
-  const imageUrl = animal?.image || animal?.imageUrl;
-  const hasImage = !!imageUrl;
   const gradient = SPECIES_GRADIENT[animal?.species] || 'from-gray-100 to-gray-50';
   const emoji = SPECIES_EMOJI[animal?.species] || '🐾';
 
@@ -168,28 +144,15 @@ const AnimalCard = ({ animal, onClick }) => {
       className="bg-white border border-gray-200 rounded-[20px] shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col font-cairo cursor-pointer group"
       onClick={onClick}
     >
-      {/* Image / Placeholder */}
-      <div className="relative h-[190px] w-full overflow-hidden">
-        {hasImage ? (
-          <img
-            src={imageUrl}
-            alt={speciesLabel}
-            className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
-          />
-        ) : (
-          <div className={`w-full h-full bg-gradient-to-br ${gradient} flex flex-col items-center justify-center gap-2`}>
-            <span className="text-6xl select-none">{emoji}</span>
-            <span className="text-[12px] font-bold text-gray-400">لا توجد صورة</span>
-          </div>
-        )}
-        {/* Health Badge */}
-        <div className={`absolute top-3 left-3 px-2.5 py-1 rounded-full flex items-center gap-1.5 text-[11px] font-bold shadow-sm backdrop-blur-sm ${h.badgeBg} ${h.badgeText}`}>
+      {/* Emblem area without animal image */}
+      <div className={`relative h-[160px] w-full bg-gradient-to-br ${gradient} flex items-center justify-center`}>
+        <div className="text-center">
+          <span className="text-6xl select-none">{emoji}</span>
+          <p className="text-[12px] font-bold text-gray-700 mt-2">{speciesLabel}</p>
+        </div>
+        <div className={`absolute top-3 left-3 px-2.5 py-1 rounded-full flex items-center gap-1.5 text-[11px] font-bold shadow-sm ${h.badgeBg} ${h.badgeText}`}>
           <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${h.dot}`} />
           {h.label}
-        </div>
-        {/* Species chip top-right */}
-        <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/20 text-gray-800 text-[10px] font-bold backdrop-blur-sm border border-white/30">
-          {speciesLabel}
         </div>
       </div>
 

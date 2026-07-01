@@ -27,7 +27,7 @@ export default function Topbar() {
         )}
         <div className="leading-tight">
           <p className="text-sm font-semibold text-stone-800">
-            {user?.name || 'د. سارة ميار'}
+            {user?.name || 'المستخدم'}
           </p>
         </div>
       </div>
@@ -56,38 +56,6 @@ export default function Topbar() {
         </svg>
       </div>
 
-      {/* Notification Bell */}
-      <button
-        type="button"
-        onClick={() => navigate('/notifications')}
-        className="relative p-2 rounded-lg hover:bg-stone-100 transition-colors"
-      >
-        <svg
-          className="w-5 h-5 text-stone-600"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
-        >
-          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
-        </svg>
-        {/* Badge */}
-        <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-      </button>
-
-      {/* Help */}
-      <button className="p-2 rounded-lg hover:bg-stone-100 transition-colors">
-        <svg
-          className="w-5 h-5 text-stone-600"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01" />
-        </svg>
-      </button>
     </header>
   )
 }

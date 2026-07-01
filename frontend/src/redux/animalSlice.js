@@ -97,9 +97,21 @@ export const updateExistingAnimal = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const result = await animalService.updateAnimal(id, data);
-      return result.data; // backend returns {success, message, data: animal}
+      return result?.data || null;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'فشل في تحديث بيانات الحيوان');
+    }
+  }
+);
+
+export const deleteExistingAnimal = createAsyncThunk(
+  'animal/deleteExistingAnimal',
+  async (id, { rejectWithValue }) => {
+    try {
+      await animalService.deleteAnimal(id);
+      return id;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'فشل في حذف الحيوان');
     }
   }
 );
@@ -291,6 +303,21 @@ const animalSlice = createSlice({
       .addCase(updateExistingAnimal.rejected, (state, action) => {
         state.loading.saving = false;
         state.error.saving = action.payload || 'فشل في تحديث بيانات الحيوان';
+      })
+
+      .addCase(deleteExistingAnimal.pending, (state) => {
+        state.loading.saving = true;
+        state.error.saving = null;
+      })
+      .addCase(deleteExistingAnimal.fulfilled, (state, action) => {
+        state.loading.saving = false;
+        if (state.animal && state.animal._id === action.payload) {
+          state.animal = null;
+        }
+      })
+      .addCase(deleteExistingAnimal.rejected, (state, action) => {
+        state.loading.saving = false;
+        state.error.saving = action.payload || 'فشل في حذف الحيوان';
       })
 
       .addCase(addVaccination.pending, (state) => {

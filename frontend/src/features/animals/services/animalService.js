@@ -78,7 +78,9 @@ export const animalService = {
    * @param {Object} data - Animal data (name, species, gender, birth_date, etc.)
    */
   createAnimal: async (data) => {
-    const response = await api.post(BASE_URL, data);
+    const response = await api.post(BASE_URL, data, {
+      headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : undefined,
+    });
     return response.data;
   },
 
@@ -89,7 +91,9 @@ export const animalService = {
    * @param {Object} data - Partial or full animal data to update
    */
   updateAnimal: async (id, data) => {
-    const response = await api.put(`${BASE_URL}/${id}`, data);
+    const response = await api.put(`${BASE_URL}/${id}`, data, {
+      headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : undefined,
+    });
     return response.data;
   },
 
