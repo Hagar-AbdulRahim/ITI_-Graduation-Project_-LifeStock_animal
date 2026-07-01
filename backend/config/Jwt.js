@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const ACCESS_SECRET  = process.env.JWT_ACCESS_SECRET  || "access_dev_secret";
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "refresh_dev_secret";
 
-const ACCESS_EXPIRES  = "15m";   // قصير — بيتجدد عبر الـ refresh token
+const ACCESS_EXPIRES  = "60m";   // قصير — بيتجدد عبر الـ refresh token
 const REFRESH_EXPIRES = "7d";
 
 // ── توليد الـ tokens ─────────────────────────────────────────────────────────

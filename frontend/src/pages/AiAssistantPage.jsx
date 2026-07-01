@@ -3,8 +3,11 @@
 // صفحة مساعد الذكاء الاصطناعي — LivestockCare AI
 // ────────────────────────────────────────────────────────────
 import React, { useState, useRef, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { chatWithAI } from '../services/AiServices/ChatAi';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { chatWithAI, diagnoseWithAI, diagnoseWithImage, diagnoseWithVoice } from '../services/AiServices/ChatAi';
+import { animalService } from '../features/animals/services/animalService';
+import healthCaseService from '../services/healthCaseService';
+import AiDiagnosisCard from '../components/AiDiagnosisCard';
 import { 
   TrendingUp, 
   ClipboardCheck, 
@@ -29,94 +32,83 @@ import toast from 'react-hot-toast';
 import cowImg from '../assets/images/cow.jpg';
 
 // ── Mock Sessions Data ──────────────────────────────────────
-const MOCK_SESSIONS = [
-  {
-    id: 'session-1',
-    title: 'جلسة ١٦ يونيو - البقرة #402',
-    date: 'اليوم، ٠٢:٠٠ ص',
-    messages: [
-      {
-        id: 'msg-1',
-        sender: 'ai',
-        text: 'مرحباً د. سارة. لقد قمت بتحليل بيانات القياس الأخيرة من المرعى الشمالي. هل ترغبين في ملخص للاتجاهات الصحية للقطيع (ب)، أم أنكِ تلاحظين أعراضاً محددة على أحد الحيوانات اليوم؟',
-        hasSuggestions: true
-      },
-      {
-        id: 'msg-2',
-        sender: 'user',
-        text: 'ألاحظ زيادة في الخمول وانخفاضاً في إنتاج الحليب لدى البقرة رقم 402. هل يمكنكِ تحليل مؤشراتها الحيوية الأخيرة؟'
-      },
-      {
-        id: 'msg-3',
-        sender: 'ai',
-        text: 'جاري تحليل المؤشرات الحيوية للبقرة رقم 402 (فصيلة الأبقار)... لقد رصدت ارتفاعاً بمقدار 1.2 درجة مئوية في درجة حرارة الكرش وانخفاضاً بنسبة 15% في الحركة خلال الـ 6 ساعات الماضية. هذه مؤشرات مبكرة لاحتمال الإصابة بـ مرض الجهاز التنفسي البقري (BRD). لقد قمت بتحديث مستوى المخاطر في لوحة التحكم الخاصة بك.',
-        hasActionSteps: true
-      }
-    ]
-  },
-  {
-    id: 'session-2',
-    title: 'جلسة ١٤ يونيو - تحليل القطيع (أ)',
-    date: '١٤ يونيو ٢٠٢٦',
-    messages: [
-      {
-        id: 'msg-s2-1',
-        sender: 'ai',
-        text: 'أهلاً بك د. سارة. يظهر تحليل البيانات الأسبوعية للقطيع (أ) استقراراً في معدلات الوزن والحركة. هل تريدين مراجعة التقارير التفصيلية؟'
-      },
-      {
-        id: 'msg-s2-2',
-        sender: 'user',
-        text: 'نعم، أريد مراجعة معدل استهلاك المياه.'
-      },
-      {
-        id: 'msg-s2-3',
-        sender: 'ai',
-        text: 'معدل استهلاك المياه ضمن النطاق الطبيعي (٤٥ لتر/يوم للرأس الواحد). لم يتم رصد أي مؤشرات جفاف أو انحرافات حيوية.'
-      }
-    ]
-  },
-  {
-    id: 'session-3',
-    title: 'جلسة ١٠ يونيو - استفسار الأعلاف والمعادن',
-    date: '١٠ يونيو ٢٠٢٦',
-    messages: [
-      {
-        id: 'msg-s3-1',
-        sender: 'ai',
-        text: 'مرحباً د. سارة. كيف يمكنني مساعدتك في إدارة تغذية الحيوانات اليوم؟'
-      },
-      {
-        id: 'msg-s3-2',
-        sender: 'user',
-        text: 'ما هي التوصية بخصوص انخفاض الكالسيوم في المرعى الشمالي الشرقي؟'
-      },
-      {
-        id: 'msg-s3-3',
-        sender: 'ai',
-        text: 'ينصح بإضافة ٥٪ من كربونات الكالسيوم أو الحجر الجيري المطحون إلى مزيج الأعلاف اليومي لتعويض النقص وتجنب حمى الحليب في الأبقار المرضعة.'
-      }
-    ]
-  }
-];
+const MOCK_SESSIONS = [];
 
 export default function AiAssistantPage() {
   const [searchParams] = useSearchParams();
   const animalId = searchParams.get('animalId');
-  const [activeSession, setActiveSession] = useState(MOCK_SESSIONS[0]);
-  const [messages, setMessages] = useState(MOCK_SESSIONS[0].messages);
+  const navigate = useNavigate();
+  const defaultSession = {
+    id: 'session-current',
+    title: 'جلسة تشخيص جديدة',
+    date: 'اليوم',
+    messages: [
+      {
+        id: 'msg-1',
+        sender: 'ai',
+        text: 'مرحباً بك في المساعد الذكي لتقييم الحالات الصحية للماشية. يرجى وصف الأعراض التي تلاحظها بدقة، وسأقوم بتحليلها.',
+        hasSuggestions: false
+      }
+    ]
+  };
+
+  const [activeSession, setActiveSession] = useState(defaultSession);
+  const [messages, setMessages] = useState(defaultSession.messages);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [attachedFile, setAttachedFile] = useState(null);
+  const [attachedFile, setAttachedFile] = useState(null); // image file
+  const [attachedAudio, setAttachedAudio] = useState(null); // audio blob
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+
+  const [animalData, setAnimalData] = useState(null);
+  const [animalVaccinations, setAnimalVaccinations] = useState([]);
+  const [isLoadingSidebar, setIsLoadingSidebar] = useState(false);
+
+  useEffect(() => {
+    if (animalId) {
+      setIsLoadingSidebar(true);
+      Promise.all([
+        animalService.getAnimalById(animalId),
+        animalService.getAnimalVaccinations(animalId)
+      ])
+      .then(([animalRes, vaccinesRes]) => {
+        setAnimalData(animalRes.data);
+        setAnimalVaccinations(vaccinesRes.data || []);
+      })
+      .catch(err => console.error("Error fetching animal data for AI Assistant:", err))
+      .finally(() => setIsLoadingSidebar(false));
+    }
+  }, [animalId]);
 
   // Modals / Panels States
   const [showReportModal, setShowReportModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showHistoryPanel, setShowHistoryPanel] = useState(false);
 
+  const [historySessions, setHistorySessions] = useState([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    if (showHistoryPanel) {
+      setIsLoadingHistory(true);
+      const fetchHistory = animalId 
+        ? healthCaseService.getAnimalHealthCases(animalId)
+        : healthCaseService.getMyConsultations();
+
+      fetchHistory.then(res => {
+        setHistorySessions(res.data || []);
+      }).catch(err => {
+        console.error("Error fetching history:", err);
+      }).finally(() => {
+        setIsLoadingHistory(false);
+      });
+    }
+  }, [showHistoryPanel, animalId]);
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
@@ -125,102 +117,106 @@ export default function AiAssistantPage() {
 
   // Handle Loading Session from History
   const loadSession = (session) => {
-    setActiveSession(session);
-    setMessages(session.messages);
+    const formattedDate = new Date(session.created_at).toLocaleDateString('ar-EG');
+    const newSession = {
+      id: session._id,
+      title: `جلسة ${formattedDate}`,
+      date: formattedDate,
+      messages: [
+        {
+          id: `msg-user-${session._id}`,
+          sender: 'user',
+          text: session.symptoms || "جلسة سابقة",
+        },
+        {
+          id: `msg-ai-${session._id}`,
+          sender: 'ai',
+          text: 'بناءً على الأعراض المدخلة في هذه الجلسة السابقة:',
+          hasActionSteps: false,
+          diagnosisData: {
+            success: true,
+            data: session.diagnosis_result
+          }
+        }
+      ]
+    };
+
+    setActiveSession(newSession);
+    setMessages(newSession.messages);
     setShowHistoryPanel(false);
-    toast.success(`تم تحميل: ${session.title}`);
+    toast.success(`تم تحميل الجلسة السابقة`);
   };
 
-  // Mock responses mapping
-  const getMockResponse = (text) => {
-    const query = text.toLowerCase();
-    if (query.includes('402')) {
-      return {
-        text: 'جاري تحليل المؤشرات الحيوية للبقرة رقم 402 (فصيلة الأبقار)... لقد رصدت ارتفاعاً بمقدار 1.2 درجة مئوية في درجة حرارة الكرش وانخفاضاً بنسبة 15% في الحركة خلال الـ 6 ساعات الماضية. هذه مؤشرات مبكرة لاحتمال الإصابة بـ مرض الجهاز التنفسي البقري (BRD). لقد قمت بتحديث مستوى المخاطر في لوحة التحكم الخاصة بك.',
-        hasActionSteps: true
-      };
-    } else if (query.includes('تطعيم') || query.includes('لقاح')) {
-      return {
-        text: 'تمت مراجعة جدول تحصين القطيع (ب). اللقاح المستحق القادم هو لقاح الحمى القلاعية، وينبغي جدولته في غضون الأيام الأربعة القادمة. هل ترغب في إرسال تذكيرات للفريق الميداني وتأكيد توافر الجرعات في المخزون؟',
-        hasActionSteps: false
-      };
-    } else if (query.includes('انتفاخ') || query.includes('علاج')) {
-      return {
-        text: 'لعلاج حالات الانتفاخ الحاد في الأبقار، يوصى بالخطوات التالية فوراً:\n١. إدخال خرطوم معدي لتصريف الغازات المتراكمة.\n٢. تجريع الحيوان بزيت معدني أو مستحضرات مضادة للرغوة (مثل السيليكون المذاب).\n٣. دفع الحيوان للمشي ببطء لتنشيط حركة الكرش.\n٤. في الحالات الشديدة جداً، قد يتطلب الأمر استخدام مبزل الكرش (Trocars) لإنقاذ حياة الحيوان.',
-        hasActionSteps: false
-      };
-    } else if (query.includes('التهاب')) {
-      return {
-        text: 'لقد سجلت وجود التهاب. هذا العرض قد يشير إلى إصابة موضعية أو بداية عدوى جهازية. هل تلاحظ أي انتفاخ أو إحمرار في المنطقة المصابة؟ يوصى بعزل الحيوان مبدئياً ومراقبة درجة حرارته.',
-        hasActionSteps: true
-      };
-    } else {
-      return {
-        text: `أفهم استفسارك. لقد قمت بتسجيل: "${text}". سأقوم بتحليل هذه المعلومات الحيوية ومطابقتها مع السجلات السابقة لتزويدك بتقرير دقيق قريباً. هل هناك تفاصيل أو أعراض إضافية تود إضافتها؟`,
-        hasActionSteps: false
-      };
-    }
-  };
+
 
   // Send Message Logic
   const handleSendMessage = async (textToSend = inputValue) => {
-    if (!textToSend.trim() && !attachedFile) return;
+    const hasText = textToSend.trim();
+    const hasImage = !!attachedFile;
+    const hasAudio = !!attachedAudio;
 
-    // Add user message
+    if (!hasText && !hasImage && !hasAudio) return;
+
+    // ── Add user message ──────────────────────────────────────────────────────
     const userMsg = {
       id: `msg-user-${Date.now()}`,
       sender: 'user',
-      text: textToSend,
+      text: hasAudio ? '🎤 تم إرسال تسجيل صوتي...' : hasImage ? `🖼️ تم إرفاق صورة: ${attachedFile.name}${hasText ? ` — ${textToSend}` : ''}` : textToSend,
       attachment: attachedFile ? attachedFile.name : null
     };
 
     setMessages(prev => [...prev, userMsg]);
     setInputValue('');
     setAttachedFile(null);
+    setAttachedAudio(null);
     setIsTyping(true);
 
-    if (animalId) {
-      try {
-        const historyToSend = messages.map(m => ({
-          role: m.sender === 'user' ? 'user' : 'model',
-          parts: m.text
-        }));
-        
-        const res = await chatWithAI(animalId, textToSend, historyToSend);
-        const responseText = res?.reply || res?.message || res?.response || res?.text || (typeof res === 'string' ? res : 'تم استلام الرسالة.');
-        
-        const aiMsg = {
-          id: `msg-ai-${Date.now()}`,
-          sender: 'ai',
-          text: responseText,
-          hasActionSteps: false
-        };
-        setMessages(prev => [...prev, aiMsg]);
-      } catch (error) {
-        console.error("AI Chat Error:", error);
-        toast.error('حدث خطأ أثناء محادثة الذكاء الاصطناعي');
-        setMessages(prev => [...prev, {
-          id: `msg-ai-${Date.now()}`,
-          sender: 'ai',
-          text: 'عذراً، حدث خطأ في الاتصال بالخادم. يرجى المحاولة لاحقاً.',
-          hasActionSteps: false
-        }]);
-      } finally {
-        setIsTyping(false);
+    try {
+      let res;
+
+      if (hasAudio) {
+        // 🎤 Voice diagnosis
+        res = await diagnoseWithVoice(attachedAudio, animalId, animalData?.species);
+        // Show transcribed text as user message update
+        if (res?.transcribed_text) {
+          setMessages(prev => prev.map(m =>
+            m.id === userMsg.id
+              ? { ...m, text: `🎤 ما تم تفريغه من التسجيل: "${res.transcribed_text}"` }
+              : m
+          ));
+        }
+      } else if (hasImage) {
+        // 🖼️ Image diagnosis
+        res = await diagnoseWithImage(attachedFile, animalId, animalData?.species, hasText ? textToSend : undefined);
+      } else {
+        // 📝 Text diagnosis
+        res = await diagnoseWithAI(animalId, textToSend);
       }
-    } else {
-      // Simulate AI response if no animalId
-      setTimeout(() => {
-        const responseData = getMockResponse(textToSend);
-        const aiMsg = {
-          id: `msg-ai-${Date.now()}`,
-          sender: 'ai',
-          text: responseData.text,
-          hasActionSteps: responseData.hasActionSteps
-        };
-        setMessages(prev => [...prev, aiMsg]);
-        setIsTyping(false);
-      }, 1200);
+
+      const aiMsg = {
+        id: `msg-ai-${Date.now()}`,
+        sender: 'ai',
+        text: hasAudio
+          ? 'بناءً على التسجيل الصوتي المدخل، هذا هو التشخيص المقترح:'
+          : hasImage
+          ? 'بناءً على تحليل الصورة المرفقة، هذا هو التشخيص المقترح:'
+          : animalId ? 'بناءً على الأعراض والبيانات الحيوية، هذا هو التشخيص المقترح:' : 'بناءً على الأعراض المدخلة، هذا هو التشخيص المقترح (استشارة عامة):',
+        hasActionSteps: false,
+        diagnosisData: res
+      };
+      setMessages(prev => [...prev, aiMsg]);
+    } catch (error) {
+      console.error("AI Chat Error:", error);
+      const errMsg = error?.response?.data?.message || 'حدث خطأ في الاتصال بالخادم. يرجى المحاولة لاحقًا.';
+      toast.error(errMsg);
+      setMessages(prev => [...prev, {
+        id: `msg-ai-${Date.now()}`,
+        sender: 'ai',
+        text: `⚠️ ${errMsg}`,
+        hasActionSteps: false
+      }]);
+    } finally {
+      setIsTyping(false);
     }
   };
 
@@ -229,28 +225,52 @@ export default function AiAssistantPage() {
     handleSendMessage(chipText);
   };
 
-  // Mic Button Logic
-  const toggleRecording = () => {
+  // 🎙️ Real Voice Recording via MediaRecorder API
+  const toggleRecording = async () => {
     if (isRecording) {
+      // Stop recording
+      mediaRecorderRef.current?.stop();
       setIsRecording(false);
-      setInputValue('تم تسجيل الملاحظة الصوتية بنجاح: البقرة 402 تظهر عليها علامات تعب متكررة.');
-      toast.success('تم إنهاء التسجيل الصوتي وتحويله لنص');
+      toast('🎤 جاري معالجة التسجيل...', { icon: '⌛' });
     } else {
-      setIsRecording(true);
-      toast('جاري تسجيل الصوت... انقر مرة أخرى للإيقاف والاستماع للترجمة النصية', {
-        icon: '🎙️',
-        duration: 3000
-      });
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioChunksRef.current = [];
+
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) audioChunksRef.current.push(e.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          setAttachedAudio(audioBlob);
+          setAttachedFile(null); // clear any image
+          stream.getTracks().forEach(t => t.stop());
+          toast.success('تم التسجيل! اضغط إرسال لإرساله للتحليل');
+        };
+
+        mediaRecorder.start();
+        setIsRecording(true);
+        toast('🎤 جاري التسجيل... اضغط مرة أخرى للإيقاف', { icon: '🎤', duration: 4000 });
+      } catch (err) {
+        toast.error('لا يمكن الوصول للميكروفون. تأكد من الأذونات.');
+        console.error('Mic error:', err);
+      }
     }
   };
 
-  // File Attachment
+  // 📎 Image File Attachment
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setAttachedFile(file);
-      toast.success(`تم إرفاق الملف: ${file.name}`);
+      setAttachedAudio(null); // clear any audio
+      toast.success(`تم إرفاق الصورة: ${file.name}`);
     }
+    e.target.value = '';
   };
 
   return (
@@ -270,18 +290,11 @@ export default function AiAssistantPage() {
           </div>
           <div className="flex gap-2 text-xs">
             <button 
-              onClick={() => setShowHistoryPanel(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-stone-200 text-stone-600 bg-white hover:bg-stone-50 transition-colors"
+              onClick={() => navigate('/')}
+              className="flex items-center justify-center p-1.5 rounded-lg border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+              title="إغلاق والعودة للرئيسية"
             >
-              <History className="w-3.5 h-3.5" />
-              <span>السجل</span>
-            </button>
-            <button 
-              onClick={() => setShowShareModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-stone-200 text-stone-600 bg-white hover:bg-stone-50 transition-colors"
-            >
-              <Share2 className="w-3.5 h-3.5" />
-              <span>مشاركة</span>
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -317,20 +330,11 @@ export default function AiAssistantPage() {
                       </div>
                     )}
 
-                    {/* Action Recommended Card inside AI response */}
-                    {isAi && msg.hasActionSteps && (
-                      <div className="mt-4 p-4 rounded-xl bg-amber-50/70 border border-amber-200/50 text-stone-800">
-                        <div className="flex items-center gap-2 mb-3 text-amber-800 font-bold">
-                          <ClipboardCheck className="w-4 h-4" />
-                          <span>الخطوات التالية المقترحة:</span>
-                        </div>
-                        <ul className="list-disc list-inside space-y-2 text-stone-700 pr-1">
-                          <li>عزل البقرة رقم 402 عن القطيع الرئيسي.</li>
-                          <li>إجراء فحص جسدي للرئتين.</li>
-                          <li>تحضير 20 مل من المضاد الحيوي الموصوف إذا تأكد وجود أزيز تنفسي.</li>
-                        </ul>
-                      </div>
+                    {/* AI Diagnosis Card */}
+                    {isAi && msg.diagnosisData && (
+                      <AiDiagnosisCard diagnosisData={msg.diagnosisData} />
                     )}
+
                   </div>
                 </div>
 
@@ -373,12 +377,23 @@ export default function AiAssistantPage() {
 
         {/* Input Bar */}
         <div className="p-4 border-t border-stone-200 bg-white">
-          {/* File input attachment badge */}
+          {/* Image attachment badge */}
           {attachedFile && (
             <div className="mb-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 text-stone-600 text-xs border border-stone-200">
               <Paperclip className="w-3 h-3 text-stone-500" />
               <span className="max-w-[200px] truncate">{attachedFile.name}</span>
               <button onClick={() => setAttachedFile(null)} className="text-stone-400 hover:text-stone-600">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          {/* Audio recording badge */}
+          {attachedAudio && !isRecording && (
+            <div className="mb-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 text-red-600 text-xs border border-red-200">
+              <Mic className="w-3 h-3" />
+              <span>تسجيل صوتي جاهز للإرسال</span>
+              <button onClick={() => setAttachedAudio(null)} className="text-red-400 hover:text-red-600">
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -419,6 +434,7 @@ export default function AiAssistantPage() {
                 type="file" 
                 ref={fileInputRef} 
                 onChange={handleFileChange} 
+                accept="image/jpeg,image/png,image/webp"
                 className="hidden" 
               />
 
@@ -441,127 +457,93 @@ export default function AiAssistantPage() {
       {/* ── LEFT PANEL: Context Sidebar ── */}
       <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 flex flex-col gap-4 overflow-y-auto pr-1">
         
-        {/* Health Risk Card */}
-        <div className="p-5 rounded-2xl bg-white border border-stone-200 shadow-sm flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2 text-stone-800 font-bold">
-              <TrendingUp className="w-5 h-5 text-red-500" />
-              <span className="text-sm">مستوى المخاطر الصحية</span>
-            </div>
-            <span className="text-[11px] px-2.5 py-0.5 rounded-full font-bold bg-red-50 text-red-600 border border-red-200">
-              خطر مرتفع (65%)
-            </span>
+        {isLoadingSidebar ? (
+          <div className="p-5 rounded-2xl bg-white border border-stone-200 shadow-sm text-center text-stone-500 text-sm">
+            جاري تحميل البيانات...
           </div>
-
-          {/* Progress Bar */}
-          <div className="w-full h-3 bg-stone-100 rounded-full overflow-hidden mb-2">
-            <div className="h-full bg-red-600 rounded-full transition-all duration-500" style={{ width: '65%' }}></div>
-          </div>
-
-          <div className="flex justify-between items-center text-[10px] text-stone-400 mb-3">
-            <span>مستوى حرج للقطيع ب</span>
-            <span>تم التحديث منذ دقيقتين</span>
-          </div>
-
-          <p className="text-xs text-stone-600 bg-stone-50 p-3 rounded-xl border border-stone-100 leading-relaxed">
-            اكتشاف مبكر لشذوذ حراري في 3 حيوانات. يوصى بالعزل الفوري لتجنب انتقال العدوى.
-          </p>
-        </div>
-
-        {/* Diagnosis Summary Card */}
-        <div className="p-5 rounded-2xl bg-white border border-stone-200 shadow-sm flex flex-col">
-          <div className="flex items-center gap-2 text-stone-800 font-bold mb-4">
-            <FileText className="w-5 h-5 text-[#2d5a1b]" />
-            <span className="text-sm">ملخص التشخيص</span>
-          </div>
-
-          {/* Cow Detail Box */}
-          <div className="p-3 bg-stone-50 rounded-xl border border-stone-100 flex items-center gap-3 mb-4">
-            <img 
-              src={cowImg} 
-              alt="البقرة #402" 
-              className="w-14 h-14 object-cover rounded-lg border border-stone-200 shadow-sm"
-              onError={(e) => {
-                e.target.style.display = 'none';
-              }}
-            />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs font-bold text-stone-800 truncate">البقرة #402</span>
-                <span className="text-[10px] px-2 py-0.5 bg-stone-200 text-stone-700 rounded-full font-medium">فصيلة الأبقار</span>
+        ) : animalData ? (
+          <>
+            {/* Diagnosis Summary Card */}
+            <div className="p-5 rounded-2xl bg-white border border-stone-200 shadow-sm flex flex-col">
+              <div className="flex items-center gap-2 text-stone-800 font-bold mb-4">
+                <FileText className="w-5 h-5 text-[#2d5a1b]" />
+                <span className="text-sm">ملخص بيانات الحيوان</span>
               </div>
-              <div className="flex gap-4 text-[10px] text-stone-500">
-                <span>العمر: 4.2 سنة</span>
-                <span>الوزن: 680 كجم</span>
+
+              {/* Cow Detail Box */}
+              <div className="p-3 bg-stone-50 rounded-xl border border-stone-100 flex items-center gap-3 mb-4">
+                {animalData.image ? (
+                  <img 
+                    src={animalData.image.startsWith('http') ? animalData.image : `http://localhost:5000${animalData.image}`} 
+                    alt={`رقم #${animalData.tag_number}`} 
+                    className="w-14 h-14 object-cover rounded-lg border border-stone-200 shadow-sm"
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                  />
+                ) : (
+                  <div className="w-14 h-14 bg-stone-200 rounded-lg flex items-center justify-center">
+                    <Bot className="w-6 h-6 text-stone-400" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-bold text-stone-800 truncate">البقرة #{animalData.tag_number}</span>
+                    <span className="text-[10px] px-2 py-0.5 bg-stone-200 text-stone-700 rounded-full font-medium">{animalData.species}</span>
+                  </div>
+                  <div className="flex gap-4 text-[10px] text-stone-500">
+                    <span>العمر: {animalData.age_value} {animalData.age_unit}</span>
+                    <span>الوزن: {animalData.weight_kg ? `${animalData.weight_kg} كجم` : '-'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <span className="text-[11px] text-stone-400 block mb-2">الحالة الصحية (حسب السجلات)</span>
+                <div className="flex flex-wrap gap-1.5">
+                  <span className={`text-[10px] font-bold px-2 py-1 rounded border ${
+                    animalData.health_status === 'healthy' ? 'bg-green-50 text-green-600 border-green-100' :
+                    animalData.health_status === 'sick' ? 'bg-red-50 text-red-600 border-red-100' :
+                    'bg-yellow-50 text-yellow-600 border-yellow-100'
+                  }`}>
+                    {animalData.health_status === 'healthy' ? 'سليم' : 
+                     animalData.health_status === 'sick' ? 'مريض' : 'تحت الملاحظة'}
+                  </span>
+                </div>
               </div>
             </div>
+
+            {/* Vaccination Reminder Card */}
+            {animalVaccinations && animalVaccinations.length > 0 && (
+              <div className="relative p-5 rounded-2xl bg-gradient-to-br from-[#2d5a1b] to-[#3d6b47] text-white shadow-sm overflow-hidden flex flex-col justify-between min-h-[140px]">
+                <div className="absolute -left-4 -bottom-6 text-7xl font-bold opacity-5 pointer-events-none select-none tracking-wider">
+                  vaccines
+                </div>
+                
+                <div className="flex items-center gap-2 font-bold mb-2 z-10">
+                  <Heart className="w-5 h-5 text-green-200 fill-green-200/20" />
+                  <span className="text-sm">التطعيمات (سجلات الحيوان)</span>
+                </div>
+
+                <div className="space-y-2 mt-2 z-10">
+                  {animalVaccinations.slice(0, 3).map(vac => (
+                    <div key={vac._id} className="bg-white/10 p-2 rounded-lg text-xs border border-white/20">
+                      <div className="font-bold flex justify-between">
+                        <span>{vac.vaccine_name}</span>
+                        <span className="text-[10px] opacity-80">{vac.status === 'completed' ? 'مكتمل' : 'مجدول'}</span>
+                      </div>
+                      <div className="text-green-100 text-[10px] mt-1">تاريخ: {new Date(vac.scheduled_date || vac.next_due_date || vac.created_at).toLocaleDateString('ar-EG')}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="p-5 rounded-2xl bg-white border border-stone-200 shadow-sm flex flex-col text-center text-stone-500 text-sm py-10">
+            <Bot className="w-10 h-10 mx-auto text-stone-300 mb-2" />
+            <p>لا يوجد حيوان محدد.</p>
+            <p className="text-xs mt-1 text-stone-400">يمكنك بدء استشارة عامة أو اختيار حيوان من سجل المزرعة.</p>
           </div>
-
-          {/* Symptoms list */}
-          <div className="mb-4">
-            <span className="text-[11px] text-stone-400 block mb-2">الأعراض المكتشفة</span>
-            <div className="flex flex-wrap gap-1.5">
-              <span className="text-[10px] font-bold px-2 py-1 rounded bg-red-50 text-red-600 border border-red-100">فرط الحرارة</span>
-              <span className="text-[10px] font-bold px-2 py-1 rounded bg-stone-100 text-stone-600 border border-stone-200">الخمول</span>
-              <span className="text-[10px] font-bold px-2 py-1 rounded bg-stone-100 text-stone-600 border border-stone-200">انخفاض الحليب</span>
-              <span className="text-[10px] font-bold px-2 py-1 rounded bg-stone-100 text-stone-600 border border-stone-200">ضيق التنفس</span>
-            </div>
-          </div>
-
-          {/* Circular Indicator */}
-          <div className="flex items-center gap-4 mb-4 border-t border-stone-100 pt-3">
-            {/* SVG Circle Progress */}
-            <div className="relative flex items-center justify-center flex-shrink-0">
-              <svg className="w-14 h-14 transform -rotate-90">
-                <circle cx="28" cy="28" r="24" stroke="#f1f5f9" strokeWidth="4" fill="transparent" />
-                <circle cx="28" cy="28" r="24" stroke="#10b981" strokeWidth="4" fill="transparent" 
-                        strokeDasharray={2 * Math.PI * 24} 
-                        strokeDashoffset={2 * Math.PI * 24 * (1 - 0.92)} />
-              </svg>
-              <span className="absolute text-[11px] font-bold text-stone-800">92%</span>
-            </div>
-            <div>
-              <span className="text-[11px] text-stone-400 block">درجة ثقة الذكاء الاصطناعي</span>
-              <p className="text-xs font-bold text-stone-700 leading-tight">مطابقة عالية لـ مجمع التنفس البقري.</p>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <button 
-            onClick={() => setShowReportModal(true)}
-            className="w-full text-center text-xs font-bold py-2.5 rounded-xl border border-stone-300 hover:bg-stone-50 text-stone-700 transition-colors shadow-sm active:scale-98"
-          >
-            إنشاء تقرير كامل
-          </button>
-        </div>
-
-        {/* Vaccination Reminder Card */}
-        <div className="relative p-5 rounded-2xl bg-gradient-to-br from-[#2d5a1b] to-[#3d6b47] text-white shadow-sm overflow-hidden flex flex-col justify-between min-h-[140px]">
-          {/* Watermark Water background text "vaccines" */}
-          <div className="absolute -left-4 -bottom-6 text-7xl font-bold opacity-5 pointer-events-none select-none select-none tracking-wider">
-            vaccines
-          </div>
-          
-          <div className="flex items-center gap-2 font-bold mb-2 z-10">
-            <Heart className="w-5 h-5 text-green-200 fill-green-200/20" />
-            <span className="text-sm">نافذة التطعيم</span>
-          </div>
-
-          <p className="text-xs text-green-50 leading-relaxed mb-3 z-10">
-            يستحق القطيع (ب) جرعات تعزيزية لمرض الحمى القلاعية خلال 4 أيام. هل ترغب في الجدولة الآن؟
-          </p>
-
-          <button 
-            onClick={() => {
-              toast.success('تمت جدولة تذكيرات اللقاح وإرسالها للفريق بنجاح!');
-            }}
-            className="self-end flex items-center gap-1 text-[11px] font-bold bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-colors border border-white/10"
-          >
-            <span>جدولة الآن</span>
-            <Plus className="w-3 h-3" />
-          </button>
-        </div>
-
+        )}
       </div>
 
       {/* ── MODAL 1: Full Report Modal ── */}
@@ -763,28 +745,40 @@ export default function AiAssistantPage() {
 
             {/* List */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {MOCK_SESSIONS.map((session) => {
-                const isActive = session.id === activeSession.id;
-                return (
-                  <button
-                    key={session.id}
-                    onClick={() => loadSession(session)}
-                    className={`w-full text-right p-3.5 rounded-xl border transition-all duration-200 block ${
-                      isActive 
-                        ? 'bg-[#2d5a1b]/5 border-[#2d5a1b] shadow-sm font-semibold' 
-                        : 'border-stone-100 bg-stone-50 hover:bg-white hover:border-stone-200'
-                    }`}
-                  >
-                    <span className={`text-xs block mb-1 font-bold ${isActive ? 'text-[#2d5a1b]' : 'text-stone-700'}`}>
-                      {session.title}
-                    </span>
-                    <span className="text-[10px] text-stone-400 flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      {session.date}
-                    </span>
-                  </button>
-                );
-              })}
+              {isLoadingHistory ? (
+                <div className="text-center text-stone-500 text-sm py-4">جاري تحميل السجلات...</div>
+              ) : historySessions.length === 0 ? (
+                <div className="text-center text-stone-500 text-sm py-4">لا توجد جلسات سابقة.</div>
+              ) : (
+                historySessions.map((session) => {
+                  const isActive = session._id === activeSession?.id;
+                  const formattedDate = new Date(session.created_at).toLocaleDateString('ar-EG');
+                  return (
+                    <button
+                      key={session._id}
+                      onClick={() => loadSession(session)}
+                      className={`w-full text-right p-3.5 rounded-xl border transition-all duration-200 block ${
+                        isActive 
+                          ? 'bg-[#2d5a1b]/5 border-[#2d5a1b] shadow-sm font-semibold' 
+                          : 'border-stone-100 bg-stone-50 hover:bg-white hover:border-stone-200'
+                      }`}
+                    >
+                      <span className={`text-xs block mb-1 font-bold ${isActive ? 'text-[#2d5a1b]' : 'text-stone-700'}`}>
+                        جلسة {formattedDate}
+                      </span>
+                      <span className="text-[10px] text-stone-400 flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {formattedDate}
+                      </span>
+                      {session.diagnosis_result && session.diagnosis_result.diagnosis && (
+                        <span className="text-[10px] text-stone-500 block mt-1 truncate">
+                          التشخيص: {session.diagnosis_result.diagnosis}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })
+              )}
             </div>
 
             <div className="p-4 border-t border-stone-200 text-center bg-stone-50">

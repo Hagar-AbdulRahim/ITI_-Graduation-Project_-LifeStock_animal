@@ -1,10 +1,9 @@
 const Animal      = require("../models/animal");
 const Farm        = require("../models/farm");
-const HealthCase  = require("../models/healthCase");   // ← حرف صغير
-const Vaccination = require("../models/vaccination");  // ← حرف صغير
+const HealthCase  = require("../models/healthCase");
+const Vaccination = require("../models/vaccination");
 const { continueOnboardingConversation } = require("../services/Onboardingagent");
 
-// ── helper ────────────────────────────────────────────────────────────────────
 const getOwnedAnimalWithFarm = async (animalId, userId) => {
   const animal = await Animal.findOne({ _id: animalId, is_active: true }).populate(
     "farm_id",
@@ -15,16 +14,12 @@ const getOwnedAnimalWithFarm = async (animalId, userId) => {
   return animal;
 };
 
-// ── تحويل تاريخ تقريبي لـ Date ───────────────────────────────────────────────
 const parseApproximateDate = (dateStr) => {
   if (!dateStr) return null;
   const parsed = new Date(dateStr);
   return isNaN(parsed.getTime()) ? null : parsed;
 };
 
-// ════════════════════════════════════════════════════════════════════════════
-// POST /api/onboarding/:animalId/chat
-// ════════════════════════════════════════════════════════════════════════════
 const chat = async (req, res) => {
   try {
     const { animalId }        = req.params;
@@ -95,18 +90,45 @@ const confirm = async (req, res) => {
       for (const entry of vaccinations) {
         if (!entry.vaccine_name) continue;
 
-        // ── تحويل التاريخ وضمان إنه Date حقيقي ──────────────────────────────
-        const lastDate = parseApproximateDate(entry.last_date) || new Date();
+        const isFirstDose = entry.is_first_dose === true;
+        const vaccineType = entry.vaccine_type === "emergency" ? "one_time" : "recurring";
 
-        const vaccination = await Vaccination.create({
-          animal_id:    animal._id,
-          vaccine_name: entry.vaccine_name,
-          vaccine_type: "recurring", // اقتراحات الـ Agent دايماً لقاحات دورية معروفة
-          last_date:    lastDate,
-          // next_due_date بيتحسب تلقائياً في الـ pre-validate hook
-          added_by: "onboarding_agent", // تمييز واضح للفرونت عن الإدخال اليدوي
-        });
+        // ── one_time من الـ Agent — نادر بس ممكن (لو ذكر لقاح طارئ مستقبلي) ──
+        if (vaccineType === "one_time") {
+          const scheduledDate = parseApproximateDate(entry.last_date) || new Date();
 
+          const vaccination = await Vaccination.create({
+            animal_id:      animal._id,
+            vaccine_name:   entry.vaccine_name,
+            vaccine_type:   "one_time",
+            scheduled_date: scheduledDate,
+            added_by:       "onboarding_agent",
+            notes:          entry.notes || null,
+          });
+
+          savedVaccinations.push(vaccination);
+          continue;
+        }
+
+        // ── recurring — الحالة الشائعة ────────────────────────────────────────
+        const vaccinationData = {
+          animal_id:     animal._id,
+          vaccine_name:  entry.vaccine_name,
+          vaccine_type:  "recurring",
+          is_first_dose: isFirstDose,
+          added_by:      "onboarding_agent",
+          notes:         entry.notes || null,
+        };
+
+        // لو مش أول جرعة، لازم last_date — لو الـ Agent ماجابش تاريخ صريح
+        // (مجرد وصف غامض)، استخدمي تاريخ اليوم كـ fallback بدل ما يفشل الـ create
+        if (!isFirstDose) {
+          vaccinationData.last_date = parseApproximateDate(entry.last_date) || new Date();
+        }
+        // لو أول جرعة، last_date يفضل undefined تماماً (مش حتى null) عشان
+        // الـ pre-validate hook يحسب next_due_date من تاريخ اليوم
+
+        const vaccination = await Vaccination.create(vaccinationData);
         savedVaccinations.push(vaccination);
       }
     }
