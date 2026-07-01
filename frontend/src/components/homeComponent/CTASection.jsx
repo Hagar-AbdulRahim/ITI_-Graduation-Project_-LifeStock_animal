@@ -1,42 +1,42 @@
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import ctaBg from '../../assets/images/cta-bg.jpg'
 
 const CTASection = () => {
-  const navigate = useNavigate()
+  const handleContactClick = () => {
+    const contactSection = document.getElementById('contact')
+    if (contactSection) {
+      contactSection.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
 
   return (
-    <section style={{ backgroundColor: '#f6f6f1' }} className="py-12 px-6">
-      <div className="max-w-5xl mx-auto">
+    <section className="bg-[#f8f8f5] py-16 px-6" id="cta">
+      <div className="max-w-5xl mx-auto" data-aos="zoom-in" data-aos-duration="700" data-aos-once="true">
         <div
-          className="rounded-3xl px-12 py-16 text-center"
-          style={{ backgroundColor: '#1F5C34' }}
+          className="rounded-[32px] px-8 py-16 md:py-20 text-center shadow-xl shadow-green-950/10 flex flex-col items-center justify-center relative overflow-hidden"
+          style={{
+            backgroundImage: `linear-gradient(rgba(27, 77, 44, 0.85), rgba(27, 77, 44, 0.85)), url(${ctaBg})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
         >
-          <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4">
-            جاهز لتحديث صحة قطيعك؟
+          {/* Title */}
+          <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4 leading-snug">
+            ابدأ في مراعاة قطيعك بذكاء من اليوم
           </h2>
-          <p className="text-sm mb-10 max-w-lg mx-auto leading-relaxed" style={{ color: '#a5d6a7' }}>
-            انضم إلى آلاف الأطباء البيطريين والمزارعين الذين يستخدمون النظام للحفاظ على قطعانهم بصحة متميزة.
+
+          {/* Description */}
+          <p className="text-green-100 text-sm md:text-base mb-10 max-w-xl mx-auto leading-relaxed opacity-90">
+            تجربة مجانية لمدة 14 يومًا، بدون بطاقة بنكية، وبدعم كامل بالعربية لإعداد مزرعتك.
           </p>
-          <div className="flex items-center justify-center gap-4">
-            <button
-              onClick={() => navigate('/login')}
-              className="text-white font-semibold text-sm px-8 py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer"
-              style={{ backgroundColor: '#4CAF50' }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#43A047')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#4CAF50')}
-            >
-              ابدأ التجربة المجانية
-            </button>
-            <a
-              href="mailto:LivestockSupport2026@gmail.com"
-              className="font-semibold text-sm px-8 py-3 rounded-xl transition-all duration-200 cursor-pointer inline-block"
-              style={{ border: '2px solid #ffffff', color: '#ffffff', backgroundColor: 'transparent', textDecoration: 'none' }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-            >
-              تواصل معنا
-            </a>
-          </div>
+
+          {/* Single CTA Button */}
+          <button
+            onClick={handleContactClick}
+            className="text-[#1b4d2c] bg-white hover:bg-gray-100 font-extrabold text-sm px-8 py-3.5 rounded-full transition-all duration-300 shadow-lg hover:scale-[1.01] cursor-pointer"
+          >
+            تواصل معنا
+          </button>
         </div>
       </div>
     </section>
