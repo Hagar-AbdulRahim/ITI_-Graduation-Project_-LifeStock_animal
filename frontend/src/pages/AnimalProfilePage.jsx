@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { toast } from 'react-hot-toast'
@@ -6,57 +6,69 @@ import {
   ChevronRight,
   Edit,
   Syringe,
-  Plus,
   ShieldCheck,
   AlertTriangle,
   Calendar,
   Zap,
   Heart,
-  User,
-  Send,
-  ChevronDown,
   Loader2,
   Trash2,
-  Bot,
+  MapPin,
+  Tag,
+  Weight,
+  Clock,
+  Activity,
+  Home,
+  StickyNote,
 } from 'lucide-react'
 import {
   fetchAnimalById,
   fetchAnimalVaccinations,
   fetchAnimalMedicalHistory,
-  fetchAnimalDiagnosisHistory,
   clearAnimalState,
   deleteExistingAnimal,
 } from '../redux/animalSlice'
 
-const SPECIES_EMOJI = {
-  cattle: '🐄',
-  sheep: '🐑',
-  goat: '🐐',
-  horse: '🐎',
-  pig: '🐷',
-};
+const BASE_URL = 'http://localhost:5000'
+
+const SPECIES_MAP = {
+  cattle: { label: 'أبقار', emoji: '🐄' },
+  sheep:  { label: 'أغنام', emoji: '🐑' },
+  goat:   { label: 'ماعز', emoji: '🐐' },
+}
+
+const HEALTH_STATUS_MAP = {
+  healthy:  { label: 'سليم',       color: 'bg-emerald-100 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
+  sick:     { label: 'مريض',       color: 'bg-red-100 text-red-700 border-red-200',             dot: 'bg-red-500' },
+  critical: { label: 'حالة حرجة', color: 'bg-orange-100 text-orange-700 border-orange-200',    dot: 'bg-orange-500' },
+  deceased: { label: 'نافق',       color: 'bg-gray-100 text-gray-600 border-gray-200',          dot: 'bg-gray-400' },
+}
+
+function InfoRow({ label, value, mono = false }) {
+  return (
+    <div className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
+      <span className="text-sm text-gray-500 font-medium">{label}</span>
+      <span className={`text-sm font-bold text-gray-800 ${mono ? 'font-mono' : ''}`}>
+        {value || '—'}
+      </span>
+    </div>
+  )
+}
 
 export default function AnimalProfilePage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const dispatch = useDispatch()
 
-  // ── Primary: fetch full animal from dedicated slice ──
-  const { animal, vaccinations, medicalHistory, loading, error } = useSelector(
-    (state) => state.animal,
-  )
-
-  // ── Fallback: if animal not yet in slice, check farmAnimals list ──
+  const { animal, loading, error } = useSelector((state) => state.animal)
   const fallbackAnimal = useSelector((state) =>
     state.farm?.farmAnimals?.find((a) => a._id === id),
   )
 
-  // Use whichever is available
-  const animalData = animal || fallbackAnimal || null
-  const farmIdForNavigation = animalData?.farm_id?._id || animalData?.farm_id || null
+  const a = animal || fallbackAnimal || null
+  const farmIdForNavigation = a?.farm_id?._id || a?.farm_id || null
 
   useEffect(() => {
-    // Clear stale animal data from a previous profile visit
     dispatch(clearAnimalState())
     if (id) {
       dispatch(fetchAnimalById(id))
@@ -64,95 +76,6 @@ export default function AnimalProfilePage() {
       dispatch(fetchAnimalMedicalHistory(id))
     }
   }, [dispatch, id])
-
-  // ── Map backend data → UI profile object ──
-  const buildProfile = (a) => ({
-    id: a.tag_number || a._id,
-    name: a.name || `حيوان #${a.tag_number || a._id?.toString().substring(18)}`,
-    species:
-      a.species === 'cattle'
-        ? 'أبقار'
-        : a.species === 'sheep'
-          ? 'أغنام'
-          : 'ماعز',
-    breed: a.breed || 'غير محدد',
-    gender: a.gender === 'female' ? 'أنثى' : 'ذكر',
-    birthDate: '—', // Removed from backend
-    age:
-      a.age_value !== undefined
-        ? `${a.age_value} ${a.age_unit === 'years' ? 'سنة' : 'شهر'}`
-        : 'غير محدد',
-    regNo: `REG-${a.tag_number || a._id}`,
-    weight: `${a.weight_kg || 0} كجم`,
-    weightChange: '+0.5%',
-    yield: '—',
-    yieldGroup: '',
-    status: a.health_status === 'healthy' ? 'ممتازة' : 'يحتاج رعاية',
-    statusTag: a.health_status === 'healthy' ? 'سليم' : 'مريض',
-    risk: 'مستقر',
-    riskTag: 'متوسط',
-    lastCheck: 'الآن',
-    aiAlerts: 'لا يوجد تنبيهات حيوية',
-    treatment: null,
-    history:
-      medicalHistory?.map((h) => ({
-        date: new Date(h.date || h.createdAt).toLocaleDateString('ar-EG'),
-        type: 'checkup',
-        title: h.condition || h.title,
-        description: h.treatment || h.description,
-        doctor: h.veterinarian || 'طبيب بيطري',
-        dotColor: 'bg-emerald-500',
-      })) || [],
-    vaccinations:
-      vaccinations?.map((v) => ({
-        name: v.vaccine_name,
-        date: v.last_date
-          ? new Date(v.last_date).toLocaleDateString('ar-EG')
-          : 'غير محدد',
-        batch: v.batch_number || '-',
-        nextDate: v.next_due_date
-          ? new Date(v.next_due_date).toLocaleDateString('ar-EG')
-          : 'غير محدد',
-        nextDateColor: 'text-stone-600',
-        status: 'محدث',
-      })) || [],
-    aiPrediction: 'الحالة مستقرة، يوصى بالمحافظة على جدول التطعيمات.',
-    aiConfidence: '90%',
-    notes:
-      typeof a.notes === 'string' && a.notes.trim() !== ''
-        ? [
-            {
-              author: 'ملاحظة النظام',
-              role: 'تاريخ الإضافة',
-              text: a.notes,
-              time: '—',
-            },
-          ]
-        : Array.isArray(a.notes)
-          ? a.notes
-          : [],
-    weightHistory: [410, 412, 415, 418, 419, a.weight_kg || 420],
-  })
-
-  const profile = animalData ? buildProfile(animalData) : null
-
-  const [noteText, setNoteText] = useState('')
-
-  const handleAddNote = (e) => {
-    e.preventDefault()
-    if (!noteText.trim()) return
-
-    const newNote = {
-      author: 'ملاحظة النظام',
-      role: 'تاريخ الإضافة',
-      text: noteText,
-      time: 'الآن',
-    }
-
-    // Normally this would be a dispatch, but we update UI optimistically for now
-    setNoteText('')
-    toast.success('تمت إضافة الملاحظة بنجاح!')
-  }
 
   const handleDeleteAnimal = async () => {
     if (
@@ -163,40 +86,37 @@ export default function AnimalProfilePage() {
       try {
         await dispatch(deleteExistingAnimal(id)).unwrap()
         toast.success('تم حذف الحيوان بنجاح')
-        navigate(
-          farmIdForNavigation ? `/farms/${farmIdForNavigation}/animals` : '/farms',
-        )
+        navigate(farmIdForNavigation ? `/farms/${farmIdForNavigation}/animals` : '/farms')
       } catch (err) {
         toast.error(err || 'حدث خطأ أثناء محاولة الحذف')
       }
     }
   }
 
-  // ── Spinner: only while actively fetching AND no fallback data yet ──
-  if (loading.animal && !profile) {
+  // ── Loading ──
+  if (loading.animal && !a) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center font-cairo">
-        <Loader2 className="w-8 h-8 text-[#2d5a1b] animate-spin" />
+      <div className="min-h-screen flex items-center justify-center font-cairo">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-10 h-10 text-[#2d5a1b] animate-spin" />
+          <p className="text-sm text-gray-500 font-medium">جاري تحميل بيانات الحيوان...</p>
+        </div>
       </div>
     )
   }
 
-  // ── Error state: API failed and nothing to show ──
-  if (!loading.animal && !profile) {
+  // ── Error / Not Found ──
+  if (!loading.animal && !a) {
     return (
       <div
         dir="rtl"
-        className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center gap-4 font-cairo text-center px-4"
+        className="min-h-screen flex flex-col items-center justify-center gap-4 font-cairo text-center px-4"
       >
         <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
           <AlertTriangle className="w-8 h-8 text-red-500" />
         </div>
-        <h2 className="text-lg font-bold text-gray-800">
-          لم يتم العثور على بيانات الحيوان
-        </h2>
-        <p className="text-sm text-gray-500">
-          تأكد من الاتصال بالخادم وصحة الرابط
-        </p>
+        <h2 className="text-lg font-bold text-gray-800">لم يتم العثور على بيانات الحيوان</h2>
+        <p className="text-sm text-gray-500">تأكد من الاتصال بالخادم وصحة الرابط</p>
         <button
           onClick={() => navigate(-1)}
           className="mt-2 px-6 py-2.5 bg-[#2d5a1b] text-white rounded-xl text-sm font-bold hover:bg-[#1e4520] transition-colors"
@@ -207,460 +127,233 @@ export default function AnimalProfilePage() {
     )
   }
 
+  // ── Derived display values ──
+  const species      = SPECIES_MAP[a.species] || { label: a.species, emoji: '🐾' }
+  const healthStatus = HEALTH_STATUS_MAP[a.health_status] || HEALTH_STATUS_MAP.healthy
+  const farmName     = a.farm_id?.name || '—'
+  const governorate  = a.farm_id?.governorate || null
+  const imageUrl     = a.image ? `${BASE_URL}${a.image}` : null
+  const gender       = a.gender === 'female' ? 'أنثى' : 'ذكر'
+  const age          = a.age_value !== undefined
+    ? `${a.age_value} ${a.age_unit === 'years' ? 'سنة' : 'شهر'}`
+    : 'غير محدد'
+  const weight       = a.weight_kg != null ? `${a.weight_kg} كجم` : 'غير محدد'
+  const breed        = a.breed || 'غير محدد'
+  const notes        = a.notes || null
+  const createdAt    = a.created_at
+    ? new Date(a.created_at).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })
+    : '—'
+
   return (
-    <div
-      dir="rtl"
-      className="max-w-7xl mx-auto px-1 py-4 font-cairo space-y-6 pb-20"
-    >
-      {/* ── BREADCRUMBS & TOP BAR ACTIONS ── */}
-      <div className="flex flex-col gap-4">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 text-xs text-gray-500">
-            <Link
-              to={
-                farmIdForNavigation
-                  ? `/farms/${farmIdForNavigation}/animals`
-                  : '/farms'
-              }
-              className="hover:text-[#2d5a1b] hover:underline transition-all font-semibold"
-            >
-              الحيوانات
-            </Link>
-            <ChevronRight className="w-3 h-3" />
-            <span className="text-gray-700 font-bold">{profile.name}</span>
+    <div dir="rtl" className="max-w-5xl mx-auto px-4 py-6 font-cairo pb-20 space-y-6">
+
+      {/* ── BREADCRUMB ── */}
+      <nav className="flex items-center gap-1.5 text-xs text-gray-400">
+        <Link
+          to={farmIdForNavigation ? `/farms/${farmIdForNavigation}/animals` : '/farms'}
+          className="hover:text-[#2d5a1b] font-semibold transition-colors"
+        >
+          الحيوانات
+        </Link>
+        <ChevronRight className="w-3 h-3" />
+        <span className="text-gray-700 font-bold">{a.tag_number}</span>
+      </nav>
+
+      {/* ── HERO PROFILE CARD ── */}
+      <div className="relative overflow-hidden rounded-3xl shadow-lg border border-[#2d5a1b]/15">
+        {/* Green gradient header */}
+        <div className="bg-gradient-to-l from-[#2d5a1b] to-[#3d7a25] px-6 pt-8 pb-16 text-white">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-black leading-tight flex items-center gap-2">
+                <Tag className="w-5 h-5 text-[#a8d5a2]" />
+                {a.tag_number}
+              </h1>
+              {(farmName || governorate) && (
+                <p className="text-[#c4e8be] text-sm mt-1.5 flex items-center gap-1.5">
+                  <Home className="w-3.5 h-3.5" />
+                  {farmName}{governorate ? ` — ${governorate}` : ''}
+                </p>
+              )}
+            </div>
+
+            {/* Animal image / emoji */}
+            <div className="relative flex-shrink-0">
+              {imageUrl ? (
+                <img
+                  src={imageUrl}
+                  alt={a.name}
+                  className="w-20 h-20 rounded-2xl object-cover border-3 border-white/40 shadow-lg"
+                  onError={(e) => { e.target.style.display = 'none' }}
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-2xl bg-white/15 border border-white/30 flex items-center justify-center text-5xl shadow-inner">
+                  {species.emoji}
+                </div>
+              )}
+              {/* Active indicator */}
+              {a.is_active && (
+                <div className="absolute -bottom-1 -left-1 w-5 h-5 bg-emerald-400 rounded-full border-2 border-white flex items-center justify-center">
+                  <span className="text-white text-[9px] font-black">✓</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Badges row */}
+          <div className="flex flex-wrap items-center gap-2 mt-4">
+            <span className={`inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full border ${healthStatus.color}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${healthStatus.dot}`} />
+              {healthStatus.label}
+            </span>
+            <span className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full bg-white/20 text-white border border-white/30">
+              {species.label}
+            </span>
+            <span className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full bg-white/20 text-white border border-white/30">
+              {gender}
+            </span>
           </div>
         </div>
 
-        {/* Action Buttons - Horizontal Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <button
-            onClick={() => navigate(`/diagnosis?animalId=${id}`)}
-            className="flex flex-col items-center gap-2 p-4 bg-white border-2 border-emerald-100 rounded-2xl hover:border-emerald-300 hover:bg-emerald-50 transition-all shadow-sm"
-          >
-            <Zap className="w-6 h-6 text-emerald-500" />
-            <span className="text-xs font-bold text-gray-700 text-center">
-              تشخيص الذكاء الاصطناعي
-            </span>
-          </button>
-
-
-          <button
-            onClick={() => navigate(`/animals/${id}/medical-records`)}
-            className="flex flex-col items-center gap-2 p-4 bg-white border-2 border-red-100 rounded-2xl hover:border-red-300 hover:bg-red-50 transition-all shadow-sm"
-          >
-            <Heart className="w-6 h-6 text-red-500" />
-            <span className="text-xs font-bold text-gray-700 text-center">
-              السجل الطبي
-            </span>
-          </button>
-
-          <button
-            onClick={() => navigate(`/animals/${id}/vaccinations`)}
-            className="flex flex-col items-center gap-2 p-4 bg-white border-2 border-blue-100 rounded-2xl hover:border-blue-300 hover:bg-blue-50 transition-all shadow-sm"
-          >
-            <Syringe className="w-6 h-6 text-blue-500" />
-            <span className="text-xs font-bold text-gray-700 text-center">
-              التطعيمات
-            </span>
-          </button>
-
-          <button
-            onClick={() => navigate('/vaccine-agent')}
-            className="flex flex-col items-center gap-2 p-4 bg-white border-2 border-green-100 rounded-2xl hover:border-green-300 hover:bg-green-50 transition-all shadow-sm"
-          >
-            <ShieldCheck className="w-6 h-6 text-green-600" />
-            <span className="text-xs font-bold text-gray-700 text-center">
-              مستشار اللقاحات
-            </span>
-          </button>
-
-          <button
-            onClick={() => navigate(`/animals/edit/${id}`)}
-            className="flex flex-col items-center gap-2 p-4 bg-white border-2 border-amber-100 rounded-2xl hover:border-amber-300 hover:bg-amber-50 transition-all shadow-sm"
-          >
-            <Edit className="w-6 h-6 text-amber-500" />
-            <span className="text-xs font-bold text-gray-700 text-center">
-              تعديل البيانات
-            </span>
-          </button>
-
-          <button
-            onClick={handleDeleteAnimal}
-            className="flex flex-col items-center gap-2 p-4 bg-white border-2 border-red-200 rounded-2xl hover:border-red-400 hover:bg-red-50 transition-all shadow-sm"
-          >
-            <Trash2 className="w-6 h-6 text-red-600" />
-            <span className="text-xs font-bold text-gray-700 text-center">
-              حذف
-            </span>
-          </button>
+        {/* White body overlapping the green header */}
+        <div className="relative bg-white -mt-8 mx-4 mb-4 rounded-2xl shadow-sm border border-gray-100 px-5 py-4">
+          {/* Quick stats strip */}
+          <div className="grid grid-cols-3 divide-x divide-x-reverse divide-gray-100">
+            <div className="flex flex-col items-center gap-1 px-4 py-2">
+              <span className="text-lg font-black text-[#2d5a1b]">{age}</span>
+              <span className="text-[10px] text-gray-400 font-semibold">العمر</span>
+            </div>
+            <div className="flex flex-col items-center gap-1 px-4 py-2">
+              <span className="text-lg font-black text-[#2d5a1b]">{weight}</span>
+              <span className="text-[10px] text-gray-400 font-semibold">الوزن</span>
+            </div>
+            <div className="flex flex-col items-center gap-1 px-4 py-2">
+              <span className="text-lg font-black text-[#2d5a1b]">{breed}</span>
+              <span className="text-[10px] text-gray-400 font-semibold">السلالة</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* ── QUICK ACTION BUTTONS ── */}
-
-      {/* ── QUICK ACTION BUTTONS ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <button
-          onClick={() => navigate(`/animals/${id}/vaccinations/add`)}
-          className="flex items-center justify-center gap-2 p-3 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-md font-bold text-sm"
-        >
-          <Plus className="w-5 h-5" />
-          تطعيم جديد
-        </button>
-
-        <button
-          disabled
-          title="هذه الميزة غير متاحة حاليًا"
-          className="flex items-center justify-center gap-2 p-3 bg-gray-200 text-gray-500 rounded-xl cursor-not-allowed font-bold text-sm border border-gray-300"
-        >
-          <Plus className="w-5 h-5 opacity-50" />
-          سجل طبي
-        </button>
-
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center justify-center gap-2 p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all font-bold text-sm"
-        >
-          <ChevronRight className="w-5 h-5" />
-          رجوع
-        </button>
-
-        <button
-          onClick={() => toast.success('تم تحديث البيانات بنجاح')}
-          className="flex items-center justify-center gap-2 p-3 bg-green-100 text-green-700 rounded-xl hover:bg-green-200 transition-all font-bold text-sm"
-        >
-          <Zap className="w-5 h-5" />
-          تحديث
-        </button>
+      {/* ── ACTION BUTTONS ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+        {[
+          { label: 'تشخيص ذكي',      icon: Zap,         color: 'text-emerald-600 border-emerald-100 hover:bg-emerald-50 hover:border-emerald-300', action: () => navigate(`/diagnosis?animalId=${id}`) },
+          { label: 'السجل الطبي',     icon: Heart,        color: 'text-red-500 border-red-100 hover:bg-red-50 hover:border-red-300',                 action: () => navigate(`/animals/${id}/medical-records`) },
+          { label: 'التطعيمات',       icon: Syringe,      color: 'text-blue-500 border-blue-100 hover:bg-blue-50 hover:border-blue-300',             action: () => navigate(`/animals/${id}/vaccinations`) },
+          { label: 'مستشار اللقاحات', icon: ShieldCheck,  color: 'text-[#2d5a1b] border-[#2d5a1b]/20 hover:bg-[#2d5a1b]/5 hover:border-[#2d5a1b]/40', action: () => navigate('/vaccine-agent') },
+          { label: 'تعديل البيانات',  icon: Edit,         color: 'text-amber-600 border-amber-100 hover:bg-amber-50 hover:border-amber-300',         action: () => navigate(`/animals/edit/${id}`) },
+        ].map(({ label, icon: Icon, color, action }) => (
+          <button
+            key={label}
+            onClick={action}
+            className={`flex flex-col items-center gap-2 p-4 bg-white border-2 rounded-2xl transition-all shadow-sm font-cairo ${color}`}
+          >
+            <Icon className="w-5 h-5" />
+            <span className="text-xs font-bold text-gray-700 text-center leading-tight">{label}</span>
+          </button>
+        ))}
       </div>
 
-      {/* ── ANIMAL PROFILE HEADER ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* RIGHT COLUMN: Main Content (w-8/12) */}
-        <div className="lg:col-span-8 space-y-6">
-          {/* Profile Card */}
-          <div className="bg-gradient-to-r from-white to-blue-50 rounded-3xl border-2 border-blue-100 shadow-lg p-6 flex items-center gap-6">
-            <div className="relative w-24 h-24 rounded-2xl border-3 border-blue-200 shadow-md bg-white flex items-center justify-center flex-shrink-0">
-              <span className="text-5xl">{SPECIES_EMOJI[animalData?.species] || '🐾'}</span>
-              <div className="absolute -bottom-1 -left-1 w-6 h-6 bg-green-500 rounded-full border-3 border-white flex items-center justify-center text-white text-xs font-bold">
-                ✓
+      {/* ── MAIN CONTENT GRID ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* ── LEFT: Basic Data Card ── */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            {/* Card header */}
+            <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-50 bg-[#2d5a1b]/3">
+              <div className="w-8 h-8 rounded-xl bg-[#2d5a1b]/10 flex items-center justify-center">
+                <Activity className="w-4 h-4 text-[#2d5a1b]" />
               </div>
+              <h2 className="text-sm font-black text-gray-800">البيانات الأساسية</h2>
+              <span className="mr-auto text-[10px] text-gray-400 font-mono bg-gray-100 px-2 py-0.5 rounded-md">
+                {a.tag_number}
+              </span>
             </div>
-            <div className="flex-1">
-              <h2 className="text-2xl font-black text-gray-900">
-                {profile.name}
-              </h2>
-              <div className="flex flex-wrap items-center gap-3 mt-3">
-                <span className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">
-                  {profile.species}
-                </span>
-                <span className="inline-block bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-bold">
-                  {profile.gender}
-                </span>
-                <span className="inline-block bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold">
-                  {profile.breed}
-                </span>
-              </div>
-              <p className="text-sm text-gray-500 mt-2">معرف: {profile.id}</p>
+
+            <div className="px-6 py-4 grid grid-cols-1 sm:grid-cols-2 gap-x-10">
+              <InfoRow label="رقم الوسم" value={a.tag_number} mono />
+              <InfoRow label="النوع"            value={`${species.emoji} ${species.label}`} />
+              <InfoRow label="الجنس"            value={gender} />
+              <InfoRow label="السلالة"          value={breed} />
+              <InfoRow label="العمر"            value={age} />
+              <InfoRow label="الوزن"            value={weight} />
+              <InfoRow label="الحالة الصحية"   value={healthStatus.label} />
+              <InfoRow label="المزرعة"          value={farmName} />
+              {governorate && <InfoRow label="المحافظة" value={governorate} />}
+              <InfoRow label="تاريخ الإضافة"   value={createdAt} />
             </div>
           </div>
 
-          {/* Vitals Summary row (4 cards) */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {/* Health General Index */}
-            <div className="p-4 rounded-xl bg-white border border-stone-200 shadow-sm flex flex-col justify-between min-h-[105px] relative overflow-hidden">
-              <div className="absolute left-3 top-3">
-                <span className="text-[9px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 rounded-full">
-                  {profile.statusTag || 'سليم'}
-                </span>
-              </div>
-              <span className="text-[10px] text-stone-400 block font-bold mt-1">
-                الحالة الصحية العامة
-              </span>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
-                  <ShieldCheck className="w-4 h-4" />
+          {/* Notes card — only shown if notes exist */}
+          {notes && (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-50 bg-[#2d5a1b]/3">
+                <div className="w-8 h-8 rounded-xl bg-[#2d5a1b]/10 flex items-center justify-center">
+                  <StickyNote className="w-4 h-4 text-[#2d5a1b]" />
                 </div>
-                <span className="text-sm font-black text-emerald-600">
-                  {profile.status}
-                </span>
+                <h2 className="text-sm font-black text-gray-800">ملاحظات</h2>
               </div>
-            </div>
-
-            {/* Risk Index */}
-            <div className="p-4 rounded-xl bg-white border border-stone-200 shadow-sm flex flex-col justify-between min-h-[105px] relative overflow-hidden">
-              <div className="absolute left-3 top-3">
-                <span className="text-[9px] font-bold bg-amber-50 text-amber-600 border border-amber-100 px-2 py-0.5 rounded-full">
-                  {profile.riskTag || 'متوسط'}
-                </span>
-              </div>
-              <span className="text-[10px] text-stone-400 block font-bold mt-1">
-                مستوى المخاطر
-              </span>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
-                  <AlertTriangle className="w-4 h-4" />
-                </div>
-                <span className="text-sm font-black text-stone-700">
-                  {profile.risk}
-                </span>
-              </div>
-            </div>
-
-            {/* Last Check */}
-            <div className="p-4 rounded-xl bg-white border border-stone-200 shadow-sm flex flex-col justify-between min-h-[105px] relative overflow-hidden">
-              <span className="text-[10px] text-stone-400 block font-bold">
-                آخر فحص
-              </span>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center flex-shrink-0">
-                  <Calendar className="w-4 h-4" />
-                </div>
-                <span className="text-xs font-black text-stone-700">
-                  {profile.lastCheck}
-                </span>
-              </div>
-            </div>
-
-            {/* AI Tips Alerts */}
-            <div className="p-4 rounded-xl bg-white border border-stone-200 shadow-sm flex flex-col justify-between min-h-[105px] relative overflow-hidden">
-              <span className="text-[10px] text-stone-400 block font-bold">
-                توصيات الذكاء الاصطناعي
-              </span>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="w-7 h-7 rounded-lg bg-emerald-50 text-[#2d5a1b] flex items-center justify-center flex-shrink-0">
-                  <Zap className="w-4 h-4" />
-                </div>
-                <span className="text-xs font-black text-[#2d5a1b]">
-                  {profile.aiAlerts}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Basic Details Card */}
-          <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-              <h3 className="text-sm font-black text-stone-850">
-                البيانات الأساسية
-              </h3>
-              <span className="text-[10px] text-stone-400 font-medium">
-                تم التحقق من البيانات • ID: {profile.id}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 text-xs text-stone-650">
-              <div className="flex justify-between items-center border-b border-stone-50 pb-2">
-                <span className="text-stone-400 font-medium">
-                  تاريخ الميلاد
-                </span>
-                <span className="font-bold text-stone-800">
-                  {profile.birthDate}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center border-b border-stone-50 pb-2">
-                <span className="text-stone-400 font-medium">العمر</span>
-                <span className="font-bold text-stone-800">{profile.age}</span>
-              </div>
-
-              <div className="flex justify-between items-center border-b border-stone-50 pb-2">
-                <span className="text-stone-400 font-medium">رقم التسجيل</span>
-                <span className="font-bold text-stone-800 font-mono">
-                  {profile.regNo}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center border-b border-stone-50 pb-2">
-                <span className="text-stone-400 font-medium">معدل الإنتاج</span>
-                <span className="font-bold text-stone-800 flex items-center gap-1.5">
-                  <span>{profile.yield}</span>
-                  {profile.yieldGroup && (
-                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                      {profile.yieldGroup}
-                    </span>
-                  )}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center border-b border-stone-50 pb-2 col-span-2">
-                <span className="text-stone-400 font-medium">الوزن الحالي</span>
-                <span className="font-bold text-stone-800 flex items-center gap-1.5">
-                  <span>{profile.weight}</span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
-                    {profile.weightChange}
-                  </span>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* LEFT COLUMN: Plan, timeline logs, predictions, comments (w-4/12) */}
-        <div className="lg:col-span-4 space-y-6">
-          {/* Active treatment plan card (Dark green header theme) */}
-          {profile.treatment && (
-            <div className="rounded-2xl border border-stone-200 bg-white shadow-sm overflow-hidden">
-              {/* Solid dark green header box */}
-              <div className="bg-[#2d5a1b] text-white px-5 py-4 font-bold flex items-center gap-2">
-                <Heart className="w-5 h-5 text-green-200 fill-green-200/20" />
-                <span className="text-xs">خطة العلاج النشطة</span>
-              </div>
-
-              <div className="p-5 space-y-4">
-                <div className="p-4 bg-stone-50 border border-stone-100 rounded-xl space-y-3.5">
-                  <div>
-                    <span className="text-[10px] text-stone-400 block font-bold">
-                      التشخيص
-                    </span>
-                    <span className="text-xs font-black text-stone-800">
-                      {profile.treatment.diagnosis}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-stone-400 block font-bold mb-0.5">
-                      البروتوكول العلاجي
-                    </span>
-                    <p className="text-[11px] text-stone-500 leading-relaxed font-semibold">
-                      {profile.treatment.protocol}
-                    </p>
-                  </div>
-
-                  {/* Progress bar */}
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between items-center text-[10px] font-bold text-stone-600">
-                      <span>التقدم</span>
-                      <span>{profile.treatment.progress}%</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-stone-200 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-emerald-600 rounded-full"
-                        style={{ width: `${profile.treatment.progress}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => toast.success('عرض تفاصيل العلاج الكاملة')}
-                  className="w-full text-center text-xs font-bold py-2.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-650 transition-colors shadow-sm active:scale-98"
-                >
-                  عرض التفاصيل
-                </button>
+              <div className="px-6 py-4">
+                <p className="text-sm text-gray-600 leading-relaxed">{notes}</p>
               </div>
             </div>
           )}
+        </div>
 
-          {/* Medical Log timeline list */}
-          <div className="p-5 rounded-2xl bg-white border border-stone-200 shadow-sm space-y-4">
-            <h3 className="text-xs font-black text-stone-800 border-b border-stone-100 pb-2">
-              السجل الطبي
+        {/* ── RIGHT: Status + Actions sidebar ── */}
+        <div className="space-y-4">
+
+          {/* Health status card */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
+            <h3 className="text-xs font-black text-gray-700 uppercase tracking-wider">
+              الحالة الصحية
             </h3>
-
-            {/* Timeline */}
-            <div className="relative pr-4 border-r border-stone-250 space-y-6">
-              {profile.history?.map((hist, idx) => (
-                <div key={idx} className="relative space-y-1 text-xs">
-                  {/* Timeline dot */}
-                  <span
-                    className={`absolute -right-[21px] top-1.5 w-2.5 h-2.5 rounded-full border border-white ${hist.dotColor} shadow-xs`}
-                  />
-
-                  <span className="text-[10px] text-stone-400 block font-bold">
-                    {hist.date}
-                  </span>
-                  <h4 className="font-black text-stone-800 text-xs">
-                    {hist.title}
-                  </h4>
-                  <p className="text-[11.5px] text-stone-500 leading-relaxed font-semibold">
-                    {hist.description}
-                  </p>
-
-                  <div className="flex justify-between text-[10px] text-stone-400 pt-1">
-                    <span>الطبيب: {hist.doctor}</span>
-                  </div>
-                </div>
-              ))}
+            <div className={`flex items-center gap-3 p-3 rounded-xl border ${healthStatus.color}`}>
+              <span className={`w-3 h-3 rounded-full flex-shrink-0 ${healthStatus.dot}`} />
+              <span className="text-sm font-black">{healthStatus.label}</span>
             </div>
 
+            <div className="space-y-3 pt-2 border-t border-gray-50">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-400 font-medium flex items-center gap-1.5">
+                  <Calendar className="w-3 h-3" /> تاريخ الإضافة
+                </span>
+                <span className="font-bold text-gray-700">{createdAt}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-400 font-medium flex items-center gap-1.5">
+                  <Tag className="w-3 h-3" /> رقم الوسم
+                </span>
+                <span className="font-bold text-gray-700 font-mono">{a.tag_number}</span>
+              </div>
+              {governorate && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-400 font-medium flex items-center gap-1.5">
+                    <MapPin className="w-3 h-3" /> المحافظة
+                  </span>
+                  <span className="font-bold text-gray-700">{governorate}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Danger zone */}
+          <div className="bg-white rounded-2xl border border-red-100 shadow-sm p-5 space-y-3">
+            <h3 className="text-xs font-black text-red-500 uppercase tracking-wider">منطقة الخطر</h3>
+            <p className="text-[11px] text-gray-400 leading-relaxed">
+              حذف الحيوان سيؤدي إلى إزالة جميع سجلاته الطبية والتطعيمات المرتبطة به بشكل نهائي.
+            </p>
             <button
-              onClick={() => toast.success('تحميل السجلات الطبية القديمة')}
-              className="w-full text-center text-xs font-bold py-2.5 rounded-xl border border-stone-200 hover:bg-stone-50 text-stone-600 transition-colors shadow-sm mt-2 active:scale-98"
+              onClick={handleDeleteAnimal}
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-50 text-red-600 border border-red-200 rounded-xl text-xs font-bold hover:bg-red-100 hover:border-red-300 transition-all"
             >
-              تحميل السجلات السابقة
+              <Trash2 className="w-4 h-4" />
+              حذف الحيوان نهائياً
             </button>
           </div>
 
-          {/* AI Forecast predictive recommendations */}
-          <div className="p-5 rounded-2xl bg-gradient-to-br from-[#2d5a1b]/5 to-[#3d6b47]/5 border border-[#2d5a1b]/15 shadow-sm space-y-3">
-            <div className="flex items-center gap-2 font-bold text-[#2d5a1b]">
-              <Zap className="w-5 h-5 fill-[#2d5a1b]/10" />
-              <span className="text-xs">توقعات الذكاء الاصطناعي</span>
-            </div>
-
-            <p className="text-xs text-stone-600 leading-relaxed font-semibold">
-              {profile.aiPrediction}
-            </p>
-
-            <div className="pt-2 border-t border-stone-200/50 flex justify-between items-center text-[10px] font-bold text-stone-500">
-              <span>درجة دقة التنبؤ</span>
-              <span className="bg-[#2d5a1b] text-white px-2.5 py-0.5 rounded-full">
-                {profile.aiConfidence} ثقة
-              </span>
-            </div>
-          </div>
-
-          {/* Doctor/Breeder Notes chat-like form */}
-          <div className="p-5 rounded-2xl bg-white border border-stone-200 shadow-sm space-y-4">
-            <h3 className="text-xs font-black text-stone-800 border-b border-stone-100 pb-2">
-              ملاحظات الطبيب والمربي
-            </h3>
-
-            {/* Notes List */}
-            <div className="space-y-3.5 max-h-48 overflow-y-auto pr-1">
-              {profile.notes?.map((note, idx) => (
-                <div
-                  key={idx}
-                  className="p-3 bg-stone-50 rounded-xl border border-stone-100 text-xs space-y-1.5"
-                >
-                  <div className="flex items-center justify-between text-[10px]">
-                    <span className="font-bold text-stone-700 flex items-center gap-1">
-                      <User className="w-3.5 h-3.5 text-stone-400" />
-                      <span>{note.author}</span>
-                      <span className="text-[9px] font-normal text-stone-400">
-                        ({note.role})
-                      </span>
-                    </span>
-                    <span className="text-stone-400">{note.time}</span>
-                  </div>
-                  <p className="text-stone-600 leading-relaxed font-semibold text-[11px]">
-                    {note.text}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* Add note input form */}
-            <form
-              onSubmit={handleAddNote}
-              className="relative flex items-center bg-stone-50 border border-stone-200 rounded-xl p-1 focus-within:ring-2 focus-within:ring-[#2d5a1b]/20 focus-within:border-[#2d5a1b] transition-all"
-            >
-              <input
-                type="text"
-                value={noteText}
-                onChange={(e) => setNoteText(e.target.value)}
-                placeholder="إضافة ملاحظة..."
-                className="flex-1 pr-3 pl-10 py-2 text-xs bg-transparent outline-none text-stone-700 placeholder:text-stone-400"
-              />
-              <button
-                type="submit"
-                className="absolute left-1.5 p-1.5 bg-[#2d5a1b] hover:bg-[#3d6b47] text-white rounded-lg transition-colors flex items-center justify-center active:scale-95"
-              >
-                <Send className="w-3.5 h-3.5 transform rotate-180" />
-              </button>
-            </form>
-          </div>
         </div>
       </div>
     </div>
