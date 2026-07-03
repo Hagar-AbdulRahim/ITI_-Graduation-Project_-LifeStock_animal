@@ -17,9 +17,17 @@ export const getNearbyClinics = ({ lat, lng, radius }) => {
  * @param {string} message - سؤال المستخدم
  * @param {number} lat
  * @param {number} lng
+ *
+ * ملحوظة: الـ timeout هنا 25 ثانية بدل الـ 10 ثواني الافتراضية،
+ * لأن الباك اند بيجرب أكتر من Overpass mirror + Gemini قبل ما يرد،
+ * وده ممكن ياخد وقت أطول من الطلبات العادية
  */
 export const emergencyChat = ({ message, lat, lng }) => {
   return axiosInstance
-    .post('/clinics/emergency', { message, lat, lng })
+    .post(
+      '/clinics/emergency',
+      { message, lat, lng },
+      { timeout: 25000 }
+    )
     .then((r) => r.data)
 }
