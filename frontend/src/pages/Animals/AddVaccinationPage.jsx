@@ -30,12 +30,15 @@ const AddVaccinationPage = () => {
       last_date: '',
       scheduled_date: '',
       dose_ml: '',
+      next_due_date: '',
       notes: ''
     }
   });
 
   const vaccineType = watch('vaccine_type');
   const isFirstDose = watch('is_first_dose');
+  const lastDate = watch('last_date');
+  const nextDueDate = watch('next_due_date');
 
   useEffect(() => {
     if (id && (!animal || animal._id !== id)) {
@@ -64,6 +67,10 @@ const AddVaccinationPage = () => {
       }
       if (data.dose_ml) {
         payload.dose_ml = Number(data.dose_ml);
+      }
+      // إرسال next_due_date بس لو المستخدم اختار قيمة فعلاً
+      if (data.next_due_date && data.next_due_date.trim()) {
+        payload.next_due_date = data.next_due_date;
       }
     } else {
       payload.scheduled_date = data.scheduled_date;
@@ -123,7 +130,7 @@ const AddVaccinationPage = () => {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate(`/animals/${id}`)}
               className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-50 text-stone-500 transition-colors"
             >
               <ArrowRight className="w-5 h-5" />
@@ -309,11 +316,56 @@ const AddVaccinationPage = () => {
                   )}
                 </div>
 
+                {/* Next Due Date - Optional, shown for all recurring regardless of is_first_dose */}
+                <div>
+                  <label className={labelCls}>
+                    موعد الجرعة القادمة
+                    <span className="text-stone-400 font-normal text-[11px] mr-1">(اختياري)</span>
+                  </label>
+                  <input
+                    type="date"
+                    {...register('next_due_date', {
+                      validate: (val) => {
+                        if (!val || !val.trim()) return true; // اختياري، لو فاضي مفيش مشكلة
+                        const selected = new Date(val);
+                        selected.setHours(0, 0, 0, 0);
+                        if (isFirstDose) {
+                          // أول جرعة: لازم يكون بعد النهارده
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          if (selected <= today) {
+                            return 'موعد الجرعة القادمة يجب أن يكون بعد اليوم';
+                          }
+                        } else {
+                          // مش أول جرعة: لازم يكون بعد last_date
+                          if (!lastDate) return true; // لو last_date فاضية، السيرفر هيتحقق
+                          const last = new Date(lastDate);
+                          last.setHours(0, 0, 0, 0);
+                          if (selected <= last) {
+                            return 'موعد الجرعة القادمة يجب أن يكون بعد تاريخ آخر جرعة';
+                          }
+                        }
+                        return true;
+                      }
+                    })}
+                    className={inputCls(errors.next_due_date)}
+                  />
+                  {errors.next_due_date && (
+                    <p className="text-[11px] text-rose-500 mt-1">
+                      {errors.next_due_date.message}
+                    </p>
+                  )}
+                  <span className="text-[11px] text-stone-400 block mt-1.5 flex items-center gap-1">
+                    <Info className="w-3.5 h-3.5" />
+                    لو سبتيه فاضي، هيتحدد تلقائياً بعد 12 شهر من تاريخ آخر جرعة
+                  </span>
+                </div>
+
                 {isFirstDose && (
                   <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-3.5 text-xs text-[#2a5c2a] leading-relaxed flex items-start gap-2">
                     <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
                     <span>
-                      بما أنها الجرعة الأولى للحيوان، سيقوم النظام تلقائياً بتحديد موعد الجرعة القادمة الموصى بها وحساب الفترة المناسبة للتطعيم التنشيطي.
+                      بما أنها الجرعة الأولى للحيوان، سيقوم النظام تلقائياً بتحديد موعد الجرعة القادمة الموصى بها وحساب الفترة المناسبة للتطعيم التنشيطي — إلا لو اخترتِ موعداً يدوياً بالأعلى.
                     </span>
                   </div>
                 )}
@@ -385,7 +437,7 @@ const AddVaccinationPage = () => {
           <div className="flex items-center justify-between pt-2">
             <button
               type="button"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate(`/animals/${id}`)}
               className="flex items-center gap-2 px-6 py-2.5 bg-white border border-stone-200 rounded-xl text-sm font-bold text-stone-600 hover:bg-stone-50 transition-colors"
             >
               <X className="w-4 h-4" />
