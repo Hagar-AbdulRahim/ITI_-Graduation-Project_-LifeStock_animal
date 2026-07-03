@@ -215,7 +215,7 @@ const AnimalVaccinationsPage = () => {
             <div>
               <h1 className="text-[17px] font-bold text-stone-900">سجل تطعيمات الحيوان</h1>
               <p className="text-[11px] text-stone-400 font-medium">
-                تحصينات الحيوان: <span className="font-semibold text-[#2a5c2a]">{animal?.name || animal?.tag_number || '...'}</span>
+                تحصينات الحيوان: <span className="font-semibold text-[#2a5c2a]">#{animal?.tag_number || '...'}</span>
               </p>
             </div>
           </div>

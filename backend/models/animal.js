@@ -7,12 +7,6 @@ const animalSchema = new mongoose.Schema(
       ref: "Farm",
       required: true,
     },
-    name: {
-      type: String,
-      trim: true,
-      maxlength: 100,
-      default: null,
-    },
     tag_number: {
       type: String,
       required: true,
@@ -59,12 +53,6 @@ const animalSchema = new mongoose.Schema(
       default: "healthy",
     },
 
-    // ── صورة الحيوان ──────────────────────────────────────────────────────────
-    image: {
-      type: String, // مسار الصورة: /uploads/animals/filename.jpg
-      default: null,
-    },
-
     notes: {
       type: String,
       trim: true,
@@ -93,12 +81,6 @@ animalSchema.virtual("age_in_months").get(function () {
   return this.age_unit === "years" ? this.age_value * 12 : this.age_value;
 });
 
-
-animalSchema.pre("save", function () {
-  if (!this.name || !this.name.trim()) {
-    this.name = this.tag_number ? `حيوان ${this.tag_number}` : "حيوان جديد";
-  }
-});
 
 // ── Cascade: لو الحيوان اتحذف، احذف حالاته وتطعيماته ───────────────────────
 

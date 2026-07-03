@@ -34,7 +34,6 @@ const EditAnimalPage = () => {
   useEffect(() => {
     if (animal) {
       reset({
-        name: animal.name || '',
         gender: animal.gender || 'female',
         age_value: animal.age_value || '',
         age_unit: animal.age_unit || 'months',
@@ -48,20 +47,20 @@ const EditAnimalPage = () => {
   }, [animal, reset]);
 
   const onSubmit = async (data) => {
-    const formData = new FormData();
-    if (data.name) formData.append('name', data.name.trim());
-    formData.append('gender', data.gender);
-    formData.append('age_value', Number(data.age_value));
-    formData.append('age_unit', data.age_unit);
-    formData.append('health_status', data.health_status);
-    
-    if (data.tag_number) formData.append('tag_number', data.tag_number.trim());
-    if (data.breed) formData.append('breed', data.breed.trim());
-    if (data.weight_kg) formData.append('weight_kg', Number(data.weight_kg));
-    if (data.notes) formData.append('notes', data.notes.trim());
+    const payload = {
+      gender: data.gender,
+      age_value: Number(data.age_value),
+      age_unit: data.age_unit,
+      health_status: data.health_status,
+    };
+
+    if (data.tag_number) payload.tag_number = data.tag_number.trim();
+    if (data.breed) payload.breed = data.breed.trim();
+    if (data.weight_kg) payload.weight_kg = Number(data.weight_kg);
+    if (data.notes) payload.notes = data.notes.trim();
 
     try {
-      await dispatch(updateExistingAnimal({ id, data: formData })).unwrap();
+      await dispatch(updateExistingAnimal({ id, data: payload })).unwrap();
       navigate(`/animals/${id}`);
     } catch (err) {
       // Error shown via Redux state
@@ -100,7 +99,7 @@ const EditAnimalPage = () => {
             </button>
             <div>
               <h1 className="text-[17px] font-bold text-gray-900">تعديل بيانات الحيوان</h1>
-              <p className="text-[11px] text-gray-400 font-medium">تحديث معلومات: {animal?.name}</p>
+              <p className="text-[11px] text-gray-400 font-medium">تحديث معلومات: #{animal?.tag_number || '---'}</p>
             </div>
           </div>
           <span className="text-[12px] text-gray-400 font-medium bg-gray-50 border border-gray-200 px-3 py-1 rounded-full">
@@ -153,17 +152,6 @@ const EditAnimalPage = () => {
                   </select>
                   {errors.age_unit && <p className="text-[11px] text-red-500 mt-1">{errors.age_unit.message}</p>}
                 </div>
-              </div>
-
-              {/* Name */}
-              <div>
-                <label className={labelCls}>اسم الحيوان</label>
-                <input
-                  type="text"
-                  {...register('name', { maxLength: { value: 100, message: 'اسم الحيوان طويل جداً' } })}
-                  className={inputCls(errors.name)}
-                />
-                {errors.name && <p className="text-[11px] text-red-500 mt-1">{errors.name.message}</p>}
               </div>
 
               {/* Tag Number */}

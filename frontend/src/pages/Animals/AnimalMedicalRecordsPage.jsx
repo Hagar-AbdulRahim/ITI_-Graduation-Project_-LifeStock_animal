@@ -159,7 +159,7 @@ const AnimalMedicalRecordsPage = () => {
                 {selectedCaseId ? 'تفاصيل السجل الطبي' : 'السجل المرضي والطبي'}
               </h1>
               <p className="text-[11px] text-gray-400 font-medium">
-                الملف الطبي للحيوان: {animal?.name || animal?.tag_number || '...'}
+                الملف الطبي للحيوان: #{animal?.tag_number || '...'}
               </p>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { ArrowRight, Save, X, Loader2 } from 'lucide-react';
@@ -7,55 +7,59 @@ import { addNewAnimal } from '../../redux/animalSlice';
 import { fetchMyFarms } from '../../redux/farmSlice';
 
 // ─── Backend Animal Model (for reference) ─────────────────────────────────────
-// Required: farm_id, name, species (cattle|sheep|goat), gender (male|female), birth_date
+// Required: farm_id, species (cattle|sheep|goat), gender (male|female), age_value, age_unit
 // Optional: tag_number, breed, weight_kg, notes
 // Auto: health_status (default: healthy), is_active (default: true)
 // ─────────────────────────────────────────────────────────────────────────────
 
 const AddAnimalPage = () => {
-  const { farmId } = useParams(); // farm_id comes from the URL — no need to select it
+  const [searchParams] = useSearchParams();
+  const farmId = searchParams.get('farmId'); // farm_id can come as a query parameter from dashboard links
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const { loading, error } = useSelector((state) => state.animal);
   const farms = useSelector((state) => state.farm?.farms || []);
 
+  const selectedFarm = farmId ? farms.find((farm) => farm._id === farmId) : null;
+
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm({
-    defaultValues: { age_unit: 'months' },
+    defaultValues: { age_unit: 'months', health_status: 'healthy', farm_id: farmId || '' },
   });
+
+  const selectedFarmId = farmId || watch('farm_id');
 
   useEffect(() => {
     dispatch(fetchMyFarms());
   }, [dispatch]);
 
   const onSubmit = async (data) => {
-    const formData = new FormData();
-    const actualFarmId = farmId || (farms && farms.length > 0 ? farms[0]._id : null);
-
+    const actualFarmId = selectedFarmId || (farms && farms.length > 0 ? farms[0]._id : null);
     if (!actualFarmId) {
       return;
     }
 
-    formData.append('farm_id', actualFarmId);
-    if (data.name) formData.append('name', data.name.trim());
-    formData.append('species', data.species);
-    formData.append('gender', data.gender);
-    formData.append('age_value', Number(data.age_value));
-    formData.append('age_unit', data.age_unit);
-    formData.append('health_status', data.health_status || 'healthy');
+    const payload = {
+      farm_id: actualFarmId,
+      species: data.species,
+      gender: data.gender,
+      age_value: Number(data.age_value),
+      age_unit: data.age_unit,
+      health_status: data.health_status || 'healthy',
+      tag_number: data.tag_number ? data.tag_number.trim() : `TAG-${Math.floor(Math.random() * 1000000)}`,
+    };
 
-    const finalTagNumber = data.tag_number ? data.tag_number.trim() : `TAG-${Math.floor(Math.random() * 1000000)}`;
-    formData.append('tag_number', finalTagNumber);
-    if (data.breed) formData.append('breed', data.breed.trim());
-    if (data.weight_kg) formData.append('weight_kg', Number(data.weight_kg));
-    if (data.notes) formData.append('notes', data.notes.trim());
+    if (data.breed) payload.breed = data.breed.trim();
+    if (data.weight_kg) payload.weight_kg = Number(data.weight_kg);
+    if (data.notes) payload.notes = data.notes.trim();
 
     try {
-      await dispatch(addNewAnimal(formData)).unwrap();
+      await dispatch(addNewAnimal(payload)).unwrap();
       navigate(actualFarmId ? `/farms/${actualFarmId}/animals` : '/farms');
     } catch (err) {
       // Error shown via Redux state
@@ -106,6 +110,14 @@ const AddAnimalPage = () => {
           </div>
         )}
 
+        {farmId && (
+          <div className="mb-5 rounded-[20px] border border-emerald-100 bg-emerald-50 p-5 text-sm text-emerald-800 shadow-sm">
+            <p className="font-semibold mb-1">المزرعة المختارة</p>
+            <p>{selectedFarm ? selectedFarm.name : 'المزرعة المحددة غير موجودة في القائمة'}</p>
+            {selectedFarm?.governorate && <p className="text-xs text-emerald-700 mt-1">المحافظة: {selectedFarm.governorate}</p>}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 
           {/* ── Section 2: Basic Info ──────────────────────────────── */}
@@ -116,7 +128,23 @@ const AddAnimalPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
 
-              {/* Age */}
+              {!farmId && (
+              <div className="md:col-span-2">
+                <label className={labelCls}>المزرعة <span className="text-red-400">*</span></label>
+                <select
+                  {...register('farm_id', { required: 'المزرعة مطلوبة' })}
+                  className={`${inputCls(errors.farm_id)} bg-white`}
+                >
+                  <option value="">اختر المزرعة...</option>
+                  {farms.map((farm) => (
+                    <option key={farm._id} value={farm._id}>{farm.name}</option>
+                  ))}
+                </select>
+                {errors.farm_id && <p className="text-[11px] text-red-500 mt-1">{errors.farm_id.message}</p>}
+              </div>
+            )}
+
+            {/* Age */}
               <div className="flex gap-2">
                 <div className="flex-1">
                   <label className={labelCls}>العمر <span className="text-red-400">*</span></label>
@@ -140,18 +168,6 @@ const AddAnimalPage = () => {
                   </select>
                   {errors.age_unit && <p className="text-[11px] text-red-500 mt-1">{errors.age_unit.message}</p>}
                 </div>
-              </div>
-
-              {/* Name */}
-              <div>
-                <label className={labelCls}>اسم الحيوان</label>
-                <input
-                  type="text"
-                  {...register('name', { maxLength: { value: 100, message: 'اسم الحيوان طويل جداً' } })}
-                  placeholder="مثال: بيسكو"
-                  className={inputCls(errors.name)}
-                />
-                {errors.name && <p className="text-[11px] text-red-500 mt-1">{errors.name.message}</p>}
               </div>
 
               {/* Tag Number */}

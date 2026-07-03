@@ -117,7 +117,7 @@ const AnimalHealthCasesPage = () => {
             <div>
               <h1 className="text-[17px] font-bold text-slate-900">Medical History</h1>
               <p className="text-[11px] text-slate-400 font-medium">
-                Animal: {animal?.tag_number || animal?.name || '...'} ({animal?.species || '...'})
+                Animal: #{animal?.tag_number || '...'} ({animal?.species || '...'})
               </p>
             </div>
           </div>

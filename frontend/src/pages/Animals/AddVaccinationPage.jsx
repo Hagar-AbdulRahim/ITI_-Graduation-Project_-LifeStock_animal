@@ -133,7 +133,7 @@ const AddVaccinationPage = () => {
                 تسجيل تطعيم جديد
               </h1>
               <p className="text-[11px] text-stone-400 font-medium">
-                إضافة تطعيم للحيوان: <span className="font-semibold text-[#2a5c2a]">{animal?.name || animal?.tag_number || '...'}</span>
+                إضافة تطعيم للحيوان: <span className="font-semibold text-[#2a5c2a]">#{animal?.tag_number || '...'}</span>
               </p>
             </div>
           </div>
