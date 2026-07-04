@@ -43,12 +43,11 @@ const farmSchema = new mongoose.Schema(
 farmSchema.index({ user_id: 1 });
 farmSchema.index({ governorate: 1 });
 
-farmSchema.pre("findOneAndDelete", async function (next) {
+farmSchema.pre("findOneAndDelete", async function () {
   const farm = await this.model.findOne(this.getQuery());
   if (farm) {
     await mongoose.model("Animal").deleteMany({ farm_id: farm._id });
   }
-  next();
 });
 
 module.exports = mongoose.model("Farm", farmSchema);

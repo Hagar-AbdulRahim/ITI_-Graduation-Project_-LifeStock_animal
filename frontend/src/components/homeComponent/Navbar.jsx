@@ -27,8 +27,6 @@ const NAV_LINKS = [
   { id: 'diagnosis',     label: 'التشخيص',               icon: <IconActivity />, path: '/diagnosis' },
   { id: 'image-analysis',label: 'تحليل الصور',            icon: <IconCamera />,   path: '/image-analysis' },
   { id: 'vaccinations',  label: 'التطعيمات',              icon: <IconSyringe />,  path: '/vaccinations' },
-  { id: 'library',       label: 'المكتبة',                icon: <IconBook />,     path: '/library' },
-  { id: 'reports',       label: 'التقارير',               icon: <IconBarChart />, path: '/reports' },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────

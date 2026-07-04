@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Plus, Loader2, AlertCircle, Search, Bell, HelpCircle, ChevronRight, LayoutGrid, Leaf, Map, Settings } from 'lucide-react';
+import { MapPin, Plus, Loader2, AlertCircle, Search, Bell, HelpCircle, ChevronRight, LayoutGrid, Leaf, Map, Settings, Edit3, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import FarmForm from '../../components/FarmForm';
 import { fetchMyFarms } from '../../redux/farmSlice';
 import { updateFarm, deleteFarm } from '../../services/farmService';
@@ -52,92 +53,123 @@ const FarmCard = ({ farm }) => {
   const { loading, error } = useSelector((state) => state.farm);
 
   const handleUpdate = async (data) => {
-    await updateFarm(farm._id, data);
-    dispatch(fetchMyFarms());
-    setEditMode(false);
+    try {
+      await updateFarm(farm._id, data);
+      toast.success('تم تحديث المزرعة بنجاح');
+      dispatch(fetchMyFarms());
+      setEditMode(false);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'فشل في تحديث المزرعة');
+    }
   };
 
   const handleDelete = async () => {
-    await deleteFarm(farm._id);
-    dispatch(fetchMyFarms());
-    setShowDeleteConfirm(false);
+    try {
+      await deleteFarm(farm._id);
+      toast.success('تم حذف المزرعة بنجاح');
+      dispatch(fetchMyFarms());
+      setShowDeleteConfirm(false);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'فشل في حذف المزرعة');
+      setShowDeleteConfirm(false);
+    }
   };
 
   return (
-    <div className="bg-white border border-gray-100 rounded-[24px] shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col font-cairo cursor-pointer group relative">
-      {/* Management button positioned at top */}
-      <div className="absolute top-3 left-3 z-10">
-        <button
-          onClick={(e) => { e.stopPropagation(); navigate(`/farms/${farm._id}`); }}
-          className="text-xs font-bold py-1.5 px-3 rounded-lg bg-white/90 backdrop-blur-sm text-[#154b23] hover:bg-white transition-colors shadow-sm"
-        >
-          إدارة المزرعة
-        </button>
-      </div>
-
-      <div className="relative h-[160px] w-full overflow-hidden bg-[#154b23]/5 flex items-center justify-center">
-        {/* Placeholder decorative pattern instead of an image for farms */}
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#154b23 1px, transparent 1px)', backgroundSize: '16px 16px' }}></div>
-        <Map className="w-16 h-16 text-[#154b23] opacity-20" />
-
-        {/* Farm Name Badge centered over pattern */}
-        <div className="z-10 bg-white shadow-sm border border-gray-100 px-6 py-2.5 rounded-full transform group-hover:-translate-y-1 transition-transform duration-300">
-          <h3 className="font-bold text-[#154b23] text-[15px]">{farm.name}</h3>
-        </div>
-      </div>
-
-      <div className="p-6 flex flex-col flex-grow bg-white">
-
-        <div className="grid grid-cols-1 gap-y-4 my-2 text-[13px]">
-          <div className="flex items-center gap-3 flex-row-reverse justify-end">
-            <div className="text-right">
-              <p className="text-gray-400 font-medium mb-0.5">الموقع</p>
-              <p className="font-bold text-gray-900 text-sm">{farm.governorate || 'غير محدد'}</p>
-            </div>
-            <div className="w-10 h-10 rounded-2xl bg-[#154b23]/5 flex items-center justify-center flex-shrink-0">
-              <MapPin className="w-5 h-5 text-[#154b23]" />
-            </div>
+    <div className="bg-white border border-stone-100 rounded-[24px] shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col font-cairo cursor-pointer h-full">
+      
+      {/* Green Header Area */}
+      <div className="relative bg-[#1b4d2c] pt-5 pb-6 px-5" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.1) 1.5px, transparent 1.5px)', backgroundSize: '16px 16px' }}>
+        {/* Top actions */}
+        <div className="flex items-center justify-between mb-4">
+          {/* Icon on the right (first in RTL) */}
+          <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
+            <Map className="w-5 h-5 text-white" />
           </div>
 
-          <div className="flex items-center gap-3 flex-row-reverse justify-end">
-            <div className="text-right">
-              <p className="text-gray-400 font-medium mb-0.5">إجمالي الحيوانات</p>
-              <p className="font-bold text-gray-900 text-sm">{farm.total_animals || 0} رأس</p>
-            </div>
-            <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-              <LayoutGrid className="w-5 h-5 text-blue-500" />
-            </div>
+          {/* Edit / Delete Buttons on the left (last in RTL) */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDeleteConfirm(true); }}
+              className="w-8 h-8 flex items-center justify-center rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors shadow-sm"
+              title="حذف المزرعة"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); setEditMode(true); }}
+              className="w-8 h-8 flex items-center justify-center rounded-xl bg-white text-stone-600 hover:bg-stone-100 transition-colors shadow-sm"
+              title="تعديل المزرعة"
+            >
+              <Edit3 className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
+        {/* Farm Name */}
+        <div className="text-right mt-2">
+          <h3 className="font-bold text-white text-xl">{farm.name}</h3>
+        </div>
+      </div>
+
+      {/* White Body Area */}
+      <div className="p-5 flex flex-col flex-grow bg-white">
+        
+        {/* Info Cards Stack */}
+        <div className="flex flex-col gap-3">
+          {/* Location */}
+          <div className="bg-stone-50 rounded-2xl p-4 flex items-center justify-start gap-4 border border-stone-100/60">
+            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm border border-stone-100 text-stone-500 flex-shrink-0">
+              <MapPin className="w-4 h-4" />
+            </div>
+            <div className="text-right">
+              <p className="text-stone-400 text-xs font-medium mb-1">الموقع</p>
+              <p className="font-bold text-stone-800 text-sm">{farm.governorate || 'غير محدد'}</p>
+            </div>
+          </div>
+
+          {/* Animals Count */}
+          <div className="bg-stone-50 rounded-2xl p-4 flex items-center justify-start gap-4 border border-stone-100/60">
+            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm border border-stone-100 text-stone-500 flex-shrink-0">
+              <LayoutGrid className="w-4 h-4" />
+            </div>
+            <div className="text-right">
+              <p className="text-stone-400 text-xs font-medium mb-1">الحيوانات</p>
+              <p className="font-bold text-stone-800 text-sm">{farm.total_animals || 0} رأس</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Description */}
         {farm.description && (
-          <p className="text-gray-500 text-[12px] mt-4 line-clamp-2 leading-relaxed bg-[#fbf9f6] p-3 rounded-xl border border-gray-100">
-            {farm.description}
-          </p>
+          <div className="mt-4 text-right">
+            <p className="text-stone-500 text-xs leading-relaxed line-clamp-1">{farm.description}</p>
+          </div>
         )}
 
-        {/* Action buttons */}
-        <div className="flex gap-2 mt-5 pt-4 border-t border-gray-50">
+        {/* Manage Button */}
+        <div className="mt-auto pt-5">
           <button
-            onClick={(e) => { e.stopPropagation(); setEditMode(true); }}
-            className="flex-1 text-xs py-2 bg-[#fbf9f6] text-gray-700 font-bold rounded-xl hover:bg-gray-100 transition-colors"
+            onClick={(e) => { e.stopPropagation(); navigate(`/farms/${farm._id}`); }}
+            className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#1b4d2c] text-white font-bold rounded-2xl hover:bg-[#153e23] transition-colors shadow-md shadow-green-900/10 active:scale-[0.98]"
           >
-            تعديل
-          </button>
-          <button
-            type="button"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDeleteConfirm(true); }}
-            className="flex-1 text-xs py-2 bg-red-50 text-red-600 font-bold rounded-xl hover:bg-red-100 transition-colors"
-          >
-            حذف
+            إدارة المزرعة
+            <span className="text-lg leading-none" style={{ transform: 'scaleX(-1)' }}>➔</span>
           </button>
         </div>
+
       </div>
 
       {/* Edit Modal using shared FarmForm */}
       {editMode && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full max-h-[80vh] overflow-y-auto border border-gray-200">
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+          onClick={() => setEditMode(false)}
+        >
+          <div
+            className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full max-h-[80vh] overflow-y-auto border border-gray-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="text-lg font-bold mb-4">تعديل المزرعة</h3>
             <FarmForm
               defaultValues={{ name: farm.name, governorate: farm.governorate, description: farm.description || '' }}
@@ -152,8 +184,14 @@ const FarmCard = ({ farm }) => {
 
       {/* Delete Confirmation */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm">
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+          onClick={() => setShowDeleteConfirm(false)}
+        >
+          <div
+            className="bg-white p-6 rounded-lg shadow-lg max-w-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
             <p className="mb-4">هل أنت متأكد من حذف المزرعة؟</p>
             <div className="flex gap-2 justify-end">
               <button onClick={() => setShowDeleteConfirm(false)} className="px-4 py-2 bg-gray-300 rounded">إلغاء</button>
@@ -186,27 +224,31 @@ const FarmsPage = () => {
   });
 
   return (
-    <div className="min-h-screen bg-[#f5f7f5] flex flex-col font-cairo" dir="rtl">
+    <div className="min-h-screen bg-[#f5f2eb] flex flex-col font-cairo" dir="rtl">
       <TopNavbar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
-      <main className="max-w-[1400px] w-full mx-auto px-8 py-8 flex-1 flex flex-col">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-2">
-          <div className="text-right">
-            <h1 className="text-[26px] font-bold text-gray-900 leading-tight">المزارع الخاصة بي</h1>
-            <p className="text-[14px] text-gray-500 font-medium mt-2">
-              إدارة منشآتك الزراعية، متابعة الإنتاج، والتحكم في القطاعات.
+      <main className="flex-1 flex flex-col">
+        {/* Page Banner / Header */}
+        <div className="bg-white border-b border-stone-200/60 py-10 px-8 shadow-sm">
+          <div className="max-w-[1400px] mx-auto w-full flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div className="text-right">
+            <h1 className="text-3xl font-black text-stone-900 tracking-tight mb-1.5">المزارع الخاصة بي</h1>
+            <p className="text-[14px] text-stone-500 font-medium">
+              إدارة منشآتك الزراعية، متابعة الإنتاج، والتحكم في القطاعات بصورة احترافية.
             </p>
           </div>
           <button
             onClick={() => navigate('/farms/add')}
-            className="flex items-center gap-2 px-6 py-3 bg-[#154b23] text-white rounded-xl text-sm font-bold hover:bg-[#0f3619] transition-all shadow-md shadow-[#154b23]/20 active:scale-95"
+            className="flex items-center justify-center gap-2 px-7 py-3.5 bg-gradient-to-r from-[#1b4d2c] to-[#2a7543] text-white rounded-xl text-[14px] font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all shadow-md shadow-green-900/10 active:scale-95"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-5 h-5" />
             إضافة مزرعة
           </button>
+          </div>
         </div>
 
+        {/* Content Container */}
+        <div className="max-w-[1400px] mx-auto w-full px-8 py-10 flex-1 flex flex-col">
         {/* Alerts / Loading */}
         {loading.farms && displayFarms.length === 0 && (
           <div className="flex-1 flex items-center justify-center">
@@ -242,6 +284,7 @@ const FarmsPage = () => {
 
           </div>
         )}
+        </div>
       </main>
 
       <footer className="px-8 py-5 bg-white border-t border-gray-200 flex items-center justify-between text-[12px] font-semibold text-gray-500 mt-4">

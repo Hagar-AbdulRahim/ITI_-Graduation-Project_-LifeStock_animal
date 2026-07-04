@@ -142,25 +142,4 @@ export const SIDEBAR_LINKS = [
     path: '/vaccine-agent',
     isStandalone: true,
   },
-  {
-    id: 'emergencies',
-    label: 'حالات النفسي',
-    icon: 'alert-circle',
-    color: 'text-purple-500',
-    path: '/emergencies',
-  },
-  {
-    id: 'library',
-    label: 'المكتبة',
-    icon: 'book',
-    color: 'text-indigo-500',
-    path: '/library',
-  },
-  {
-    id: 'reports',
-    label: 'التقارير',
-    icon: 'bar-chart',
-    color: 'text-cyan-500',
-    path: '/reports',
-  },
 ]
