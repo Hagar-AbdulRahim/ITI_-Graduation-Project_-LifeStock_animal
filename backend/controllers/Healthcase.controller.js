@@ -5,6 +5,8 @@ const Farm          = require("../models/farm");
 const fs            = require("fs");
 const { diagnoseSymptoms, analyzeImage } = require("../services/aiagent");
 const { transcribeAudio }   = require("../voiceService");
+const { sendNotification } = require("../services/notificationService");
+const User                 = require("../models/user");
 
 const { isAdmin, isDoctor, canAccessGovernorate } = require("../utils/accessControl");
 
@@ -101,9 +103,34 @@ const runDiagnosis = async (req, body) => {
     });
 
     const healthStatusMap = { green: "healthy", yellow: "sick", red: "critical" };
-    await Animal.findByIdAndUpdate(animal_id, {
-      health_status: healthStatusMap[diagnosis.severity] || "sick",
-    });
+await Animal.findByIdAndUpdate(animal_id, {
+  health_status: healthStatusMap[diagnosis.severity] || "sick",
+});
+
+// إشعار فوري لو الحالة خطيرة
+if (diagnosis.severity === "red") {
+  try {
+    const owner = await User.findById(req.user._id).select("+push_subscription");
+    if (owner) {
+      await sendNotification({
+        user:           owner,
+        title:          "⚠️ تنبيه صحي عاجل",
+        body:           `تم اكتشاف حالة خطيرة: ${diagnosis.diagnosis} — ${animal.tag_number || "حيوانك"}. تواصل مع الطبيب البيطري فوراً.`,
+        type:           "health_case",
+        animal_id:      animal._id,
+        vaccination_id: null,
+        data: {
+          case_id:   healthCase._id.toString(),
+          severity:  "red",
+          diagnosis: diagnosis.diagnosis,
+          url:       `/health-cases/${healthCase._id}`,
+        },
+      });
+    }
+  } catch (notifErr) {
+    console.warn("health_case notification failed:", notifErr.message);
+  }
+}
 
     return {
       status: 201,

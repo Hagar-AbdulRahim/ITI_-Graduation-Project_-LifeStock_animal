@@ -1,29 +1,16 @@
 /**
- * خدمة البحث عن عيادات/مستشفيات بيطرية قريبة عبر OpenStreetMap
- * - Overpass API  → بيجيب العيادات القريبة (مع fallback mirrors + retry)
- * - Nominatim     → بيحول اسم المحافظة لـ lat/lng (fallback)
- *
- * مفيش API key — مجاناً تماماً
+ * خدمة البحث عن عيادات/مستشفيات بيطرية قريبة
+ * - Geoapify Places API → بيانات أماكن حقيقية (اسم، عنوان، تليفون، ساعات)
+ * - Nominatim           → تحويل اسم المحافظة لـ lat/lng (fallback)
  */
 const axios = require("axios");
 
-const USER_AGENT      = "LifeStock-App/1.0 (mariamelwheshiy@gmail.com)";
-const NOMINATIM_URL   = "https://nominatim.openstreetmap.org/search";
-const DEFAULT_RADIUS  = 10000; // 10 كم
+const USER_AGENT        = "LifeStock-App/1.0 (mariamelwheshiy@gmail.com)";
+const NOMINATIM_URL     = "https://nominatim.openstreetmap.org/search";
+const GEOAPIFY_URL      = "https://api.geoapify.com/v2/places";
+const DEFAULT_RADIUS    = 10000; // 10 كم
 
-// أكتر من mirror للـ Overpass عشان لو واحد وقع أو رفض نجرب اللي بعده
-// (السيرفر المجاني بتاع overpass-api.de بيرفض/يبطئ لو الطلبات كتير في وقت قصير)
-const OVERPASS_MIRRORS = [
-  "https://overpass-api.de/api/interpreter",
-  "https://overpass.kumi.systems/api/interpreter",
-  "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-];
-
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-/**
- * يحول اسم المحافظة لـ lat/lng عبر Nominatim
- */
+// ── Nominatim: تحويل اسم المحافظة لإحداثيات ─────────────
 const geocodeGovernorate = async (governorate) => {
   try {
     const res = await axios.get(NOMINATIM_URL, {
@@ -49,9 +36,7 @@ const geocodeGovernorate = async (governorate) => {
   }
 };
 
-/**
- * يحسب المسافة بين نقطتين بالكيلومتر (Haversine)
- */
+// ── Haversine: حساب المسافة بالكيلومتر ──────────────────
 const calculateDistanceKm = (lat1, lng1, lat2, lng2) => {
   const toRad = (d) => (d * Math.PI) / 180;
   const R = 6371;
@@ -63,89 +48,66 @@ const calculateDistanceKm = (lat1, lng1, lat2, lng2) => {
   return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) * 10) / 10;
 };
 
-const buildOverpassQuery = (lat, lng, radius) => `
-  [out:json][timeout:20];
-  (
-    node["amenity"="veterinary"](around:${radius},${lat},${lng});
-    way["amenity"="veterinary"](around:${radius},${lat},${lng});
-    node["shop"="veterinary"](around:${radius},${lat},${lng});
-  );
-  out body;
-  >;
-  out skel qt;
-`;
-
-/**
- * بينادي على mirror واحد بمهلة زمنية محددة
- */
-const callOverpassMirror = async (url, query, timeout) => {
-  const res = await axios.post(url, `data=${encodeURIComponent(query)}`, {
-    headers: {
-      "User-Agent":   USER_AGENT,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    timeout,
-  });
-  return res.data?.elements || [];
-};
-
-/**
- * يجيب العيادات البيطرية القريبة عبر Overpass API
- * بيجرب كل الـ mirrors بالترتيب، ولو الأول رجّع 504/429/timeout يجرب اللي بعده
- */
+// ── Geoapify: البحث عن عيادات بيطرية قريبة ──────────────
 const findNearbyClinics = async ({ lat, lng, radius = DEFAULT_RADIUS }) => {
-  const query = buildOverpassQuery(lat, lng, radius);
+  const apiKey = process.env.GEOAPIFY_API_KEY;
 
-  let lastError = null;
-
-  for (let i = 0; i < OVERPASS_MIRRORS.length; i++) {
-    const url = OVERPASS_MIRRORS[i];
-    try {
-      const elements = await callOverpassMirror(url, query, 15000);
-      return mapElementsToClinics(elements, lat, lng);
-    } catch (err) {
-      lastError = err;
-      const status = err.response?.status;
-      console.error(
-        `Overpass mirror #${i + 1} (${url}) failed:`,
-        status || err.code || err.message
-      );
-
-      // لو السيرفر مشغول (504/429/503) استنى شوية وجرب اللي بعده
-      // لو خطأ تاني (زي 400) مفيش داعي نستنى
-      if ([429, 500, 502, 503, 504].includes(status) || err.code === "ECONNABORTED") {
-        await sleep(500);
-        continue;
-      }
-    }
+  if (!apiKey) {
+    console.error("GEOAPIFY_API_KEY غير موجود في .env");
+    return [];
   }
 
-  // كل الـ mirrors فشلوا — نرجّع مصفوفة فاضية بدل ما نكسر الـ route بالكامل
-  console.error("All Overpass mirrors failed:", lastError?.message);
-  return [];
+  try {
+    const res = await axios.get(GEOAPIFY_URL, {
+      params: {
+        categories: "pet.veterinary",
+        filter: `circle:${lng},${lat},${radius}`,
+        limit:      15,
+        apiKey,
+      },
+      timeout: 15000,
+    });
+
+    const features = res.data?.features || [];
+
+    return features
+      .map((f) => {
+        const p = f.properties || {};
+        const placeLat = f.geometry?.coordinates?.[1] ?? null;
+        const placeLng = f.geometry?.coordinates?.[0] ?? null;
+
+        const addressParts = [
+          p.address_line1,
+          p.address_line2,
+        ].filter(Boolean);
+
+        return {
+          place_id:      p.place_id || f.id,
+          name:          p.name || "عيادة بيطرية",
+          address:       addressParts.join("، ") || null,
+          phone:         p.contact?.phone || p.datasource?.raw?.phone || null,
+          opening_hours: p.opening_hours || p.datasource?.raw?.opening_hours || null,
+          lat:           placeLat,
+          lng:           placeLng,
+          distance_km:   placeLat && placeLng
+                           ? calculateDistanceKm(lat, lng, placeLat, placeLng)
+                           : null,
+          source:        "geoapify",
+        };
+      })
+      .filter((c) => c.lat && c.lng)
+      .sort((a, b) => (a.distance_km ?? 999) - (b.distance_km ?? 999));
+
+  } catch (err) {
+    const status = err.response?.status;
+    console.error("Geoapify error:", status, JSON.stringify(err.response?.data));
+    if (status === 401) console.error("GEOAPIFY_API_KEY غلط أو منتهي");
+    if (status === 429) console.error("Geoapify rate limit");
+    return [];
+    
+  }
+  
 };
 
-const mapElementsToClinics = (elements, lat, lng) => {
-  return elements
-    .filter((el) => el.type === "node" && el.lat && el.lon)
-    .map((el) => {
-      const tags = el.tags || {};
-      return {
-        place_id:     el.id.toString(),
-        name:         tags.name || tags["name:ar"] || "عيادة بيطرية",
-        address:      [
-          tags["addr:street"],
-          tags["addr:city"] || tags["addr:governorate"],
-        ].filter(Boolean).join("، ") || null,
-        phone:        tags.phone || tags["contact:phone"] || null,
-        opening_hours: tags.opening_hours || null,
-        lat:          el.lat,
-        lng:          el.lon,
-        distance_km:  calculateDistanceKm(lat, lng, el.lat, el.lon),
-        source:       "openstreetmap",
-      };
-    })
-    .sort((a, b) => a.distance_km - b.distance_km);
-};
 
 module.exports = { findNearbyClinics, geocodeGovernorate };

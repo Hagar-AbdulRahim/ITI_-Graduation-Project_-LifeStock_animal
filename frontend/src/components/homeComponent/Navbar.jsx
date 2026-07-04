@@ -23,7 +23,6 @@ const IconLogin       = () => <svg className="w-4 h-4" fill="none" stroke="curre
 const NAV_LINKS = [
   { id: 'farms',         label: 'المزارع',               icon: <IconGrid />,     path: '/farms' },
   { id: 'animals',       label: 'الحيوانات',              icon: <IconPaw />,      path: '/animals' },
-  { id: 'ai-assistant',  label: 'المساعد الذكي',          icon: <IconBot />,      path: '/ai-assistant' },
   { id: 'diagnosis',     label: 'التشخيص',               icon: <IconActivity />, path: '/diagnosis' },
   { id: 'image-analysis',label: 'تحليل الصور',            icon: <IconCamera />,   path: '/image-analysis' },
   { id: 'vaccinations',  label: 'التطعيمات',              icon: <IconSyringe />,  path: '/vaccinations' },

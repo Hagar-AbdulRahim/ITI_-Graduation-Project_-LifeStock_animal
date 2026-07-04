@@ -3,14 +3,12 @@ const { searchKnowledgeBase }    = require("./ragService");
 
 const SPECIES_LABELS = { cattle: "بقرة", sheep: "خروف", goat: "ماعز" };
 
-// ── تنظيف markdown fences من رد Gemini ───────────────────────────────────────
 const stripMarkdownFences = (text) =>
   text.trim()
     .replace(/^```(json)?\s*/i, "")
     .replace(/```\s*$/i, "")
     .trim();
 
-// ── تحويل history لصيغة Gemini ────────────────────────────────────────────────
 const toGeminiHistory = (conversationHistory) => {
   const filtered = conversationHistory.filter((msg, idx) => {
     if (idx === 0 && msg.role === "assistant") return false;
@@ -22,15 +20,14 @@ const toGeminiHistory = (conversationHistory) => {
   }));
 };
 
-// ── بناء الـ System Prompt مع بيانات الحيوان الكاملة ─────────────────────────
 const buildSystemPrompt = (animal, suggestedVaccinesText) => {
-  const speciesAr   = SPECIES_LABELS[animal.species] || animal.species;
-  const ageText     = animal.age_value
+  const speciesAr  = SPECIES_LABELS[animal.species] || animal.species;
+  const ageText    = animal.age_value
     ? `${animal.age_value} ${animal.age_unit === "months" ? "شهر" : "سنة"}`
     : "غير محدد";
-  const weightText  = animal.weight_kg ? `${animal.weight_kg} كغ` : "غير محدد";
-  const breedText   = animal.breed     || "غير محدد";
-  const genderText  = animal.gender === "male" ? "ذكر" : animal.gender === "female" ? "أنثى" : "غير محدد";
+  const weightText = animal.weight_kg ? `${animal.weight_kg} كغ` : "غير محدد";
+  const breedText  = animal.breed     || "غير محدد";
+  const genderText = animal.gender === "male" ? "ذكر" : animal.gender === "female" ? "أنثى" : "غير محدد";
 
   return `
 أنت مساعد بيطري ذكي متخصص في تهيئة بيانات المواشي في مصر.
@@ -47,6 +44,9 @@ const buildSystemPrompt = (animal, suggestedVaccinesText) => {
 اسأل المزارع سؤالاً واحداً فقط في كل مرة عن:
 1. هل الحيوان أصيب بأي مرض قبل كده؟ (التاريخ المرضي)
 2. هل أخد أي لقاحات قبل كده؟ وإيه اسمها وإمتى؟
+3. لكل لقاح يذكره، اسأله: دي أول مرة ياخدها ولا أخد منها قبل كده؟
+   - لو قال "دي أول مرة" → دي أول جرعة، متسألش عن "آخر جرعة" لأنها مش موجودة
+   - لو قال "أخد قبل كده" → اسأله إمتى كانت آخر جرعة بالظبط
 
 [قواعد المحادثة]
 - تكلم بعربية عامية مصرية بسيطة — من غير تفخيم أو ألقاب زي "يا حاج" أو "يا باشا" أو "حضرتك"
@@ -75,8 +75,9 @@ FINAL_JSON:{
   "vaccinations": [
     {
       "vaccine_name": "اسم اللقاح",
-      "vaccination_date": "YYYY-MM-DD أو وصف",
       "vaccine_type": "periodic أو emergency",
+      "is_first_dose": true أو false,
+      "last_date": "YYYY-MM-DD أو وصف — فقط لو is_first_dose=false، وإلا اتركه null",
       "period_months": 6,
       "notes": ""
     }
@@ -85,16 +86,15 @@ FINAL_JSON:{
 }
 
 لو مفيش تاريخ مرضي أو لقاحات، رجّع arrays فاضية [].
+لو is_first_dose=true، خلّي last_date دايماً null — متحطش تاريخ تقريبي أو تخترع تاريخ.
 `.trim();
 };
 
-// ── الدالة الرئيسية ───────────────────────────────────────────────────────────
 const continueOnboardingConversation = async (
   animal,
   conversationHistory = [],
   userMessage = null
 ) => {
-  // ── أول استدعاء فقط: جيب اللقاحات من RAG ────────────────────────────────
   let suggestedVaccinesText = "";
   if (conversationHistory.length === 0) {
     try {
@@ -110,16 +110,13 @@ const continueOnboardingConversation = async (
     }
   }
 
-  // ── بناء الـ system prompt مع بيانات الحيوان ─────────────────────────────
   const systemPrompt = buildSystemPrompt(animal, suggestedVaccinesText);
 
-  // ── إنشاء الـ model مع الـ system prompt ─────────────────────────────────
   const model = genAI.getGenerativeModel({
     model:             CHAT_MODEL_NAME,
     systemInstruction: systemPrompt,
   });
 
-  // ── تحديد الرسالة المرسلة ─────────────────────────────────────────────────
   const messageToSend =
     conversationHistory.length === 0 && !userMessage
       ? "ابدأ المحادثة واسأل المزارع أول سؤال."
@@ -129,19 +126,16 @@ const continueOnboardingConversation = async (
     throw new Error("لا يمكن إرسال رسالة فارغة");
   }
 
-  // ── إرسال للـ Gemini ──────────────────────────────────────────────────────
   const chat   = model.startChat({ history: toGeminiHistory(conversationHistory) });
   const result = await chat.sendMessage(messageToSend);
   const assistantReply = result.response.text().trim();
 
-  // ── تحديث الـ history ─────────────────────────────────────────────────────
   const updatedHistory = [
     ...conversationHistory,
     ...(userMessage ? [{ role: "user", content: userMessage }] : []),
     { role: "assistant", content: assistantReply },
   ];
 
-  // ── هل المحادثة خلصت؟ ────────────────────────────────────────────────────
   if (assistantReply.includes("FINAL_JSON:")) {
     const jsonStr = stripMarkdownFences(
       assistantReply.split("FINAL_JSON:")[1]

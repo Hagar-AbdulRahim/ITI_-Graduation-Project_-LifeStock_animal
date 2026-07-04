@@ -33,6 +33,7 @@ const {
   getAnimalById,
   updateAnimal,
   deleteAnimal,
+  searchAnimals,
 } = require("../controllers/Animal.controller");
 
 const {
@@ -46,6 +47,9 @@ const { protect } = require("../middelwares/Auth.middleware");
 
 // تطبيق الحماية على كافة المسارات أدناه
 router.use(protect);
+
+// مسار البحث الشامل عن الحيوانات للمستخدم
+router.get("/search", searchAnimals);
 
 // مسار جلب كافة الحيوانات داخل مزرعة محددة
 router.get("/farm/:farmId", getAnimalsByFarm);

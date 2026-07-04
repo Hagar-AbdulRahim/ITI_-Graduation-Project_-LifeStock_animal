@@ -69,10 +69,11 @@ const AnimalProfileHeader = ({ animal }) => {
                 تعديل
               </button>
               <button 
-                onClick={() => navigate(`/animals/${animal?._id}/medical-records/add`)}
-                className="flex-1 md:flex-none px-3 py-2 bg-blue-50 text-blue-600 rounded-xl text-sm font-medium hover:bg-blue-100 transition-colors flex items-center justify-center gap-1.5 border border-blue-100"
+                disabled
+                title="هذه الميزة غير متاحة حاليًا"
+                className="flex-1 md:flex-none px-3 py-2 bg-gray-100 text-gray-400 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 border border-gray-200 cursor-not-allowed"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-4 h-4 opacity-50" />
                 سجل طبي
               </button>
               <button 

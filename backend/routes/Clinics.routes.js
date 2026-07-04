@@ -5,7 +5,6 @@ const { findNearbyClinics, geocodeGovernorate } = require("../services/clinicsSe
 const { getCoordinatesByGovernorate }           = require("../utils/governorateCoordinates");
 const { chatModel } = require("../config/gemini");
 
-
 const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -20,21 +19,13 @@ const validate = (req, res, next) => {
 
 /**
  * GET /api/clinics/nearby
- *
- * Query params:
- *   lat, lng   (اختياري) — إحداثيات GPS من الفرونت
- *   radius     (اختياري) — نطاق البحث بالمتر (افتراضي 10000)
- *
- * لو lat/lng مش موجودين:
- *   1. بيحاول يجيب إحداثيات المحافظة من الـ hardcoded map
- *   2. لو مش موجودة بيجرب Nominatim
  */
 router.get(
   "/nearby",
   [
-    query("lat").optional().isFloat({ min: -90,   max: 90   }).withMessage("lat غير صحيحة"),
-    query("lng").optional().isFloat({ min: -180,  max: 180  }).withMessage("lng غير صحيحة"),
-    query("radius").optional().isInt({ min: 500, max: 50000 }).withMessage("radius لازم بين 500 و 50000 متر"),
+    query("lat").optional().isFloat({ min: -90,  max: 90  }).withMessage("lat غير صحيحة"),
+    query("lng").optional().isFloat({ min: -180, max: 180 }).withMessage("lng غير صحيحة"),
+    query("radius").optional().isInt({ min: 500, max: 100000 }).withMessage("radius لازم بين 500 و 100000 متر"),
   ],
   validate,
   async (req, res) => {
@@ -45,31 +36,24 @@ router.get(
       if (!lat || !lng) {
         const governorate = req.query.governorate;
 
-        // أولاً: من الـ hardcoded map
         let coords = getCoordinatesByGovernorate(governorate);
-
-        // ثانياً: Nominatim fallback
-        if (!coords) {
-          coords = await geocodeGovernorate(governorate);
-        }
+        if (!coords) coords = await geocodeGovernorate(governorate);
 
         if (!coords) {
           return res.status(400).json({
             success: false,
-            message: "تعذّر تحديد موقعك. فعّل الـ GPS أو حدّث محافظتك في الإعدادات.",
+            message: "تعذّر تحديد موقعك. فعّل الـ GPS أو اختر محافظتك.",
           });
         }
 
-        lat            = coords.lat;
-        lng            = coords.lng;
+        lat             = coords.lat;
+        lng             = coords.lng;
         location_source = "governorate";
       } else {
         lat = parseFloat(lat);
         lng = parseFloat(lng);
       }
 
-      // findNearbyClinics بقى بيرجع [] لو كل الـ Overpass mirrors فشلوا
-      // بدل ما يرمي error، فالـ catch هنا بقى مخصص لأخطاء غير متوقعة فعلاً
       const clinics = await findNearbyClinics({
         lat,
         lng,
@@ -93,6 +77,9 @@ router.get(
   }
 );
 
+/**
+ * POST /api/clinics/emergency
+ */
 router.post("/emergency", async (req, res) => {
   try {
     const { message, lat, lng } = req.body;
@@ -100,21 +87,22 @@ router.post("/emergency", async (req, res) => {
     if (!lat || !lng) {
       return res.status(400).json({
         success: false,
-        message: "أرسلي lat و lng من الـ GPS",
+        message: "أرسل lat و lng من الـ GPS",
       });
     }
 
-    // 1. جيب العيادات القريبة
-    // findNearbyClinics بقى مش بيرمي exception حتى لو Overpass كله واقع،
-    // بيرجع [] في أسوأ حالة عشان الشات يكمل شغل
+    // 50 كم — يغطي محافظة كاملة تقريباً
+    const SEARCH_RADIUS = 50000;
     const clinics = await findNearbyClinics({
-      lat: parseFloat(lat),
-      lng: parseFloat(lng),
+      lat:    parseFloat(lat),
+      lng:    parseFloat(lng),
+      radius: SEARCH_RADIUS,
     });
 
-    // 2. فرمت بيانات العيادات للـ prompt
+    const radiusKm = SEARCH_RADIUS / 1000;
+
     const clinicsText = clinics.length === 0
-      ? "لا توجد عيادات بيطرية مسجلة في نطاق 10 كم من موقعك."
+      ? `لا توجد عيادات بيطرية مسجلة في نطاق ${radiusKm} كم من موقعك.`
       : clinics.map((c, i) =>
           `${i + 1}. ${c.name}
    المسافة: ${c.distance_km} كم
@@ -123,31 +111,40 @@ router.post("/emergency", async (req, res) => {
    مواعيد العمل: ${c.opening_hours || "غير متاح"}`
         ).join("\n\n");
 
-    // 3. Gemini يجاوب على سؤال المستخدم بناءً على البيانات
     const prompt = `
 أنت مساعد بيطري طارئ. المزارع يحتاج مساعدة عاجلة.
 
-العيادات البيطرية القريبة من موقعه:
+العيادات البيطرية القريبة من موقعه (${clinics.length} عيادة في نطاق ${radiusKm} كم):
 ${clinicsText}
 
 سؤال المزارع: ${message || "محتاج أقرب عيادة بيطرية"}
 
-أجب بالعربية البسيطة. لو سأل عن عيادة معينة أو مواعيد، أجبه من البيانات اللي عندك.
-لا تخترع معلومات مش موجودة في البيانات.
+تعليمات الرد:
+- أجب بالعربية البسيطة والواضحة
+- اذكر كل العيادات المتاحة مع بياناتها كاملة
+- لو سأل عن مواعيد أو تليفون عيادة معينة أجبه من البيانات بالظبط
+- لو بيانات ناقصة قول "غير متاح" بوضوح
+- لا تخترع أي معلومات غير موجودة في البيانات
+- لو مفيش عيادات انصحه يتواصل مع المديرية الزراعية أو طبيب بيطري يعرفه
 `.trim();
 
-    // نفصل استدعاء Gemini في try/catch مستقل عشان لو هو اللي فشل
-    // (بطء الشبكة، quota، إلخ) نرجع رد افتراضي بناءً على بيانات العيادات
-    // بدل ما نكسر الطلب بالكامل بـ 500
     let reply;
     try {
       const result = await chatModel.generateContent([{ text: prompt }]);
       reply = result.response.text().trim();
     } catch (geminiErr) {
       console.error("Gemini error in /emergency:", geminiErr.message);
-      reply = clinics.length === 0
-        ? "لا توجد عيادات بيطرية مسجلة في نطاق 10 كم من موقعك حالياً. جرّب توسيع نطاق البحث أو تواصل مع أقرب طبيب بيطري تعرفه."
-        : `أقرب عيادة ليك هي "${clinics[0].name}" على بُعد ${clinics[0].distance_km} كم.${clinics[0].phone ? ` التليفون: ${clinics[0].phone}` : ""}`;
+      // رد احتياطي لو Gemini فشل
+      if (clinics.length === 0) {
+        reply = `لم نجد عيادات بيطرية مسجلة في نطاق ${radiusKm} كم من موقعك. يُنصح بالتواصل مع أقرب مديرية زراعية أو طبيب بيطري تعرفه.`;
+      } else {
+        const c = clinics[0];
+        reply = `أقرب عيادة ليك هي "${c.name}" على بُعد ${c.distance_km} كم.`
+          + (c.address       ? `\nالعنوان: ${c.address}`        : "")
+          + (c.phone         ? `\nالتليفون: ${c.phone}`          : "")
+          + (c.opening_hours ? `\nمواعيد العمل: ${c.opening_hours}` : "")
+          + (clinics.length > 1 ? `\n\nيوجد ${clinics.length - 1} عيادة أخرى في النطاق، اسألني عنها.` : "");
+      }
     }
 
     res.json({
@@ -159,7 +156,7 @@ ${clinicsText}
     console.error("clinics/emergency error:", err.message);
     res.status(500).json({
       success: false,
-      message: "حدث خطأ في خدمة الطوارئ",
+      message: "حدث خطأ في خدمة الطوارئ، يرجى المحاولة مرة أخرى.",
     });
   }
 });

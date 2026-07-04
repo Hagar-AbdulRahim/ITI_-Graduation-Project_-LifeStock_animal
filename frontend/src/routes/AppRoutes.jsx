@@ -181,7 +181,7 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/animals/:animalId/health-cases"
+        path="/animals/:animalId/health-record"
         element={
           <ProtectedRoute>
             <AnimalHealthCasesPage />
@@ -189,7 +189,7 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/health-cases/:caseId"
+        path="/health-record/:caseId"
         element={
           <ProtectedRoute>
             <HealthCaseDetailPage />

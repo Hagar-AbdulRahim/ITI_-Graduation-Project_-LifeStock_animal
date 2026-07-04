@@ -66,6 +66,37 @@ const createAnimal = async (req, res) => {
 
 
 
+// ── Search Animals ─────────────────────────────────────────────────────────────
+const searchAnimals = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim() === "") {
+      return res.status(200).json({ success: true, data: [] });
+    }
+
+    // Find all active farms for the current user
+    const farms = await Farm.find({ user_id: req.user._id, is_active: true });
+    const farmIds = farms.map(f => f._id);
+
+    // Search by tag_number across user's farms
+    const animals = await Animal.find({
+      farm_id: { $in: farmIds },
+      is_active: true,
+      tag_number: { $regex: q.trim(), $options: "i" }
+    })
+    .limit(10)
+    .populate("farm_id", "name");
+
+    return res.status(200).json({
+      success: true,
+      data: animals,
+    });
+  } catch (err) {
+    console.error("searchAnimals error:", err);
+    return res.status(500).json({ success: false, message: "خطأ في الخادم أثناء البحث" });
+  }
+};
+
 // ── Get All Animals in a Farm ─────────────────────────────────────────────────
 const getAnimalsByFarm = async (req, res) => {
   try {
@@ -221,4 +252,11 @@ const deleteAnimal = async (req, res) => {
   }
 };
 
-module.exports = { createAnimal, getAnimalsByFarm, getAnimalById, updateAnimal, deleteAnimal };
+module.exports = {
+  createAnimal,
+  getAnimalsByFarm,
+  getAnimalById,
+  updateAnimal,
+  deleteAnimal,
+  searchAnimals,
+};

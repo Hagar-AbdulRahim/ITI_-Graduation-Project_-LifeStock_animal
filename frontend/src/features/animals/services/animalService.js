@@ -19,6 +19,15 @@ export const animalService = {
   },
 
   /**
+   * GET /api/animals/search?q=query
+   * Search animals across user's farms by tag_number.
+   */
+  searchAnimals: async (query) => {
+    const response = await api.get(`${BASE_URL}/search`, { params: { q: query } });
+    return response.data;
+  },
+
+  /**
    * GET /api/animals/farm/:farmId
    * Fetch all animals belonging to a specific farm.
    * @param {string} farmId - Farm MongoDB ObjectId
@@ -55,7 +64,7 @@ export const animalService = {
    * @param {string} id - Animal MongoDB ObjectId
    */
   getAnimalMedicalHistory: async (id) => {
-    const response = await api.get(`${BASE_URL}/${id}/health-cases`);
+    const response = await api.get(`/api/health-cases/animal/${id}`);
     return response.data;
   },
 

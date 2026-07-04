@@ -149,7 +149,7 @@ const EditVaccinationPage = () => {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate(`/animals/${id}/vaccinations`)}
               className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-50 text-stone-500 transition-colors"
             >
               <ArrowRight className="w-5 h-5" />
@@ -336,7 +336,7 @@ const EditVaccinationPage = () => {
           <div className="flex items-center justify-between pt-2">
             <button
               type="button"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate(`/animals/${id}/vaccinations`)}
               className="flex items-center gap-2 px-6 py-2.5 bg-white border border-stone-200 rounded-xl text-sm font-bold text-stone-600 hover:bg-stone-50 transition-colors"
             >
               <X className="w-4 h-4" />
