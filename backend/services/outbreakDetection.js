@@ -179,10 +179,13 @@ const upsertOutbreakReport = async (diagnosis, governorate, casesCount) => {
   return { report, isNewOutbreak: true };
 };
 
-// إشعار كل المستخدمين
+// إشعار مستخدمي المحافظة المتأثرة بس
 const broadcastOutbreakAlert = async (report) => {
-  const allUsers = await User.find({ is_active: { $ne: false } })
-    .select("fcm_token notifications_enabled");
+  const allUsers = await User.find({ 
+    is_active: { $ne: false },
+    notifications_enabled: true,
+    governorate: report.governorate,
+  }).select("+push_subscription");
 
   let sentCount = 0;
   for (const user of allUsers) {
