@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
+import cowFieldBg from '../assets/images/cows-field-bg.jpg'
 import {
   LayoutGrid,
   ClipboardPlus,
@@ -82,6 +83,23 @@ const cardVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
 }
 
+const greenBackgroundVariants = {
+  hidden: { opacity: 1 },
+  visible: {
+    opacity: 0,
+    transition: { duration: 2, ease: 'easeInOut', delay: 0.3 },
+  },
+}
+
+const textRevealVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.8, ease: 'easeOut', delay: 0.5 + i * 0.15 },
+  }),
+}
+
 export default function ServicesPage() {
   const reduceMotion = useReducedMotion()
 
@@ -93,7 +111,10 @@ export default function ServicesPage() {
     >
       {/* الهيرو: مثلثين متشابكين — أخضر فيه الكلام، وصورة البقرة */}
       <section className="relative overflow-hidden min-h-[520px] md:min-h-[580px]">
-        <div
+        <motion.div
+          variants={greenBackgroundVariants}
+          initial="hidden"
+          animate="visible"
           className="absolute inset-0 z-[2] flex items-center max-md:static max-md:block max-md:pt-14 max-md:pb-7 max-md:px-5"
           style={{
             clipPath: 'polygon(60% 0, 100% 0, 100% 100%, 60% 100%, 40% 50%)',
@@ -117,9 +138,10 @@ export default function ServicesPage() {
             </motion.span>
 
             <motion.h1
-              initial={{ opacity: 0, y: -18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
+              custom={0}
+              variants={textRevealVariants}
+              initial="hidden"
+              animate="visible"
               className="text-2xl sm:text-3xl md:text-[34px] font-black tracking-tight text-white leading-[1.2] mt-4 mb-3"
             >
               كل اللي محتاجه لرعاية قطيعك <br />
@@ -127,15 +149,16 @@ export default function ServicesPage() {
             </motion.h1>
 
             <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.22 }}
-              className="text-sm leading-relaxed"
-              style={{ color: 'rgba(241,240,234,0.75)' }}
+              custom={1}
+              variants={textRevealVariants}
+              initial="hidden"
+              animate="visible"
+              className="text-sm leading-relaxed font-medium"
+              style={{ color: '#F1F0EA' }}
             >
-              منصة <span className="font-bold text-white">LifeStock AI</span>{' '}
-              تجمع بين الرعاية الصحية، التشخيص الذكي بالذكاء الاصطناعي، ومتابعة
-              الأوبئة وإدارة المزارع في تجربة واحدة متكاملة.
+              منصتك الذكية للسيطرة الكاملة على صحة قطيعك — تشخيص فوري بالذكاء
+              الاصطناعي، متابعة تطعيمات أول بأول، وقرارات أسرع تقلل خسائرك قبل
+              ما تحصل.
             </motion.p>
 
             <motion.div
@@ -151,15 +174,15 @@ export default function ServicesPage() {
               <ChevronDown className="w-5 h-5" />
             </motion.div>
           </div>
-        </div>
+        </motion.div>
 
         <div
           className="absolute inset-0 z-[1] max-md:static max-md:h-[200px]"
           style={{ clipPath: 'polygon(0 0, 60% 0, 40% 50%, 60% 100%, 0 100%)' }}
         >
           <img
-            src="/assets/services/cow-hero.jpg"
-            alt="بقرة في مزرعة"
+            src={cowFieldBg}
+            alt="مزرعة أبقار"
             className="w-full h-full object-cover block"
           />
           <div

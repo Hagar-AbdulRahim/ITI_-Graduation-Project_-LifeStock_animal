@@ -2,6 +2,7 @@ const Farm        = require("../models/farm");
 const Animal      = require("../models/animal");
 const Vaccination = require("../models/vaccination");
 const HealthCase  = require("../models/healthCase");
+const { areFarmNamesSimilar } = require("../utils/farmName");
 
 const ARABIC_DAYS = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 
@@ -143,15 +144,33 @@ const buildRecentActivities = ({ recentAnimals, recentVaccinations, recentCases 
     .map(({ created_at, ...rest }) => rest);
 };
 
+const DUPLICATE_FARM_MSG = "لديك مزرعة بنفس الاسم في هذه المحافظة بالفعل";
+
+const findDuplicateFarm = async (userId, name, governorate, excludeId = null) => {
+  const query = {
+    user_id:     userId,
+    governorate: governorate.trim(),
+  };
+  if (excludeId) query._id = { $ne: excludeId };
+
+  const farms = await Farm.find(query).select("name governorate").lean();
+  return farms.find((farm) => areFarmNamesSimilar(name, farm.name)) || null;
+};
+
 // ── Create Farm ───────────────────────────────────────────────────────────────
 const createFarm = async (req, res) => {
   try {
     const { name, governorate, description } = req.body;
 
+    const existing = await findDuplicateFarm(req.user._id, name, governorate);
+    if (existing) {
+      return res.status(409).json({ success: false, message: DUPLICATE_FARM_MSG });
+    }
+
     const farm = await Farm.create({
       user_id: req.user._id,
-      name,
-      governorate,
+      name: name.trim(),
+      governorate: governorate.trim(),
       description: description || null,
     });
 
@@ -162,7 +181,7 @@ const createFarm = async (req, res) => {
     });
   } catch (err) {
     if (err.code === 11000) {
-      return res.status(409).json({ success: false, message: "لديك مزرعة بهذا الاسم بالفعل" });
+      return res.status(409).json({ success: false, message: DUPLICATE_FARM_MSG });
     }
     console.error("createFarm error:", err);
     return res.status(500).json({ success: false, message: "خطأ في الخادم" });
@@ -205,21 +224,38 @@ const getFarmById = async (req, res) => {
 // ── Update Farm ───────────────────────────────────────────────────────────────
 const updateFarm = async (req, res) => {
   try {
+    const current = await Farm.findOne({
+      _id: req.params.id, user_id: req.user._id, is_active: true,
+    });
+
+    if (!current) {
+      return res.status(404).json({ success: false, message: "المزرعة غير موجودة" });
+    }
+
     const allowedFields = ["name", "governorate", "description"];
     const updates = {};
     allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) updates[field] = req.body[field];
     });
 
+    const nextName = (updates.name ?? current.name).trim();
+    const nextGovernorate = (updates.governorate ?? current.governorate).trim();
+
+    const duplicate = await findDuplicateFarm(
+      req.user._id, nextName, nextGovernorate, current._id
+    );
+    if (duplicate) {
+      return res.status(409).json({ success: false, message: DUPLICATE_FARM_MSG });
+    }
+
+    if (updates.name) updates.name = nextName;
+    if (updates.governorate) updates.governorate = nextGovernorate;
+
     const farm = await Farm.findOneAndUpdate(
-      { _id: req.params.id, user_id: req.user._id, is_active: true },
+      { _id: current._id },
       { $set: updates },
       { new: true, runValidators: true }
     );
-
-    if (!farm) {
-      return res.status(404).json({ success: false, message: "المزرعة غير موجودة" });
-    }
 
     return res.status(200).json({
       success: true,
@@ -228,7 +264,7 @@ const updateFarm = async (req, res) => {
     });
   } catch (err) {
     if (err.code === 11000) {
-      return res.status(409).json({ success: false, message: "لديك مزرعة بهذا الاسم بالفعل" });
+      return res.status(409).json({ success: false, message: DUPLICATE_FARM_MSG });
     }
     console.error("updateFarm error:", err);
     return res.status(500).json({ success: false, message: "خطأ في الخادم" });

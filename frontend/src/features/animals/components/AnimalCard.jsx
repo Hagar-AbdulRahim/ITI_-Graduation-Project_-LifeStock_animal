@@ -59,7 +59,7 @@ const AnimalCard = ({ animal }) => {
     };
   }
 
-  const displayName = animal?.name || animal?.tag_number || 'بدون اسم';
+  const displayName = animal?.tag_number || 'بدون وسم';
   const speciesEmoji = {
     cattle: '🐄',
     sheep: '🐑',

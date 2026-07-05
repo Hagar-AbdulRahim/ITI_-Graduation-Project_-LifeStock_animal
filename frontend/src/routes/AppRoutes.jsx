@@ -30,6 +30,7 @@ import AnimalHealthCasesPage from '../pages/Animals/AnimalHealthCasesPage'
 import HealthCaseDetailPage from '../pages/Animals/HealthCaseDetailPage'
 import ReviewsPage from '../pages/Reviews/ReviewsPage'
 import ServicesPage from '../pages/ServicesPage'
+import DiagnosisPage from '../pages/DiagnosisPage'
 
 // Dashboard & Layout Pages
 import DashboardPage from '../pages/dashboard/DashboardPage'
@@ -224,6 +225,23 @@ const AppRoutes = () => {
         }
       />
 
+      <Route
+        path="/ai-assistant"
+        element={
+          <ProtectedRoute>
+            <AiAssistantPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/diagnosis"
+        element={
+          <ProtectedRoute>
+            <DiagnosisPage />
+          </ProtectedRoute>
+        }
+      />
       {/* Admin Portal */}
       <Route
         path="/admin"
