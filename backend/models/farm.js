@@ -42,6 +42,7 @@ const farmSchema = new mongoose.Schema(
 
 farmSchema.index({ user_id: 1 });
 farmSchema.index({ governorate: 1 });
+farmSchema.index({ user_id: 1, name: 1, governorate: 1 }, { unique: true });
 
 farmSchema.pre("findOneAndDelete", async function () {
   const farm = await this.model.findOne(this.getQuery());

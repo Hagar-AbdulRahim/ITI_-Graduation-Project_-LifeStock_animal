@@ -63,6 +63,30 @@ const consultationSchema = new mongoose.Schema(
     },
 
     // ── رد الطبيب البيطري ───────────────────────────────────────────────────
+    chat_history: {
+      type: [
+        {
+          role: {
+            type: String,
+            enum: ["assistant", "user"],
+            required: true,
+          },
+          content: {
+            type: String,
+            required: true,
+            trim: true,
+          },
+        },
+      ],
+      default: [],
+      select: false,
+    },
+    clarification_count: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
     doctor_response: { type: String, default: null },
     doctor_status: {
       type: String,

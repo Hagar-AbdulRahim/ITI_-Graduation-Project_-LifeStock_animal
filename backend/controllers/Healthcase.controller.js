@@ -3,14 +3,11 @@ const Consultation  = require("../models/Consultation");
 const Animal        = require("../models/animal");
 const Farm          = require("../models/farm");
 const fs            = require("fs");
-const { diagnoseSymptoms, analyzeImage } = require("../services/aiagent");
+const { diagnoseSymptoms } = require("../services/aiagent");
 const { transcribeAudio }   = require("../voiceService");
-const { sendNotification } = require("../services/notificationService");
-const User                 = require("../models/user");
-
 const { isAdmin, isDoctor, canAccessGovernorate } = require("../utils/accessControl");
 
-// helper: وصول للحيوان — قراءة (admin/doctor) أو ملكية (كتابة)
+// helper: وصول للحيوان (لم يتغير)
 const verifyAnimalAccess = async (animalId, user, { requireOwnership = false } = {}) => {
   const animal = await Animal.findOne({ _id: animalId, is_active: true }).populate(
     "farm_id",
@@ -33,26 +30,38 @@ const verifyAnimalAccess = async (animalId, user, { requireOwnership = false } =
   return null;
 };
 
+const MAX_CLARIFICATION_QUESTIONS = 3;
+
+const normalizeImageMime = (file) => {
+  const ext = file.originalname?.split(".").pop()?.toLowerCase();
+  const mimeMap = { jfif: "image/jpeg", jpe: "image/jpeg", jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp" };
+  return mimeMap[ext] || file.mimetype || "image/jpeg";
+};
+
+const sanitizeChatHistory = (chatHistory = []) =>
+  Array.isArray(chatHistory)
+    ? chatHistory
+        .filter((msg) => ["assistant", "user"].includes(msg?.role))
+        .map((msg) => ({
+          role: msg.role,
+          content: String(msg.content || "").trim(),
+        }))
+        .filter((msg) => msg.content.length > 0)
+        .slice(-MAX_CLARIFICATION_QUESTIONS * 2)
+    : [];
+
+const countClarificationQuestions = (chatHistory = []) =>
+  chatHistory.filter((msg) => msg.role === "assistant").length;
+
 // ════════════════════════════════════════════════════════════════════════════
-// POST /api/health-cases/diagnose
-//
-// الـ endpoint الموحّد للتشخيص — بيفرّق سلوكه حسب وجود animal_id:
-//
-// 1) فيه animal_id  → فتح من صفحة الحيوان — تشخيص كامل بالـ Context-Aware
-//    (تاريخ مرضي + تطعيمات + أوبئة المحافظة) ويُخزَّن في HealthCase
-//
-// 2) مفيش animal_id → استشارة عامة من الشات المفتوح — تشخيص بالأعراض
-//    ونوع الحيوان (لو مُحدد) فقط، ويُخزَّن في Consultation بدون أي ربط بحيوان
+// runDiagnosis — المنطق المشترك (المُحدَّث لدعم الـ schema الجديد)
 // ════════════════════════════════════════════════════════════════════════════
-/**
- * المنطق المشترك للتشخيص — يُستخدم من /diagnose (نص) ومن /diagnose/voice (صوت)
- * بمجرد ما يكون النص جاهز (مكتوب أو مُفرَّغ من الصوت)، باقي الخطوات نفسها بالضبط
- *
- * @param {Object} req - يُستخدم فقط لـ req.user
- * @param {Object} body - { animal_id, species, symptoms (array أو نص), input_type }
- */
 const runDiagnosis = async (req, body) => {
-  const { animal_id, species, symptoms, input_type, image_url, image_findings } = body;
+  const {
+    animal_id, species, symptoms, input_type,
+    image_url, image_urls = [],
+    imagePath = null, imageMime = null,
+  } = body;
 
   const symptomsArray = Array.isArray(symptoms)
     ? symptoms.filter((item) => typeof item === "string" && item.trim().length > 0)
@@ -60,96 +69,118 @@ const runDiagnosis = async (req, body) => {
     ? [symptoms.trim()]
     : [];
 
+  const imageUrlsArray = Array.isArray(image_urls)
+    ? image_urls.filter((url) => typeof url === "string" && url.trim().length > 0)
+    : image_url
+    ? [image_url]
+    : [];
+  const imageUrl = imageUrlsArray[0] || null;
+
   const normalizedSymptoms = symptomsArray.length > 0
     ? symptomsArray
     : ["تحليل صورة الحالة"];
 
   const symptomsText = normalizedSymptoms.join("، ");
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // الحالة 1: فيه animal_id → تشخيص مرتبط بحيوان مسجل
-  // ──────────────────────────────────────────────────────────────────────────
+  const buildResponse = (result, savedRecord, consultationType) => ({
+    status: 201,
+    body: {
+      success:           true,
+      status:            result.status || "diagnosed",
+      record_id:         savedRecord?._id,
+      consultation_type: consultationType,
+      image_url:         savedRecord?.image_url || imageUrl || null,
+      image_urls:        savedRecord?.image_urls?.length ? savedRecord.image_urls : imageUrlsArray,
+      data:              result,
+    },
+  });
+
+  const saveAndRespond = async ({ animal, governorate, consultationType }) => {
+    const result = await diagnoseSymptoms({
+      symptomsText,
+      animal:      animal || null,
+      governorate: governorate || null,
+      species:     species || null,
+      imagePath,
+      imageMime,
+    });
+
+    if (result.status === "needs_clarification") {
+      return {
+        status: 200,
+        body: {
+          success:           true,
+          status:            "needs_clarification",
+          question:          result.question,
+          possible_diseases: result.possible_diseases || [],
+        },
+      };
+    }
+
+    let savedRecord = null;
+
+    if (animal_id && animal) {
+      savedRecord = await HealthCase.create({
+        animal_id,
+        user_id:           req.user._id,
+        governorate,
+        symptoms:          normalizedSymptoms,
+        input_type:        input_type || "text",
+        image_url:         imageUrl,
+        image_urls:        imageUrlsArray,
+        image_findings:    result.image_findings || null,
+        ai_diagnosis:      result.diagnosis || null,
+        confidence:        result.confidence || null,
+        severity:          result.severity || null,
+        matched_symptoms:  result.matched_symptoms || [],
+        suggested_actions: result.immediate_actions || [],
+        vet_required:      result.vet_required || false,
+        vet_urgency:       result.vet_urgency || null,
+        ai_raw_response:   result,
+      });
+
+      const healthStatusMap = { green: "healthy", yellow: "sick", red: "critical" };
+      await Animal.findByIdAndUpdate(animal_id, {
+        health_status: healthStatusMap[result.severity] || "sick",
+      });
+    } else {
+      savedRecord = await Consultation.create({
+        user_id:           req.user._id,
+        governorate:       governorate || req.user.governorate,
+        species:           species || null,
+        symptoms:          normalizedSymptoms,
+        input_type:        input_type || "text",
+        image_url:         imageUrl || null,
+        image_urls:        imageUrlsArray,
+        image_findings:    result.image_findings || null,
+        ai_diagnosis:      result.diagnosis || null,
+        confidence:        result.confidence || null,
+        severity:          result.severity || null,
+        matched_symptoms:  result.matched_symptoms || [],
+        suggested_actions: result.immediate_actions || [],
+        vet_required:      result.vet_required || false,
+        vet_urgency:       result.vet_urgency || null,
+        ai_raw_response:   result,
+      });
+    }
+
+    return buildResponse(result, savedRecord, consultationType);
+  };
+
+  // ── الحالة 1: فيه animal_id → تشخيص مرتبط بحيوان مسجل ──────────────────
   if (animal_id) {
     const animal = await verifyAnimalAccess(animal_id, req.user, { requireOwnership: true });
     if (!animal) {
       return { status: 404, body: { success: false, message: "الحيوان غير موجود أو غير مصرح" } };
     }
-
-    const governorate = animal.farm_id.governorate;
-
-    const { diagnosis, rawResponse, knowledgeUsed } = await diagnoseSymptoms({
-      symptomsText,
+    return saveAndRespond({
       animal,
-      governorate,
-      imageFindings: image_findings || null,
+      governorate:       animal.farm_id.governorate,
+      consultationType:  "linked_to_animal",
     });
-
-    const healthCase = await HealthCase.create({
-      animal_id,
-      user_id: req.user._id,
-      governorate,
-      symptoms: normalizedSymptoms,
-      input_type: input_type || "text",
-      image_url: image_url || null,
-      image_findings: image_findings || null,
-      ai_diagnosis: diagnosis.diagnosis,
-      confidence: diagnosis.confidence,
-      severity: diagnosis.severity,
-      matched_symptoms: diagnosis.matched_symptoms,
-      suggested_actions: diagnosis.immediate_actions,
-      vet_required: diagnosis.vet_required,
-      vet_urgency: diagnosis.vet_urgency,
-      ai_raw_response: rawResponse,
-    });
-
-    const healthStatusMap = { green: "healthy", yellow: "sick", red: "critical" };
-await Animal.findByIdAndUpdate(animal_id, {
-  health_status: healthStatusMap[diagnosis.severity] || "sick",
-});
-
-// إشعار فوري لو الحالة خطيرة
-if (diagnosis.severity === "red") {
-  try {
-    const owner = await User.findById(req.user._id).select("+push_subscription");
-    if (owner) {
-      await sendNotification({
-        user:           owner,
-        title:          "⚠️ تنبيه صحي عاجل",
-        body:           `تم اكتشاف حالة خطيرة: ${diagnosis.diagnosis} — ${animal.tag_number || "حيوانك"}. تواصل مع الطبيب البيطري فوراً.`,
-        type:           "health_case",
-        animal_id:      animal._id,
-        vaccination_id: null,
-        data: {
-          case_id:   healthCase._id.toString(),
-          severity:  "red",
-          diagnosis: diagnosis.diagnosis,
-          url:       `/health-cases/${healthCase._id}`,
-        },
-      });
-    }
-  } catch (notifErr) {
-    console.warn("health_case notification failed:", notifErr.message);
-  }
-}
-
-    return {
-      status: 201,
-      body: {
-        success: true,
-        message: "تم التشخيص بنجاح",
-        consultation_type: "linked_to_animal",
-        data: {
-          case_id: healthCase._id,
-          ...diagnosis,
-          knowledge_sources: knowledgeUsed,
-        },
-      },
-    };
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // الحالة 2: مفيش animal_id → استشارة عامة بدون حيوان مسجل
-  // ──────────────────────────────────────────────────────────────────────────
+  // ── الحالة 2: مفيش animal_id → استشارة عامة ─────────────────────────────
   if (!req.user.governorate) {
     return {
       status: 400,
@@ -157,92 +188,137 @@ if (diagnosis.severity === "red") {
     };
   }
 
-  const { diagnosis, rawResponse, knowledgeUsed } = await diagnoseSymptoms({
-    symptomsText,
-    species: species || null,
-    imageFindings: image_findings || null,
+  return saveAndRespond({
+    animal:           null,
+    governorate:      req.user.governorate,
+    consultationType: "general",
   });
-
-  const consultation = await Consultation.create({
-    user_id: req.user._id,
-    governorate: req.user.governorate,
-    species: species || null,
-    symptoms: normalizedSymptoms,
-    input_type: input_type || "text",
-    image_url: image_url || null,
-    image_findings: image_findings || null,
-    ai_diagnosis: diagnosis.diagnosis,
-    confidence: diagnosis.confidence,
-    severity: diagnosis.severity,
-    matched_symptoms: diagnosis.matched_symptoms,
-    suggested_actions: diagnosis.immediate_actions,
-    vet_required: diagnosis.vet_required,
-    vet_urgency: diagnosis.vet_urgency,
-    ai_raw_response: rawResponse,
-  });
-
-  return {
-    status: 201,
-    body: {
-      success: true,
-      message: "تم التشخيص بنجاح (استشارة عامة)",
-      consultation_type: "general",
-      data: {
-        consultation_id: consultation._id,
-        ...diagnosis,
-        knowledge_sources: knowledgeUsed,
-      },
-    },
-  };
 };
 
-// ════════════════════════════════════════════════════════════════════════════
-// POST /api/health-cases/diagnose
-//
-// الـ endpoint الموحّد للتشخيص — بيفرّق سلوكه حسب وجود animal_id:
-//
-// 1) فيه animal_id  → فتح من صفحة الحيوان — تشخيص كامل بالـ Context-Aware
-//    (تاريخ مرضي + تطعيمات + أوبئة المحافظة) ويُخزَّن في HealthCase
-//
-// 2) مفيش animal_id → استشارة عامة من الشات المفتوح — تشخيص بالأعراض
-//    ونوع الحيوان (لو مُحدد) فقط، ويُخزَّن في Consultation بدون أي ربط بحيوان
-// ════════════════════════════════════════════════════════════════════════════
+// ── الدوال الباقية لم تتغير ───────────────────────────────────────────────────
+// ── POST /api/health-cases/diagnose ───────────────────────────────────────────
+// الـ chatHistory بيتبعت مع كل request عشان نحافظ على سياق المحادثة التشخيصية
 const diagnose = async (req, res) => {
   try {
-    const result = await runDiagnosis(req, req.body);
-    return res.status(result.status).json(result.body);
+    const {
+      animal_id,
+      symptoms,
+      input_type    = "text",
+      species,
+      chatHistory   = [],    // ← أسئلة وأجوبة توضيحية سابقة
+    } = req.body;
+
+    const symptomsText = Array.isArray(symptoms) ? symptoms.join("، ") : symptoms;
+    const sanitizedChatHistory = sanitizeChatHistory(chatHistory);
+    const clarificationCount = countClarificationQuestions(sanitizedChatHistory);
+
+    let animal      = null;
+    let governorate = null;
+
+    if (animal_id) {
+      animal = await Animal.findById(animal_id);
+      if (animal) {
+        const farm  = await Farm.findById(animal.farm_id);
+        governorate = farm?.governorate;
+      }
+    } else {
+      governorate = req.user?.governorate;
+    }
+
+    const result = await diagnoseSymptoms({
+      symptomsText,
+      animal,
+      governorate,
+      species,
+      chatHistory: sanitizedChatHistory,
+    });
+
+    // ── لو الـ Agent لسه بيسأل — مرجّعلو السؤال من غير ما نخزن في DB ──────────
+    if (result.status === "needs_clarification") {
+      if (clarificationCount >= MAX_CLARIFICATION_QUESTIONS) {
+        return res.json({
+          success: true,
+          status: "no_data",
+          message: "لم نتمكن من الوصول لتشخيص موثوق بعد عدة أسئلة توضيحية. يُنصح بمراجعة طبيب بيطري.",
+          clarification_count: clarificationCount,
+          max_clarification_questions: MAX_CLARIFICATION_QUESTIONS,
+        });
+      }
+
+      return res.json({
+        success:         true,
+        status:          "needs_clarification",
+        question:        result.question,
+        possible_diseases: result.possible_diseases || [],
+        clarification_count: clarificationCount + 1,
+        max_clarification_questions: MAX_CLARIFICATION_QUESTIONS,
+      });
+    }
+
+    // ── لو التشخيص جاهز — نخزن في DB ──────────────────────────────────────────
+    let savedRecord = null;
+
+    if (animal_id && animal) {
+      savedRecord = await HealthCase.create({
+        animal_id,
+        user_id:          req.user._id,
+        governorate,
+        symptoms:         Array.isArray(symptoms) ? symptoms : [symptoms],
+        input_type,
+        ai_diagnosis:     result.diagnosis || null,
+        confidence:       result.confidence || null,
+        severity:         result.severity || null,
+        matched_symptoms: result.matched_symptoms || [],
+        suggested_actions: result.immediate_actions || [],
+        vet_required:     result.vet_required || false,
+        vet_urgency:      result.vet_urgency || null,
+        ai_raw_response:  result,
+        chat_history:     sanitizedChatHistory,
+        clarification_count: clarificationCount,
+      });
+    } else {
+      savedRecord = await Consultation.create({
+        user_id:          req.user._id,
+        governorate:      governorate || req.user.governorate,
+        species:          species || null,
+        symptoms:         Array.isArray(symptoms) ? symptoms : [symptoms],
+        input_type,
+        ai_diagnosis:     result.diagnosis || null,
+        confidence:       result.confidence || null,
+        severity:         result.severity || null,
+        matched_symptoms: result.matched_symptoms || [],
+        suggested_actions: result.immediate_actions || [],
+        vet_required:     result.vet_required || false,
+        vet_urgency:      result.vet_urgency || null,
+        ai_raw_response:  result,
+        chat_history:     sanitizedChatHistory,
+        clarification_count: clarificationCount,
+      });
+    }
+
+    return res.status(201).json({
+      success:           true,
+      status:            result.status,
+      record_id:         savedRecord._id,
+      consultation_type: animal_id ? "linked_to_animal" : "general",
+      clarification_count: clarificationCount,
+      data:              result,
+    });
   } catch (err) {
     console.error("diagnose error:", err);
-    return res.status(500).json({
-      success: false,
-      message: "حدث خطأ أثناء التشخيص. حاول مرة أخرى.",
-      error: err.message,
-    });
+    return res.status(500).json({ success: false, message: "خطأ في التشخيص", error: err.message });
   }
 };
 
-// ════════════════════════════════════════════════════════════════════════════
-// POST /api/health-cases/diagnose/voice
-//
-// نفس منطق /diagnose بالضبط، لكن المدخل ملف صوتي بدل نص مكتوب.
-// الـ multer (uploadAudio) بيحط الملف في req.file، وباقي الحقول (animal_id,
-// species) بتيجي عادي كـ form-data text fields جنب الملف.
-//
-// الخطوات: استقبال الملف → تفريغه لنص بـ Whisper → حذف الملف المؤقت →
-// تمرير النص لنفس runDiagnosis() المُستخدمة في التشخيص النصي
-// ════════════════════════════════════════════════════════════════════════════
 const diagnoseVoice = async (req, res) => {
   let audioPath = null;
-
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: "ملف الصوت مطلوب" });
     }
     audioPath = req.file.path;
 
-    // ── تفريغ الصوت لنص عربي ─────────────────────────────────────────────────
     const transcribedText = await transcribeAudio(audioPath);
-
     if (!transcribedText || !transcribedText.trim()) {
       return res.status(422).json({
         success: false,
@@ -250,17 +326,14 @@ const diagnoseVoice = async (req, res) => {
       });
     }
 
-    // ── تمرير النص المُفرَّغ لنفس منطق التشخيص النصي ──────────────────────────
     const result = await runDiagnosis(req, {
-      animal_id: req.body.animal_id || null,
-      species: req.body.species || null,
-      symptoms: [transcribedText], // نص واحد طويل كعرض واحد، الـ AI بيفهم منه الأعراض
+      animal_id:  req.body.animal_id || null,
+      species:    req.body.species || null,
+      symptoms:   [transcribedText],
       input_type: "voice",
     });
 
-    // نُرجع النص المُفرَّغ في الرد عشان الـ frontend يقدر يعرضه للمزارع للتأكيد
     result.body.transcribed_text = transcribedText;
-
     return res.status(result.status).json(result.body);
   } catch (err) {
     console.error("diagnoseVoice error:", err);
@@ -270,7 +343,6 @@ const diagnoseVoice = async (req, res) => {
       error: err.message,
     });
   } finally {
-    // تنظيف الملف الصوتي المؤقت من السيرفر دايماً، نجح التفريغ أو فشل
     if (audioPath) {
       fs.unlink(audioPath, (err) => {
         if (err) console.warn("لم يتم حذف الملف الصوتي المؤقت:", err.message);
@@ -279,44 +351,73 @@ const diagnoseVoice = async (req, res) => {
   }
 };
 
-// ════════════════════════════════════════════════════════════════════════════
-// GET /api/health-cases/animal/:animalId — تاريخ الحالات المرضية لحيوان معين
-// ════════════════════════════════════════════════════════════════════════════
 const diagnoseImage = async (req, res) => {
+  let audioPath = null;
   try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: "الصورة مطلوبة" });
+    const files = [];
+    if (Array.isArray(req.files?.images)) files.push(...req.files.images);
+    if (Array.isArray(req.files?.image)) files.push(...req.files.image);
+    const audioFiles = Array.isArray(req.files?.audio) ? req.files.audio : req.files?.audio ? [req.files.audio] : [];
+
+    if (!files.length && !audioFiles.length) {
+      return res.status(400).json({ success: false, message: "الرجاء رفع صورة أو تسجيل صوتي أو كليهما" });
     }
 
-    const imageUrl = `/uploads/health-cases/${req.file.filename}`;
-    const inputType = req.body.symptoms ? "text+image" : "image";
+    const imageUrls = files.map((file) => `/uploads/health-cases/${file.filename}`);
+    const hasText = typeof req.body.symptoms === 'string' && req.body.symptoms.trim().length > 0;
+    const hasAudio = audioFiles.length > 0;
+    const hasImage = files.length > 0;
 
-    // ── تحليل الصورة بصرياً عبر Gemini Vision لاستخراج الأعراض الظاهرة ──────────
-    let imageFindings = null;
-    try {
-      imageFindings = await analyzeImage(req.file.path, req.file.mimetype);
-    } catch (visionErr) {
-      console.error("analyzeImage error:", visionErr.message);
-      // لو فشل تحليل الصورة، نكمل بدون image_findings بدل ما نفشل الطلب كله
+    let transcribedText = null;
+    if (hasAudio) {
+      audioPath = audioFiles[0].path;
+      try {
+        transcribedText = await transcribeAudio(audioPath);
+      } catch (transcribeErr) {
+        console.error("transcribeAudio error:", transcribeErr.message);
+      }
     }
+
+    const inputType = hasAudio && hasImage
+      ? "voice+image"
+      : hasAudio
+      ? "voice"
+      : hasImage
+      ? "image"
+      : "text";
+
+    const symptomsPayload = [];
+    if (hasText) symptomsPayload.push(req.body.symptoms);
+    if (transcribedText) symptomsPayload.push(transcribedText);
 
     const result = await runDiagnosis(req, {
-      animal_id: req.body.animal_id || null,
-      species: req.body.species || null,
-      symptoms: req.body.symptoms || [],
-      input_type: inputType,
-      image_url: imageUrl,
-      image_findings: imageFindings,
+      animal_id:   req.body.animal_id || null,
+      species:     req.body.species || null,
+      symptoms:    symptomsPayload.length ? symptomsPayload : [],
+      input_type:  inputType,
+      image_url:   imageUrls[0] || null,
+      image_urls:  imageUrls,
+      imagePath:   hasImage ? files[0].path : null,
+      imageMime:   hasImage ? normalizeImageMime(files[0]) : null,
     });
 
+    if (transcribedText) {
+      result.body.transcribed_text = transcribedText;
+    }
     return res.status(result.status).json(result.body);
   } catch (err) {
     console.error("diagnoseImage error:", err);
     return res.status(500).json({
       success: false,
-      message: "حدث خطأ أثناء معالجة الصورة. حاول مرة أخرى.",
+      message: "حدث خطأ أثناء معالجة المدخلات. حاول مرة أخرى.",
       error: err.message,
     });
+  } finally {
+    if (audioPath) {
+      fs.unlink(audioPath, (err) => {
+        if (err) console.warn("لم يتم حذف الملف الصوتي المؤقت:", err.message);
+      });
+    }
   }
 };
 
@@ -326,10 +427,8 @@ const getCasesByAnimal = async (req, res) => {
     if (!animal) {
       return res.status(404).json({ success: false, message: "الحيوان غير موجود أو غير مصرح" });
     }
-
     const cases = await HealthCase.find({ animal_id: req.params.animalId })
       .sort({ created_at: -1 });
-
     return res.status(200).json({ success: true, count: cases.length, data: cases });
   } catch (err) {
     console.error("getCasesByAnimal error:", err);
@@ -337,14 +436,10 @@ const getCasesByAnimal = async (req, res) => {
   }
 };
 
-// ════════════════════════════════════════════════════════════════════════════
-// GET /api/health-cases/consultations — سجل الاستشارات العامة للمستخدم الحالي
-// ════════════════════════════════════════════════════════════════════════════
 const getMyConsultations = async (req, res) => {
   try {
     const consultations = await Consultation.find({ user_id: req.user._id })
       .sort({ created_at: -1 });
-
     return res.status(200).json({
       success: true,
       count: consultations.length,
@@ -356,16 +451,12 @@ const getMyConsultations = async (req, res) => {
   }
 };
 
-// ════════════════════════════════════════════════════════════════════════════
-// GET /api/health-cases/:id — تفاصيل حالة واحدة (مرتبطة بحيوان)
-// ════════════════════════════════════════════════════════════════════════════
 const getCaseById = async (req, res) => {
   try {
     const healthCase = await HealthCase.findById(req.params.id).populate(
       "animal_id",
       "tag_number species"
     );
-
     if (!healthCase) {
       return res.status(404).json({ success: false, message: "الحالة غير موجودة" });
     }
@@ -386,9 +477,6 @@ const getCaseById = async (req, res) => {
   }
 };
 
-// ════════════════════════════════════════════════════════════════════════════
-// PUT /api/health-cases/:id/resolve — إغلاق الحالة بعد الشفاء (حيوان مسجل فقط)
-// ════════════════════════════════════════════════════════════════════════════
 const resolveCase = async (req, res) => {
   try {
     const healthCase = await HealthCase.findById(req.params.id);
@@ -405,10 +493,13 @@ const resolveCase = async (req, res) => {
       healthCase.vet_consulted = req.body.vet_consulted;
     }
     await healthCase.save();
-
     await Animal.findByIdAndUpdate(healthCase.animal_id, { health_status: "healthy" });
 
-    return res.status(200).json({ success: true, message: "تم إغلاق الحالة بنجاح", data: healthCase });
+    return res.status(200).json({
+      success: true,
+      message: "تم إغلاق الحالة بنجاح",
+      data: healthCase,
+    });
   } catch (err) {
     console.error("resolveCase error:", err);
     return res.status(500).json({ success: false, message: "خطأ في الخادم" });

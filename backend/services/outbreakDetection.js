@@ -79,7 +79,13 @@ const getConsultationCandidates = async (sinceDate) => {
         independent_sessions: {
           $size: {
             $reduce: {
-              input:        { $slice: ["$times", 1, { $subtract: [{ $size: "$times" }, 1] }] },
+              input: {
+                $cond: {
+                  if:   { $gt: [{ $size: "$times" }, 1] },
+                  then: { $slice: ["$times", 1, { $subtract: [{ $size: "$times" }, 1] }] },
+                  else: [],
+                },
+              },
               initialValue: { count: 1, prev: { $arrayElemAt: ["$times", 0] } },
               in: {
                 count: {

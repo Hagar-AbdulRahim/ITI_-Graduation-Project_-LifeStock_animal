@@ -230,6 +230,15 @@ const AppRoutes = () => {
       />
 
       <Route
+        path="/ai-assistant"
+        element={
+          <ProtectedRoute>
+            <AiAssistantPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="/diagnosis"
         element={
           <ProtectedRoute>

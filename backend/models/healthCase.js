@@ -38,6 +38,10 @@ const healthCaseSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    image_urls: {
+      type: [String],
+      default: [],
+    },
     image_findings: {
       type: String, // وصف الـ Vision AI للصورة
       default: null,
@@ -79,6 +83,29 @@ const healthCaseSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Mixed,
       default: null,
       select: false,
+    },
+    chat_history: {
+      type: [
+        {
+          role: {
+            type: String,
+            enum: ["assistant", "user"],
+            required: true,
+          },
+          content: {
+            type: String,
+            required: true,
+            trim: true,
+          },
+        },
+      ],
+      default: [],
+      select: false,
+    },
+    clarification_count: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
 
     // ── المتابعة ─────────────────────────────────────────────────────────────

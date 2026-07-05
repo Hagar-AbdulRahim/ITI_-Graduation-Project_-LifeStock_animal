@@ -14,11 +14,8 @@ const embedQuery = async (text) => embeddingModel.embedQuery(text.trim());
 
 const searchKnowledgeBase = async (queryText, type = null, limit = 4) => {
   const queryEmbedding = await embedQuery(queryText);
-
   await mongoClient.connect();
-  const collection = mongoClient.db(DB_NAME).collection(COLLECTION);
-
-  // numCandidates كبيرة عشان نضمن إن فيه نتايج كافية بعد الـ $match
+  const collection    = mongoClient.db(DB_NAME).collection(COLLECTION);
   const numCandidates = type ? 120 : 50;
 
   const pipeline = [
@@ -28,7 +25,7 @@ const searchKnowledgeBase = async (queryText, type = null, limit = 4) => {
         path:          "embedding",
         queryVector:   queryEmbedding,
         numCandidates,
-        limit:         numCandidates, // نجيب كل الـ candidates وبعدين نفلتر
+        limit:         numCandidates,
       },
     },
     {
@@ -41,7 +38,6 @@ const searchKnowledgeBase = async (queryText, type = null, limit = 4) => {
     },
   ];
 
-  // الـ $match بعد $vectorSearch مباشرة وقبل $limit
   if (type === "vaccine") {
     pipeline.push({ $match: { "metadata.type": "vaccine" } });
   } else if (type === "disease") {
@@ -59,4 +55,42 @@ const searchKnowledgeBase = async (queryText, type = null, limit = 4) => {
   }));
 };
 
-module.exports = { searchKnowledgeBase, embedQuery };
+// ── بحث موسّع لـ Differential Diagnosis ──────────────────────────────────────
+// بيرجع أكبر عدد من الأمراض المحتملة عشان الـ Agent يقارن ويسأل عنها
+const searchForDifferentialDiagnosis = async (symptomsText, limit = 8) => {
+  const queryEmbedding = await embedQuery(symptomsText);
+  await mongoClient.connect();
+  const collection = mongoClient.db(DB_NAME).collection(COLLECTION);
+
+  const pipeline = [
+    {
+      $vectorSearch: {
+        index:         "vector_index",
+        path:          "embedding",
+        queryVector:   queryEmbedding,
+        numCandidates: 200,
+        limit:         200,
+      },
+    },
+    {
+      $project: {
+        text:     1,
+        metadata: 1,
+        score:    { $meta: "vectorSearchScore" },
+        _id:      0,
+      },
+    },
+    // بنجيب كل الأمراض المتعلقة بالأعراض دي
+    { $match: { "metadata.type": "disease" } },
+    { $limit: limit },
+  ];
+
+  const results = await collection.aggregate(pipeline).toArray();
+  return results.map((r) => ({
+    text:     r.text || "",
+    metadata: r.metadata || {},
+    score:    r.score || 0,
+  }));
+};
+
+module.exports = { searchKnowledgeBase, embedQuery, searchForDifferentialDiagnosis };
