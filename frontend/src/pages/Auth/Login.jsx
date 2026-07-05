@@ -32,7 +32,7 @@ const Login = () => {
 
     if (loginUser.fulfilled.match(action)) {
       toast.success('تم تسجيل الدخول بنجاح');
-      navigate(getRoleHomePath(action.payload.user?.role));
+      navigate(getRoleHomePath(action.payload.user?.role), { replace: true });
       return;
     }
 
@@ -224,7 +224,7 @@ const Login = () => {
 
                       dispatch(setCredentials(res.data));
                       toast.success("تم تسجيل الدخول بنجاح");
-                      navigate(getRoleHomePath(res.data.user?.role));
+                      navigate(getRoleHomePath(res.data.user?.role), { replace: true });
                     } catch (err) {
                       toast.error(
                         err.response?.data?.message ||

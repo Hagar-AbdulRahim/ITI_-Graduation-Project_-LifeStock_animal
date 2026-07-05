@@ -5,6 +5,7 @@ import farmReducer from './farmSlice';
 import dashboardReducer from './dashBoard/dashboardSlice';
 import homeDashboardReducer from '../features/HomeDashboard/dashboardSlice';
 import notificationReducer from './notificationSlice';
+import reviewReducer from './reviewSlice';
 
 export const store = configureStore({
     reducer: {
@@ -14,5 +15,6 @@ export const store = configureStore({
         dashboard:     dashboardReducer,
         homeDashboard: homeDashboardReducer,
         notifications: notificationReducer,
+        reviews:       reviewReducer,
     },
 });

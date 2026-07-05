@@ -18,12 +18,12 @@ export default function DataTable({
 
   return (
     <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto custom-scrollbar pb-3">
         <table className="w-full text-sm" dir="rtl">
           <thead>
             <tr className="bg-[#f5f2eb] text-stone-600">
               {columns.map((col) => (
-                <th key={col.key} className="px-4 py-3 text-right font-bold whitespace-nowrap">
+                <th key={col.key} className="px-4 py-3 text-right font-bold whitespace-nowrap border-l border-stone-200 last:border-l-0">
                   {col.label}
                 </th>
               ))}
@@ -40,7 +40,7 @@ export default function DataTable({
               data.map((row, idx) => (
                 <tr key={row._id || row.id || idx} className="border-t border-stone-100 hover:bg-stone-50/50">
                   {columns.map((col) => (
-                    <td key={col.key} className="px-4 py-3 text-stone-700 whitespace-nowrap">
+                    <td key={col.key} className={`px-4 py-3 text-stone-700 border-l border-stone-100 last:border-l-0 ${col.className || 'whitespace-nowrap'}`}>
                       {col.render ? col.render(row) : row[col.key]}
                     </td>
                   ))}

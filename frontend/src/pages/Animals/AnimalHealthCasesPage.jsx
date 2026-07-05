@@ -6,7 +6,7 @@ import {
   Activity, HelpCircle, ShieldAlert, Sparkles, ChevronLeft, ChevronRight, FileText
 } from 'lucide-react';
 import { fetchAnimalById } from '../../redux/animalSlice';
-import healthCaseService from '../../services/healthCaseService';
+import healthRecordService from '../../services/healthRecord.service';
 
 const AnimalHealthCasesPage = () => {
   const { animalId } = useParams();
@@ -35,7 +35,8 @@ const AnimalHealthCasesPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await healthCaseService.getAnimalHealthCases(animalId);
+      const response = await healthRecordService.getAnimalCases(animalId);
+      console.log("Cases API Response:", response);
       if (response && response.success && Array.isArray(response.data)) {
         // Sort cases by newest first
         const sorted = [...response.data].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -44,8 +45,15 @@ const AnimalHealthCasesPage = () => {
         setCases([]);
       }
     } catch (err) {
-      console.error(err);
-      setError('Failed to load medical history. Please try again later.');
+      console.error("fetchCases error:", err);
+      const status = err.response?.status;
+      if (status === 401) {
+        setError('غير مصرح، الرجاء تسجيل الدخول مرة أخرى');
+      } else if (status === 404) {
+        setError('الحالة غير موجودة');
+      } else {
+        setError('حدث خطأ، حاول لاحقاً');
+      }
     } finally {
       setLoading(false);
     }
@@ -153,8 +161,8 @@ const AnimalHealthCasesPage = () => {
         ) : cases.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400">
             <HeartPulse className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <p className="font-semibold text-slate-600">No medical history found</p>
-            <p className="text-xs text-slate-400 mt-1">There are no health records registered for this animal yet.</p>
+            <p className="font-semibold text-slate-600">لا توجد حالات مرضية مسجلة</p>
+            <p className="text-xs text-slate-400 mt-1">لا يوجد أي سجل صحي مسجل لهذا الحيوان بعد.</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -171,6 +179,15 @@ const AnimalHealthCasesPage = () => {
                         {item.ai_diagnosis || 'General Checkup'}
                       </h3>
                       {getSeverityBadge(item.severity)}
+                      {item.resolved ? (
+                        <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          Resolved
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                          Active
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -199,7 +216,7 @@ const AnimalHealthCasesPage = () => {
 
                     <div className="flex items-end justify-end">
                       <button
-                        onClick={() => navigate(`/health-cases/${item._id}`)}
+                        onClick={() => navigate(`/health-record/${item._id}`)}
                         className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-900 hover:text-white rounded-xl text-xs font-bold transition-all shadow-sm"
                       >
                         <Eye className="w-4 h-4" />

@@ -4,10 +4,10 @@ import { useNavigate } from 'react-router-dom'
 import { fetchNotifications } from '../redux/notificationSlice'
 
 export default function Topbar() {
-  const user        = useSelector((state) => state.auth.user)
+  const user = useSelector((state) => state.auth.user)
   const unreadCount = useSelector((state) => state.notifications.unread_count)
-  const dispatch    = useDispatch()
-  const navigate    = useNavigate()
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
 
   // جلب عدد الإشعارات غير المقروءة عند تحميل الـ Topbar
   useEffect(() => {
@@ -27,7 +27,7 @@ export default function Topbar() {
       <div className="flex items-center gap-3">
         {user?.avatar ? (
           <img
-            src={user.avatar}
+            src={user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000${user.avatar}`}
             alt={user.name}
             className="w-9 h-9 rounded-lg object-cover shadow-sm"
           />
@@ -39,7 +39,12 @@ export default function Topbar() {
         <div className="leading-tight">
           <p className="text-sm font-semibold text-stone-800">
             {user?.name || 'المستخدم'}
+<<<<<<< HEAD
             {user?.name || 'مزارع'}
+=======
+
+
+>>>>>>> 54e7066c4c5609b3645207d9790ee8dd08748c4d
           </p>
         </div>
       </div>
@@ -47,6 +52,7 @@ export default function Topbar() {
       {/* Spacer */}
       <div className="flex-1" />
 
+<<<<<<< HEAD
       {/* Search */}
       <div className="relative hidden md:block">
         <input
@@ -68,6 +74,8 @@ export default function Topbar() {
         </svg>
       </div>
 
+=======
+>>>>>>> 54e7066c4c5609b3645207d9790ee8dd08748c4d
       {/* Notification Bell */}
       <button
         onClick={() => navigate('/notifications')}
@@ -105,6 +113,10 @@ export default function Topbar() {
           <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01" />
         </svg>
       </button>
+<<<<<<< HEAD
     </header>
+=======
+    </header >
+>>>>>>> 54e7066c4c5609b3645207d9790ee8dd08748c4d
   )
 }

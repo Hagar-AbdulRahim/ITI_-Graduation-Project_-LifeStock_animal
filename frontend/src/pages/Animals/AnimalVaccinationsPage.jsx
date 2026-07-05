@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-  ArrowRight, Syringe, Loader2, Calendar, AlertCircle, Plus, 
+import {
+  ArrowRight, Syringe, Loader2, Calendar, AlertCircle, Plus,
   Trash2, Edit, CheckCircle, Clock, User, Tag, FileText, Check, X, CalendarDays
 } from 'lucide-react';
-import { 
-  fetchAnimalById, 
-  fetchAnimalVaccinations, 
-  editVaccination, 
-  deleteVaccination 
+import {
+  fetchAnimalById,
+  fetchAnimalVaccinations,
+  editVaccination,
+  deleteVaccination
 } from '../../redux/animalSlice';
 import { animalService } from '../../features/animals/services/animalService';
 import toast from 'react-hot-toast';
@@ -33,6 +33,28 @@ const AnimalVaccinationsPage = () => {
   const [newDate, setNewDate] = useState('');
   const [postponeNotes, setPostponeNotes] = useState('');
   const [submittingPostpone, setSubmittingPostpone] = useState(false);
+
+  // States for Confirm/Delete Popup Modals
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [confirmTargetId, setConfirmTargetId] = useState(null);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+
+  // Filter dropdown state
+  const [filterStatus, setFilterStatus] = useState('all'); // 'all' | 'completed' | 'scheduled'
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const filterRef = React.useRef(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (filterRef.current && !filterRef.current.contains(e.target)) {
+        setIsFilterOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (id) {
@@ -60,19 +82,25 @@ const AnimalVaccinationsPage = () => {
   };
 
   const handleConfirmCompleted = async (vacId) => {
-    if (window.confirm('هل أنت متأكد أن هذا التطعيم قد أُعطي للحيوان بالفعل؟')) {
-      try {
-        await dispatch(editVaccination({ vacId, data: { completed: true } })).unwrap();
-        toast.success('تم تأكيد إتمام التطعيم وتحديث السجل بنجاح');
-        
-        // Refresh details modal if it's currently open for this vaccination
-        if (selectedVaccination && selectedVaccination._id === vacId) {
-          setSelectedVaccination(prev => prev ? { ...prev, completed: true, completed_at: new Date() } : null);
-        }
-        dispatch(fetchAnimalVaccinations(id));
-      } catch (err) {
-        toast.error(err || 'فشل في تحديث حالة التطعيم');
+    setConfirmTargetId(vacId);
+    setIsConfirmModalOpen(true);
+  };
+
+  const executeConfirmCompleted = async () => {
+    const vacId = confirmTargetId;
+    setIsConfirmModalOpen(false);
+    setConfirmTargetId(null);
+    try {
+      await dispatch(editVaccination({ vacId, data: { completed: true } })).unwrap();
+      toast.success('تم تأكيد إتمام التطعيم وتحديث السجل بنجاح');
+
+      // Refresh details modal if it's currently open for this vaccination
+      if (selectedVaccination && selectedVaccination._id === vacId) {
+        setSelectedVaccination(prev => prev ? { ...prev, completed: true, completed_at: new Date() } : null);
       }
+      dispatch(fetchAnimalVaccinations(id));
+    } catch (err) {
+      toast.error(err || 'فشل في تحديث حالة التطعيم');
     }
   };
 
@@ -116,19 +144,25 @@ const AnimalVaccinationsPage = () => {
     }
   };
 
-  const handleDelete = async (vacId) => {
-    if (window.confirm('هل أنت متأكد من رغبتك في حذف هذا التطعيم نهائياً؟')) {
-      try {
-        setDeletingId(vacId);
-        await dispatch(deleteVaccination(vacId)).unwrap();
-        toast.success('تم حذف سجل التطعيم بنجاح');
-        setIsDetailsOpen(false);
-        dispatch(fetchAnimalVaccinations(id));
-      } catch (err) {
-        toast.error(err || 'فشل في حذف سجل التطعيم');
-      } finally {
-        setDeletingId(null);
-      }
+  const handleDelete = (vacId) => {
+    setDeleteTargetId(vacId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const executeDelete = async () => {
+    const vacId = deleteTargetId;
+    setIsDeleteModalOpen(false);
+    setDeleteTargetId(null);
+    try {
+      setDeletingId(vacId);
+      await dispatch(deleteVaccination(vacId)).unwrap();
+      toast.success('تم حذف سجل التطعيم بنجاح');
+      setIsDetailsOpen(false);
+      dispatch(fetchAnimalVaccinations(id));
+    } catch (err) {
+      toast.error(err || 'فشل في حذف سجل التطعيم');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -147,38 +181,38 @@ const AnimalVaccinationsPage = () => {
 
   const getStatus = (vac) => {
     if (vac.completed) {
-      return { 
-        label: 'مكتمل', 
-        color: 'bg-green-50 text-green-700 border-green-150', 
-        dot: 'bg-green-600' 
+      return {
+        label: 'مكتمل',
+        color: 'bg-green-50 text-green-700 border-green-150',
+        dot: 'bg-green-600'
       };
     }
     const dateStr = vac.vaccine_type === 'one_time' ? vac.scheduled_date : vac.next_due_date;
     if (!dateStr) {
-      return { 
-        label: 'قيد الانتظار', 
-        color: 'bg-stone-100 text-stone-600 border-stone-200', 
-        dot: 'bg-stone-400' 
+      return {
+        label: 'قيد الانتظار',
+        color: 'bg-stone-100 text-stone-600 border-stone-200',
+        dot: 'bg-stone-400'
       };
     }
-    
+
     const date = new Date(dateStr);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     date.setHours(0, 0, 0, 0);
-    
+
     if (date < today) {
-      return { 
-        label: 'متأخر', 
-        color: 'bg-rose-50 text-rose-700 border-rose-150', 
-        dot: 'bg-rose-600' 
+      return {
+        label: 'متأخر',
+        color: 'bg-rose-50 text-rose-700 border-rose-150',
+        dot: 'bg-rose-600'
       };
     }
-    
-    return { 
-      label: 'مجدول', 
-      color: 'bg-blue-50 text-blue-700 border-blue-150', 
-      dot: 'bg-blue-600' 
+
+    return {
+      label: 'مجدول',
+      color: 'bg-blue-50 text-blue-700 border-blue-150',
+      dot: 'bg-blue-600'
     };
   };
 
@@ -219,13 +253,56 @@ const AnimalVaccinationsPage = () => {
               </p>
             </div>
           </div>
-          <button
-            onClick={() => navigate(`/animals/${id}/vaccinations/add`)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#2a5c2a] text-white rounded-xl text-xs font-bold hover:bg-[#1f451f] transition-colors shadow-sm shadow-emerald-950/20"
-          >
-            <Plus className="w-4 h-4" />
-            إضافة تطعيم جديد
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Filter Dropdown */}
+            <div className="relative" ref={filterRef}>
+              <button
+                onClick={() => setIsFilterOpen((prev) => !prev)}
+                className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold border transition-all ${
+                  filterStatus !== 'all'
+                    ? 'bg-[#2a5c2a]/10 border-[#2a5c2a]/30 text-[#2a5c2a]'
+                    : 'bg-white border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50'
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+                {filterStatus === 'completed' ? 'مكتمل' : filterStatus === 'scheduled' ? 'مجدول' : 'الكل'}
+                <svg xmlns="http://www.w3.org/2000/svg" className={`w-3 h-3 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+
+              {isFilterOpen && (
+                <div className="absolute top-full mt-1.5 left-0 bg-white border border-stone-200 rounded-2xl shadow-xl overflow-hidden z-30 min-w-[130px] py-1.5 animate-in fade-in zoom-in-95 duration-150">
+                  {[
+                    { key: 'all', label: 'الكل', dot: 'bg-stone-400', textColor: 'text-stone-700' },
+                    { key: 'completed', label: 'مكتمل', dot: 'bg-green-500', textColor: 'text-green-700' },
+                    { key: 'scheduled', label: 'مجدول', dot: 'bg-blue-500', textColor: 'text-blue-700' },
+                  ].map(({ key, label, dot, textColor }) => (
+                    <button
+                      key={key}
+                      onClick={() => { setFilterStatus(key); setIsFilterOpen(false); }}
+                      className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold transition-colors hover:bg-stone-50 ${
+                        filterStatus === key ? 'bg-stone-50' : ''
+                      }`}
+                    >
+                      <span className={`w-2 h-2 rounded-full ${dot}`} />
+                      <span className={textColor}>{label}</span>
+                      {filterStatus === key && (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 mr-auto text-[#2a5c2a]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Add Button */}
+            <button
+              onClick={() => navigate(`/animals/${id}/vaccinations/add`)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#2a5c2a] text-white rounded-xl text-xs font-bold hover:bg-[#1f451f] transition-colors shadow-sm shadow-emerald-950/20"
+            >
+              <Plus className="w-4 h-4" />
+              إضافة تطعيم جديد
+            </button>
+          </div>
         </div>
       </div>
 
@@ -270,25 +347,30 @@ const AnimalVaccinationsPage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {vaccinations.map((vac) => {
+            {vaccinations
+              .filter((vac) => {
+                if (filterStatus === 'completed') return vac.completed;
+                if (filterStatus === 'scheduled') return !vac.completed;
+                return true;
+              })
+              .map((vac) => {
               const status = getStatus(vac);
               return (
-                <div 
-                  key={vac._id} 
+                <div
+                  key={vac._id}
                   className="bg-white border border-stone-200 rounded-[20px] p-5 shadow-sm hover:shadow-md transition-all duration-300 relative flex flex-col group"
                 >
                   {/* Status & Type badge */}
                   <div className="flex justify-between items-start gap-2 mb-4">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border ${status.color}`}>
+                    <span className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-bold border shadow-md ${status.color}`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`}></span>
                       {status.label}
                     </span>
 
-                    <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold ${
-                      vac.vaccine_type === 'one_time' 
-                        ? 'bg-purple-50 text-purple-700 border border-purple-100' 
-                        : 'bg-emerald-50 text-[#2a5c2a] border border-emerald-100'
-                    }`}>
+                    <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold ${vac.vaccine_type === 'one_time'
+                      ? 'bg-purple-50 text-purple-700 border border-purple-100'
+                      : 'bg-emerald-50 text-[#2a5c2a] border border-emerald-100'
+                      }`}>
                       {vac.vaccine_type === 'one_time' ? 'لمرة واحدة' : 'متكرر'}
                     </span>
                   </div>
@@ -333,9 +415,10 @@ const AnimalVaccinationsPage = () => {
                   <div className="mt-5 pt-4 border-t border-stone-100 flex items-center justify-between gap-2">
                     <button
                       onClick={() => handleOpenDetails(vac)}
-                      className="text-xs font-bold text-[#2a5c2a] hover:underline"
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-[#f0f7f0] hover:bg-[#e0efe0] text-[#2a5c2a] rounded-xl text-sm font-bold transition-all border border-[#2a5c2a]/10"
                     >
-                      عرض التفاصيل
+                      <FileText className="w-3.5 h-3.5" />
+                      التفاصيل
                     </button>
 
                     <div className="flex items-center gap-1.5">
@@ -343,10 +426,10 @@ const AnimalVaccinationsPage = () => {
                         <>
                           <button
                             onClick={() => handleConfirmCompleted(vac._id)}
-                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg border border-transparent hover:border-emerald-100 transition-all"
-                            title="تأكيد الإعطاء"
+                            className="flex items-center justify-center gap-1 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-sm font-bold transition-all border border-emerald-200"
                           >
-                            <Check className="w-4 h-4" />
+                            <Check className="w-3.5 h-3.5" />
+                            تأكيد
                           </button>
                           <button
                             onClick={() => handleOpenPostpone(vac)}
@@ -375,10 +458,10 @@ const AnimalVaccinationsPage = () => {
 
       {/* ── DETAILS MODAL ─────────────────────────────────────────── */}
       {isDetailsOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-900/60 flex items-center justify-center p-4 backdrop-blur-xs">
-          <div className="bg-white rounded-[24px] max-w-lg w-full overflow-hidden shadow-xl border border-stone-100 relative animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-900/60 flex items-center justify-center p-4 backdrop-blur-xs" onClick={() => setIsDetailsOpen(false)}>
+          <div className="bg-white rounded-[24px] max-w-lg w-full overflow-hidden shadow-xl border border-stone-100 relative animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
             {/* Header */}
-            <div className="p-6 border-b border-stone-100 flex items-center justify-between">
+            <div className="p-6 border-b border-stone-100 flex items-center justify-between" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-emerald-50 text-[#2a5c2a] flex items-center justify-center border border-emerald-100">
                   <Syringe className="w-5 h-5" />
@@ -388,16 +471,14 @@ const AnimalVaccinationsPage = () => {
                   <p className="text-xs text-stone-400 font-medium">البيانات الكاملة للقاح المسجل</p>
                 </div>
               </div>
-              <button
-                onClick={() => setIsDetailsOpen(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-stone-50 text-stone-400"
-              >
+              <button onClick={() => setIsDetailsOpen(false)} className="p-2 rounded-full hover:bg-stone-100 text-stone-500" aria-label="Close Details Modal">
                 <X className="w-5 h-5" />
               </button>
+
             </div>
 
             {/* Content */}
-            <div className="p-6 space-y-5">
+            <div className="p-6 space-y-5 overflow-y-auto" style={{ maxHeight: 'calc(85vh - 120px)' }}>
               {loadingDetail ? (
                 <div className="flex flex-col items-center justify-center py-10 space-y-3">
                   <Loader2 className="w-8 h-8 text-[#2a5c2a] animate-spin" />
@@ -431,9 +512,8 @@ const AnimalVaccinationsPage = () => {
 
                     <div className="flex justify-between items-center border-b border-stone-50 pb-2">
                       <span className="text-xs text-stone-500 font-bold">نوع التطعيم:</span>
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded ${
-                        selectedVaccination.vaccine_type === 'one_time' ? 'bg-purple-50 text-purple-700' : 'bg-emerald-50 text-[#2a5c2a]'
-                      }`}>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded ${selectedVaccination.vaccine_type === 'one_time' ? 'bg-purple-50 text-purple-700' : 'bg-emerald-50 text-[#2a5c2a]'
+                        }`}>
                         {selectedVaccination.vaccine_type === 'one_time' ? 'لمرة واحدة (طارئ)' : 'متكرر (دوري)'}
                       </span>
                     </div>
@@ -491,9 +571,8 @@ const AnimalVaccinationsPage = () => {
 
                     <div className="flex justify-between items-center border-b border-stone-50 pb-2">
                       <span className="text-xs text-stone-500 font-bold">حالة الإتمام:</span>
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
-                        selectedVaccination.completed ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-                      }`}>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${selectedVaccination.completed ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                        }`}>
                         {selectedVaccination.completed ? (
                           <>
                             <Check className="w-3 h-3" /> تم الإعطاء
@@ -530,7 +609,14 @@ const AnimalVaccinationsPage = () => {
                       className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-stone-100 hover:bg-stone-200/80 text-stone-700 rounded-xl text-xs font-bold transition-all"
                     >
                       <Edit className="w-3.5 h-3.5" />
-                      تعديل / تأجيل
+                      تعديل
+                    </button>
+                    <button
+                      onClick={() => { handleOpenPostpone(selectedVaccination); }}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl text-xs font-bold transition-all border border-blue-200"
+                    >
+                      <CalendarDays className="w-3.5 h-3.5" />
+                      تأجيل
                     </button>
 
                     {!selectedVaccination.completed && (
@@ -634,6 +720,86 @@ const AnimalVaccinationsPage = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── DELETE CONFIRMATION POPUP ──────────────────────────────── */}
+      {isDeleteModalOpen && (
+        <div
+          className="fixed inset-0 z-[60] overflow-y-auto bg-stone-900/60 flex items-center justify-center p-4 backdrop-blur-xs cursor-pointer"
+          onClick={() => { setIsDeleteModalOpen(false); setDeleteTargetId(null); }}
+        >
+          <div
+            className="bg-white rounded-[20px] max-w-sm w-full overflow-hidden shadow-xl border border-stone-100 animate-in fade-in zoom-in-95 duration-200 cursor-default"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 text-center">
+              <div className="w-14 h-14 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-4 border border-rose-100">
+                <Trash2 className="w-7 h-7" />
+              </div>
+              <h3 className="font-extrabold text-stone-900 text-lg mb-2">حذف سجل التطعيم</h3>
+              <p className="text-sm text-stone-500 leading-relaxed">
+                هل أنت متأكد من رغبتك في حذف هذا التطعيم نهائياً؟
+                <br />
+                <span className="text-rose-500 font-bold text-xs">هذا الإجراء لا يمكن التراجع عنه.</span>
+              </p>
+            </div>
+            <div className="px-6 pb-6 flex items-center gap-3">
+              <button
+                onClick={() => { setIsDeleteModalOpen(false); setDeleteTargetId(null); }}
+                className="flex-1 py-2.5 bg-white border border-stone-200 rounded-xl text-sm font-bold text-stone-600 hover:bg-stone-50 transition-colors"
+              >
+                إلغاء
+              </button>
+              <button
+                onClick={executeDelete}
+                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-bold transition-colors shadow-sm flex items-center justify-center gap-1.5"
+              >
+                <Trash2 className="w-4 h-4" />
+                نعم، احذف
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── CONFIRM COMPLETED POPUP ──────────────────────────────── */}
+      {isConfirmModalOpen && (
+        <div
+          className="fixed inset-0 z-[60] overflow-y-auto bg-stone-900/60 flex items-center justify-center p-4 backdrop-blur-xs cursor-pointer"
+          onClick={() => { setIsConfirmModalOpen(false); setConfirmTargetId(null); }}
+        >
+          <div
+            className="bg-white rounded-[20px] max-w-sm w-full overflow-hidden shadow-xl border border-stone-100 animate-in fade-in zoom-in-95 duration-200 cursor-default"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 text-center">
+              <div className="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4 border border-emerald-100">
+                <CheckCircle className="w-7 h-7" />
+              </div>
+              <h3 className="font-extrabold text-stone-900 text-lg mb-2">تأكيد إعطاء التطعيم</h3>
+              <p className="text-sm text-stone-500 leading-relaxed">
+                هل أنت متأكد أن هذا التطعيم قد أُعطي للحيوان بالفعل؟
+                <br />
+                <span className="text-emerald-600 font-bold text-xs">سيتم تسجيل حالة التطعيم كمكتمل.</span>
+              </p>
+            </div>
+            <div className="px-6 pb-6 flex items-center gap-3">
+              <button
+                onClick={() => { setIsConfirmModalOpen(false); setConfirmTargetId(null); }}
+                className="flex-1 py-2.5 bg-white border border-stone-200 rounded-xl text-sm font-bold text-stone-600 hover:bg-stone-50 transition-colors"
+              >
+                إلغاء
+              </button>
+              <button
+                onClick={executeConfirmCompleted}
+                className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold transition-colors shadow-sm flex items-center justify-center gap-1.5"
+              >
+                <Check className="w-4 h-4" />
+                نعم، تأكيد الإعطاء
+              </button>
+            </div>
           </div>
         </div>
       )}

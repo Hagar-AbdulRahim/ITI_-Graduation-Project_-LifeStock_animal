@@ -152,6 +152,7 @@ vaccinationSchema.pre("validate", function () {
   calculatedDate.setMonth(calculatedDate.getMonth() + DEFAULT_BOOSTER_MONTHS);
 
   this.next_due_date = calculatedDate;
+
   this.next_due_date_auto_calculated = true;
 });
 

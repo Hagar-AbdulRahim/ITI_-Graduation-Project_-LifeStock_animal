@@ -28,6 +28,7 @@ import NotificationsPage from '../pages/NotificationsPage'
 import VaccineAgentPage from '../pages/VaccineAgentPage'
 import AnimalHealthCasesPage from '../pages/Animals/AnimalHealthCasesPage'
 import HealthCaseDetailPage from '../pages/Animals/HealthCaseDetailPage'
+import ReviewsPage from '../pages/Reviews/ReviewsPage'
 
 // Dashboard & Layout Pages
 import DashboardPage from '../pages/dashboard/DashboardPage'
@@ -180,7 +181,7 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/animals/:animalId/health-cases"
+        path="/animals/:animalId/health-record"
         element={
           <ProtectedRoute>
             <AnimalHealthCasesPage />
@@ -188,7 +189,7 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/health-cases/:caseId"
+        path="/health-record/:caseId"
         element={
           <ProtectedRoute>
             <HealthCaseDetailPage />
@@ -273,6 +274,8 @@ const AppRoutes = () => {
         <Route path="consultations" element={<DoctorConsultationsPage />} />
         <Route path="outbreaks" element={<DoctorOutbreaksPage />} />
       </Route>
+
+      <Route path="/reviews" element={<ReviewsPage />} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/farms" replace />} />

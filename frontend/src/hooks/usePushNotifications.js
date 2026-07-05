@@ -22,8 +22,9 @@ const usePushNotifications = () => {
       try {
         // 1. سجل الـ Service Worker
         const reg = await navigator.serviceWorker.register('/sw.js');
+        await navigator.serviceWorker.ready;
         console.log('✅ SW registered');
-
+        
         // 2. لو الـ permission مش granted، اطلبه
         let permission = Notification.permission;
         if (permission === 'default') {
