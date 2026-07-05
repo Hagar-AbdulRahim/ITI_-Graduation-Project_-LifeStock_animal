@@ -112,12 +112,12 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a
-                  href="#contact"
-                  className="text-sm transition-colors text-emerald-200/60 hover:text-white"
+                <button
+                  onClick={() => navigate('/contact')}
+                  className="text-sm transition-colors text-emerald-200/60 hover:text-white cursor-pointer"
                 >
                   تواصل معنا
-                </a>
+                </button>
               </li>
             </ul>
           </div>

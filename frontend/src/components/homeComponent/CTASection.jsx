@@ -1,12 +1,12 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import ctaBg from '../../assets/images/cta-bg.jpg'
 
 const CTASection = () => {
+  const navigate = useNavigate()
+
   const handleContactClick = () => {
-    const contactSection = document.getElementById('contact')
-    if (contactSection) {
-      contactSection.scrollIntoView({ behavior: 'smooth' })
-    }
+    navigate('/contact')
   }
 
   return (
@@ -22,12 +22,12 @@ const CTASection = () => {
         >
           {/* Title */}
           <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4 leading-snug">
-            ابدأ في مراعاة قطيعك بذكاء من اليوم
+            هل لديك أي استفسارات أو تحتاج إلى مساعدة؟
           </h2>
 
           {/* Description */}
           <p className="text-green-100 text-sm md:text-base mb-10 max-w-xl mx-auto leading-relaxed opacity-90">
-            تجربة مجانية لمدة 14 يومًا، بدون بطاقة بنكية، وبدعم كامل بالعربية لإعداد مزرعتك.
+            فريق الدعم الفني لدينا متاح دائماً للرد على أسئلتك، تقديم الدعم، أو الاستماع إلى اقتراحاتك لتطوير مزرعتك بذكاء.
           </p>
 
           {/* Single CTA Button */}
