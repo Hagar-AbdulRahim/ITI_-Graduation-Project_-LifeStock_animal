@@ -118,7 +118,7 @@ const AddMedicalRecordPage = () => {
                 إضافة سجل طبي
               </h1>
               <p className="text-[11px] text-gray-400 font-medium">
-                سجل صحي للحيوان: {animal?.name}
+                سجل صحي للحيوان: #{animal?.tag_number || '...'}
               </p>
             </div>
           </div>

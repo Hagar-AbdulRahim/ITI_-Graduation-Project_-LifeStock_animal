@@ -221,17 +221,19 @@ const HealthCaseDetailPage = () => {
               </div>
             </div>
 
-            {/* Case Image */}
-            {caseDetail.image_url && (
-              <div className="rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-slate-50 flex items-center justify-center max-h-40">
-                <img 
-                  src={caseDetail.image_url} 
-                  alt="Case findings attachment" 
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
-                />
+            {/* Case Images */}
+            {(caseDetail.image_urls?.length > 0 || caseDetail.image_url) && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {(caseDetail.image_urls?.length > 0 ? caseDetail.image_urls : [caseDetail.image_url]).map((url, idx) => (
+                  <div key={idx} className="rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-slate-50 flex items-center justify-center max-h-40">
+                    <img 
+                      src={url} 
+                      alt={`Case attachment ${idx + 1}`} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                  </div>
+                ))}
               </div>
             )}
           </div>

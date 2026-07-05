@@ -64,7 +64,6 @@ const FarmAnimalsSection = ({ animals, loading, error }) => {
               <option value="healthy">سليم</option>
               <option value="monitor">مراقبة</option>
               <option value="sick">مريض</option>
-              <option value="critical">حالة حرجة</option>
             </select>
           </div>
 

@@ -29,16 +29,16 @@ import VaccineAgentPage from '../pages/VaccineAgentPage'
 import AnimalHealthCasesPage from '../pages/Animals/AnimalHealthCasesPage'
 import HealthCaseDetailPage from '../pages/Animals/HealthCaseDetailPage'
 import ReviewsPage from '../pages/Reviews/ReviewsPage'
-import ContactUsPage from '../pages/ContactUs/ContactUsPage'
+
+import ServicesPage from '../pages/ServicesPage'
+import DiagnosisPage from '../pages/DiagnosisPage'
+
 
 // Dashboard & Layout Pages
 import DashboardPage from '../pages/dashboard/DashboardPage'
 import MainLayout from '../layout/MainLayout'
 import LandingPage from '../pages/Home/LandingPage'
 import AiAssistantPage from '../pages/AiAssistantPage'
-import DiagnosisPage from '../pages/DiagnosisPage'
-import ImageAnalysisPage from '../pages/ImageAnalysis/ImageAnalysisPage'
-import VaccinationsPage from '../pages/Vaccinations/VaccinationsPage'
 
 // Admin Portal
 import AdminLayout from '../layout/AdminLayout'
@@ -51,7 +51,6 @@ import AdminHealthCasesPage from '../pages/admin/AdminHealthCasesPage'
 import AdminConsultationsPage from '../pages/admin/AdminConsultationsPage'
 import AdminOutbreaksPage from '../pages/admin/AdminOutbreaksPage'
 import AdminNotificationsPage from '../pages/admin/AdminNotificationsPage'
-import AdminSettingsPage from '../pages/admin/AdminSettingsPage'
 
 // Doctor Portal
 import DoctorLayout from '../layout/DoctorLayout'
@@ -125,10 +124,8 @@ const AppRoutes = () => {
 
         {/* Mock/ComingSoon subpages inside the dashboard */}
         <Route path="ai-assistant" element={<AiAssistantPage />} />
-        <Route path="diagnosis" element={<DiagnosisPage />} />
         <Route path="emergencies" element={<EmergencyPage />} />
-        <Route path="vaccinations" element={<VaccinationsPage />} />
-        
+
         <Route path="library" element={<ComingSoon title="المكتبة" />} />
         <Route path="reports" element={<ComingSoon title="التقارير" />} />
       </Route>
@@ -232,6 +229,15 @@ const AppRoutes = () => {
       />
 
       <Route
+        path="/ai-assistant"
+        element={
+          <ProtectedRoute>
+            <AiAssistantPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="/diagnosis"
         element={
           <ProtectedRoute>
@@ -258,7 +264,6 @@ const AppRoutes = () => {
         <Route path="consultations" element={<AdminConsultationsPage />} />
         <Route path="outbreaks" element={<AdminOutbreaksPage />} />
         <Route path="notifications" element={<AdminNotificationsPage />} />
-        <Route path="settings" element={<AdminSettingsPage />} />
       </Route>
 
       {/* Doctor Portal */}
@@ -278,6 +283,8 @@ const AppRoutes = () => {
       </Route>
 
       <Route path="/reviews" element={<ReviewsPage />} />
+      <Route path="/services" element={<ServicesPage />} />
+      <Route path="/contact" element={<ComingSoon title="تواصل معنا" />} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/farms" replace />} />

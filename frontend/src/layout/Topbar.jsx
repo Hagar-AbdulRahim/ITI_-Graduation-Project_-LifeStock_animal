@@ -50,7 +50,6 @@ export default function Topbar() {
 
       {/* Notification Bell */}
       <button
-        type="button"
         onClick={() => navigate('/notifications')}
         className="relative p-2 rounded-lg hover:bg-stone-100 transition-colors"
         title="الإشعارات"

@@ -113,33 +113,4 @@ export const SIDEBAR_LINKS = [
     path: '/notifications',
     isStandalone: true,
   },
-  {
-    id: 'diagnosis',
-    label: 'التشخيص',
-    icon: 'plus-circle',
-    color: 'text-green-700',
-    path: '/diagnosis',
-  },
-  {
-    id: 'image-analysis',
-    label: 'تحليل الصور',
-    icon: 'camera',
-    color: 'text-blue-400',
-    path: '/image-analysis',
-  },
-  {
-    id: 'vaccinations',
-    label: 'التطعيمات',
-    icon: 'syringe-icon',
-    color: 'text-blue-500',
-    path: '/vaccinations',
-  },
-  {
-    id: 'vaccine-agent',
-    label: 'مستشار اللقاحات',
-    icon: 'bot',
-    color: 'text-green-600',
-    path: '/vaccine-agent',
-    isStandalone: true,
-  },
 ]

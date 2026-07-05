@@ -45,7 +45,7 @@ const HealthCases = ({ animals, loading }) => {
                   {animal.species === 'cattle' ? '🐄' : animal.species === 'sheep' ? '🐑' : animal.species === 'goat' ? '🐐' : '🐾'}
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{animal.name}</h4>
+                  <h4 className="text-sm font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{animal.tag_number || '—'}</h4>
                   <p className="text-xs text-gray-500">رقم التعريف: {animal.tag_number || '—'}</p>
                 </div>
               </div>
