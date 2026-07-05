@@ -237,12 +237,10 @@ export default function AnimalProfilePage() {
       </div>
 
       {/* ── ACTION BUTTONS ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
-          { label: 'تشخيص ذكي',      icon: Zap,         color: 'text-emerald-600 border-emerald-100 hover:bg-emerald-50 hover:border-emerald-300', action: () => navigate(`/diagnosis?animalId=${id}`) },
           { label: 'السجل الطبي',     icon: Heart,        color: 'text-red-500 border-red-100 hover:bg-red-50 hover:border-red-300',                 action: () => navigate(`/animals/${id}/medical-records`) },
           { label: 'التطعيمات',       icon: Syringe,      color: 'text-blue-500 border-blue-100 hover:bg-blue-50 hover:border-blue-300',             action: () => navigate(`/animals/${id}/vaccinations`) },
-          { label: 'مستشار اللقاحات', icon: ShieldCheck,  color: 'text-[#2d5a1b] border-[#2d5a1b]/20 hover:bg-[#2d5a1b]/5 hover:border-[#2d5a1b]/40', action: () => navigate('/vaccine-agent') },
           { label: 'تعديل البيانات',  icon: Edit,         color: 'text-amber-600 border-amber-100 hover:bg-amber-50 hover:border-amber-300',         action: () => navigate(`/animals/edit/${id}`) },
         ].map(({ label, icon: Icon, color, action }) => (
           <button
