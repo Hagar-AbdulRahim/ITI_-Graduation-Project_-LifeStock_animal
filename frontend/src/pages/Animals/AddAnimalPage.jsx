@@ -221,7 +221,6 @@ const AddAnimalPage = () => {
                   <option value="healthy">سليم</option>
                   <option value="sick">مريض / مراقبة</option>
                   <option value="critical">حالة حرجة</option>
-                  <option value="deceased">متوفى</option>
                 </select>
               </div>
 

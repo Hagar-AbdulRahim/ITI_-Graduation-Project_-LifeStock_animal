@@ -1,10 +1,9 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { ArrowRight, Save, X, Loader2 } from 'lucide-react';
 import { fetchAnimalById, updateExistingAnimal } from '../../redux/animalSlice';
-import { fetchMyFarms } from '../../redux/farmSlice';
 
 // ─── Backend Animal Model ─────────────────────────────────────────────────────
 // ["weight_kg", "health_status", "notes", "breed", "tag_number", "gender", "age_value", "age_unit", "image"]
@@ -62,7 +61,7 @@ const EditAnimalPage = () => {
     try {
       await dispatch(updateExistingAnimal({ id, data: payload })).unwrap();
       navigate(`/animals/${id}`);
-    } catch (err) {
+    } catch {
       // Error shown via Redux state
     }
   };
@@ -215,7 +214,6 @@ const EditAnimalPage = () => {
                   <option value="healthy">سليم</option>
                   <option value="sick">مراقبة / مريض</option>
                   <option value="critical">حالة حرجة</option>
-                  <option value="deceased">متوفى</option>
                 </select>
                 {errors.health_status && <p className="text-[11px] text-red-500 mt-1">{errors.health_status.message}</p>}
               </div>

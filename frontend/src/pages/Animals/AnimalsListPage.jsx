@@ -326,7 +326,6 @@ const AnimalsListPage = () => {
                 <option value="healthy">سليم</option>
                 <option value="sick">مراقبة</option>
                 <option value="critical">حالة حرجة</option>
-                <option value="deceased">متوفى</option>
               </select>
             </div>
 

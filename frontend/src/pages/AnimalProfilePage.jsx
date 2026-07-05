@@ -14,10 +14,8 @@ import {
   Heart,
   User,
   Send,
-  ChevronDown,
   Loader2,
   Trash2,
-  Bot,
 } from 'lucide-react'
 import {
   fetchAnimalById,
@@ -77,7 +75,16 @@ export default function AnimalProfilePage() {
           : 'ماعز',
     breed: a.breed || 'غير محدد',
     gender: a.gender === 'female' ? 'أنثى' : 'ذكر',
-    birthDate: '—', // Removed from backend
+    birthDate: (() => {
+      if (a.age_value === undefined || a.age_value === null) return 'غير محدد'
+      const dob = new Date()
+      if (a.age_unit === 'years') {
+        dob.setFullYear(dob.getFullYear() - Number(a.age_value))
+      } else if (a.age_unit === 'months') {
+        dob.setMonth(dob.getMonth() - Number(a.age_value))
+      }
+      return dob.toLocaleDateString('ar-EG')
+    })(),
     age:
       a.age_value !== undefined
         ? `${a.age_value} ${a.age_unit === 'years' ? 'سنة' : 'شهر'}`
@@ -87,10 +94,25 @@ export default function AnimalProfilePage() {
     weightChange: '+0.5%',
     yield: '—',
     yieldGroup: '',
-    status: a.health_status === 'healthy' ? 'ممتازة' : 'يحتاج رعاية',
-    statusTag: a.health_status === 'healthy' ? 'سليم' : 'مريض',
+    health_status: a.health_status || 'healthy',
+    statusTag:
+      a.health_status === 'healthy'
+        ? 'سليم'
+        : a.health_status === 'sick'
+          ? 'مراقبة'
+          : a.health_status === 'critical'
+            ? 'حرجة'
+            : 'غير متاح',
+    status:
+      a.health_status === 'healthy'
+        ? 'ممتازة'
+        : a.health_status === 'sick'
+          ? 'يحتاج رعاية'
+          : a.health_status === 'critical'
+            ? 'حالة حرجة'
+            : 'غير متاح',
     risk: 'مستقر',
-    riskTag: 'متوسط',
+    riskTag: a.health_status === 'critical' ? 'عالي' : 'متوسط',
     lastCheck: 'الآن',
     aiAlerts: 'لا يوجد تنبيهات حيوية',
     treatment: null,
@@ -208,133 +230,78 @@ export default function AnimalProfilePage() {
   }
 
   return (
-    <div
-      dir="rtl"
-      className="max-w-7xl mx-auto px-1 py-4 font-cairo space-y-6 pb-20"
-    >
-      {/* ── BREADCRUMBS & TOP BAR ACTIONS ── */}
-      <div className="flex flex-col gap-4">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 text-xs text-gray-500">
-            <Link
-              to={
-                farmIdForNavigation
-                  ? `/farms/${farmIdForNavigation}/animals`
-                  : '/farms'
-              }
-              className="hover:text-[#2d5a1b] hover:underline transition-all font-semibold"
-            >
-              الحيوانات
-            </Link>
-            <ChevronRight className="w-3 h-3" />
-            <span className="text-gray-700 font-bold">{profile.name}</span>
+    <div dir="rtl" className="font-cairo pb-20">
+      <div className="w-full rounded-3xl bg-[#144022] bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.1),_transparent_35%),radial-gradient(circle_at_top_right,_rgba(255,255,255,0.08),_transparent_20%)] px-4 py-6 shadow-lg sm:px-6 lg:px-10">
+        <div className="flex w-full flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-3 text-white max-w-3xl">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white/80">
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+              الحالة الصحية العامة
+            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">{profile.name}</h1>
+            <p className="text-sm text-white/80 leading-relaxed">
+              عرض تفصيلي لحالة الحيوان، الحالة الصحية، التوصيات، وسجل المتابعة.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-semibold text-white shadow-sm">
+                {profile.species}
+              </span>
+              <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-semibold text-white shadow-sm">
+                {profile.gender}
+              </span>
+              <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-semibold text-white shadow-sm">
+                {profile.breed}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:w-[460px]">
+            <div className="rounded-3xl bg-white/10 border border-white/10 p-4 shadow-sm">
+              <p className="text-[10px] uppercase text-white/70 font-bold tracking-[0.18em]">الحالة الصحية</p>
+              <p className="mt-3 text-xl font-black text-white">{profile.statusTag}</p>
+              <p className="mt-1 text-xs text-white/70">{profile.status}</p>
+            </div>
+            <div className="rounded-3xl bg-white/10 border border-white/10 p-4 shadow-sm">
+              <p className="text-[10px] uppercase text-white/70 font-bold tracking-[0.18em]">درجة الثقة</p>
+              <p className="mt-3 text-xl font-black text-white">{profile.aiConfidence}</p>
+              <p className="mt-1 text-xs text-white/70">توقعات الذكاء الاصطناعي</p>
+            </div>
           </div>
         </div>
 
-        {/* Action Buttons - Horizontal Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <button
-            onClick={() => navigate(`/diagnosis?animalId=${id}`)}
-            className="flex flex-col items-center gap-2 p-4 bg-white border-2 border-emerald-100 rounded-2xl hover:border-emerald-300 hover:bg-emerald-50 transition-all shadow-sm"
-          >
-            <Zap className="w-6 h-6 text-emerald-500" />
-            <span className="text-xs font-bold text-gray-700 text-center">
-              تشخيص الذكاء الاصطناعي
-            </span>
-          </button>
-
-
-          <button
-            onClick={() => navigate(`/animals/${id}/medical-records`)}
-            className="flex flex-col items-center gap-2 p-4 bg-white border-2 border-red-100 rounded-2xl hover:border-red-300 hover:bg-red-50 transition-all shadow-sm"
-          >
-            <Heart className="w-6 h-6 text-red-500" />
-            <span className="text-xs font-bold text-gray-700 text-center">
-              السجل الطبي
-            </span>
-          </button>
-
-          <button
-            onClick={() => navigate(`/animals/${id}/vaccinations`)}
-            className="flex flex-col items-center gap-2 p-4 bg-white border-2 border-blue-100 rounded-2xl hover:border-blue-300 hover:bg-blue-50 transition-all shadow-sm"
-          >
-            <Syringe className="w-6 h-6 text-blue-500" />
-            <span className="text-xs font-bold text-gray-700 text-center">
-              التطعيمات
-            </span>
-          </button>
-
-          <button
-            onClick={() => navigate('/vaccine-agent')}
-            className="flex flex-col items-center gap-2 p-4 bg-white border-2 border-green-100 rounded-2xl hover:border-green-300 hover:bg-green-50 transition-all shadow-sm"
-          >
-            <ShieldCheck className="w-6 h-6 text-green-600" />
-            <span className="text-xs font-bold text-gray-700 text-center">
-              مستشار اللقاحات
-            </span>
-          </button>
-
+        <div className="mt-5 flex flex-wrap items-center gap-3">
           <button
             onClick={() => navigate(`/animals/edit/${id}`)}
-            className="flex flex-col items-center gap-2 p-4 bg-white border-2 border-amber-100 rounded-2xl hover:border-amber-300 hover:bg-amber-50 transition-all shadow-sm"
+            className="inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-bold text-[#1f4a22] shadow-sm transition hover:bg-gray-100"
           >
-            <Edit className="w-6 h-6 text-amber-500" />
-            <span className="text-xs font-bold text-gray-700 text-center">
-              تعديل البيانات
-            </span>
+            <Edit className="w-4 h-4" />
+            تحرير
           </button>
-
           <button
             onClick={handleDeleteAnimal}
-            className="flex flex-col items-center gap-2 p-4 bg-white border-2 border-red-200 rounded-2xl hover:border-red-400 hover:bg-red-50 transition-all shadow-sm"
+            className="inline-flex items-center gap-2 rounded-2xl bg-red-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-red-700"
           >
-            <Trash2 className="w-6 h-6 text-red-600" />
-            <span className="text-xs font-bold text-gray-700 text-center">
-              حذف
-            </span>
+            <Trash2 className="w-4 h-4" />
+            إزالة الحيوان
+          </button>
+          <button
+            onClick={() => navigate(`/animals/${id}/medical-records/add`)}
+            className="inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-bold text-[#9b1d1d] shadow-sm transition hover:bg-gray-100"
+          >
+            <Plus className="w-4 h-4" />
+            أضف سجل طبي
+          </button>
+          <button
+            onClick={() => navigate(`/animals/${id}/vaccinations/add`)}
+            className="inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-bold text-[#1d4f7f] shadow-sm transition hover:bg-gray-100"
+          >
+            <Plus className="w-4 h-4" />
+            أضف سجل تطعيم
           </button>
         </div>
       </div>
 
-      {/* ── QUICK ACTION BUTTONS ── */}
-
-      {/* ── QUICK ACTION BUTTONS ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <button
-          onClick={() => navigate(`/animals/${id}/vaccinations/add`)}
-          className="flex items-center justify-center gap-2 p-3 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-md font-bold text-sm"
-        >
-          <Plus className="w-5 h-5" />
-          تطعيم جديد
-        </button>
-
-        <button
-          onClick={() => navigate(`/animals/${id}/medical-records/add`)}
-          className="flex items-center justify-center gap-2 p-3 bg-gradient-to-br from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all shadow-md font-bold text-sm"
-        >
-          <Plus className="w-5 h-5" />
-          سجل طبي
-        </button>
-
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center justify-center gap-2 p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all font-bold text-sm"
-        >
-          <ChevronRight className="w-5 h-5" />
-          رجوع
-        </button>
-
-        <button
-          onClick={() => toast.success('تم تحديث البيانات بنجاح')}
-          className="flex items-center justify-center gap-2 p-3 bg-green-100 text-green-700 rounded-xl hover:bg-green-200 transition-all font-bold text-sm"
-        >
-          <Zap className="w-5 h-5" />
-          تحديث
-        </button>
-      </div>
-
-      {/* ── ANIMAL PROFILE HEADER ── */}
+      <div className="max-w-7xl mx-auto px-1 py-4 space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* RIGHT COLUMN: Main Content (w-8/12) */}
         <div className="lg:col-span-8 space-y-6">
@@ -659,9 +626,13 @@ export default function AnimalProfilePage() {
                 <Send className="w-3.5 h-3.5 transform rotate-180" />
               </button>
             </form>
-          </div>
-        </div>
+
+</div>
+      </div>
       </div>
     </div>
+    </div>
   )
+
+
 }
