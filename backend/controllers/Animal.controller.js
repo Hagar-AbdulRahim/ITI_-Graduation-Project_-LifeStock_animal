@@ -14,9 +14,8 @@ const userOwnsFarm = async (farmId, userId) => {
 // ── Create Animal ─────────────────────────────────────────────────────────────
 const createAnimal = async (req, res) => {
   try {
-    const { farm_id, tag_number, species, gender, age_value, age_unit, weight_kg, breed, notes } =
-      req.body;
-
+const { farm_id, tag_number, species, gender, age_value, age_unit, weight_kg, breed, notes, health_status } =
+  req.body;
     // verify the farm belongs to the current user
     const farm = await userOwnsFarm(farm_id, req.user._id);
     if (!farm) {
@@ -35,6 +34,7 @@ const createAnimal = async (req, res) => {
       weight_kg: weight_kg || null,
       breed: breed || null,
       notes: notes || null,
+      health_status: health_status || 'healthy',
     });
 
     // increment total_animals counter on the farm

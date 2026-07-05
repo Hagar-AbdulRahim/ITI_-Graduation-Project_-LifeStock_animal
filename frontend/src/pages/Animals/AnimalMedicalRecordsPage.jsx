@@ -482,30 +482,6 @@ const AnimalMedicalRecordsPage = () => {
     <div className="min-h-screen bg-[#f5f7f5] font-cairo" dir="rtl">
       {/* ── Header ── */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-20 shadow-sm">
-<<<<<<< HEAD
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => {
-                if (selectedCaseId) {
-                  setSelectedCaseId(null);
-                } else {
-                  navigate(-1);
-                }
-              }}
-              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 transition-colors"
-            >
-              <ArrowRight className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="text-[17px] font-bold text-gray-900">
-                {selectedCaseId ? 'تفاصيل السجل الطبي' : 'السجل المرضي والطبي'}
-              </h1>
-              <p className="text-[11px] text-gray-400 font-medium">
-                الملف الطبي للحيوان: #{animal?.tag_number || '...'}
-              </p>
-            </div>
-=======
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-3">
           <button
             onClick={() => navigate(-1)}
@@ -516,7 +492,6 @@ const AnimalMedicalRecordsPage = () => {
           <div>
             <h1 className="text-base font-black text-gray-900">السجل الطبي</h1>
             <p className="text-[11px] text-gray-400 font-medium">الحيوان: {animalLabel}</p>
->>>>>>> 54e7066c4c5609b3645207d9790ee8dd08748c4d
           </div>
           {!loadingCases && !errorCases && (
             <div className="mr-auto flex items-center gap-2">
