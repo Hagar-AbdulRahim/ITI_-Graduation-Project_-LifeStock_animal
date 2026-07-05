@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { toast } from 'react-hot-toast'
@@ -68,6 +68,9 @@ export default function AnimalProfilePage() {
   const a = animal || fallbackAnimal || null
   const farmIdForNavigation = a?.farm_id?._id || a?.farm_id || null
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+
   useEffect(() => {
     dispatch(clearAnimalState())
     if (id) {
@@ -77,19 +80,17 @@ export default function AnimalProfilePage() {
     }
   }, [dispatch, id])
 
-  const handleDeleteAnimal = async () => {
-    if (
-      window.confirm(
-        'هل أنت متأكد أنك تريد حذف هذا الحيوان نهائياً؟ ستفقد جميع السجلات المرتبطة به.',
-      )
-    ) {
-      try {
-        await dispatch(deleteExistingAnimal(id)).unwrap()
-        toast.success('تم حذف الحيوان بنجاح')
-        navigate(farmIdForNavigation ? `/farms/${farmIdForNavigation}/animals` : '/farms')
-      } catch (err) {
-        toast.error(err || 'حدث خطأ أثناء محاولة الحذف')
-      }
+  const handleDeleteConfirm = async () => {
+    setIsDeleting(true)
+    try {
+      await dispatch(deleteExistingAnimal(id)).unwrap()
+      toast.success('تم حذف الحيوان بنجاح')
+      setShowDeleteModal(false)
+      navigate(farmIdForNavigation ? `/farms/${farmIdForNavigation}/animals` : '/farms')
+    } catch (err) {
+      toast.error(err || 'حدث خطأ أثناء محاولة الحذف')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -339,15 +340,11 @@ export default function AnimalProfilePage() {
             </div>
           </div>
 
-          {/* Danger zone */}
-          <div className="bg-white rounded-2xl border border-red-100 shadow-sm p-5 space-y-3">
-            <h3 className="text-xs font-black text-red-500 uppercase tracking-wider">منطقة الخطر</h3>
-            <p className="text-[11px] text-gray-400 leading-relaxed">
-              حذف الحيوان سيؤدي إلى إزالة جميع سجلاته الطبية والتطعيمات المرتبطة به بشكل نهائي.
-            </p>
+          {/* Delete Action */}
+          <div className="pt-2">
             <button
-              onClick={handleDeleteAnimal}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-50 text-red-600 border border-red-200 rounded-xl text-xs font-bold hover:bg-red-100 hover:border-red-300 transition-all"
+              onClick={() => setShowDeleteModal(true)}
+              className="w-full flex items-center justify-center gap-2 py-3 bg-red-500 text-white rounded-2xl text-sm font-bold hover:bg-red-600 transition-all shadow-sm"
             >
               <Trash2 className="w-4 h-4" />
               حذف الحيوان نهائياً
@@ -356,6 +353,38 @@ export default function AnimalProfilePage() {
 
         </div>
       </div>
+
+      {/* ── DELETE MODAL ── */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 font-cairo">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl text-center space-y-4" dir="rtl">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+              <AlertTriangle className="w-8 h-8 text-red-500" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-800">تأكيد الحذف</h2>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              حذف الحيوان سيؤدي إلى إزالة جميع سجلاته الطبية والتطعيمات المرتبطة به بشكل نهائي.
+            </p>
+            <div className="flex gap-3 pt-4">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                إلغاء
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2.5 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                {isDeleting ? 'جاري الحذف...' : 'تأكيد الحذف'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
