@@ -32,7 +32,7 @@ import ReviewsPage from '../pages/Reviews/ReviewsPage'
 import ContactUsPage from '../pages/ContactUs/ContactUsPage'
 
 import ServicesPage from '../pages/ServicesPage'
-import DiagnosisPage from '../pages/DiagnosisPage'
+
 
 
 // Dashboard & Layout Pages
@@ -83,7 +83,7 @@ const AppRoutes = () => {
       <Route path="/contact" element={<ContactUsPage />} />
       <Route path="/reviews" element={<ReviewsPage />} />
       <Route path="/services" element={<ServicesPage />} />
-      <Route path="/diagnosis" element={<DiagnosisPage />} />
+     
 
       {/* Auth Routes */}
       <Route path="/login" element={<Login />} />
@@ -251,14 +251,7 @@ const AppRoutes = () => {
         <Route index element={<EmergencyPage />} />
       </Route>
 
-      <Route
-        path="/diagnosis"
-        element={
-          <ProtectedRoute>
-            <DiagnosisPage />
-          </ProtectedRoute>
-        }
-      />
+     
       {/* Admin Portal */}
       <Route
         path="/admin"
