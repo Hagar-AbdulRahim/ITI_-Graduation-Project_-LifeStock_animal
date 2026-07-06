@@ -124,6 +124,11 @@ const AppRoutes = () => {
 
         {/* Mock/ComingSoon subpages inside the dashboard */}
         <Route path="ai-assistant" element={<AiAssistantPage />} />
+<<<<<<< Updated upstream
+=======
+        
+        <Route path="diagnosis" element={<DiagnosisPage />} />
+>>>>>>> Stashed changes
         <Route path="emergencies" element={<EmergencyPage />} />
 
         <Route path="library" element={<ComingSoon title="المكتبة" />} />
@@ -212,13 +217,15 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/notifications"
-        element={
-          <ProtectedRoute>
-            <NotificationsPage />
-          </ProtectedRoute>
-        }
-      />
+  path="/notifications"
+  element={
+    <ProtectedRoute>
+      <MainLayout />
+    </ProtectedRoute>
+  }
+>
+  <Route index element={<NotificationsPage />} />
+</Route>
       <Route
         path="/vaccine-agent"
         element={

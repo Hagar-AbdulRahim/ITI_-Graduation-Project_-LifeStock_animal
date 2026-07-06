@@ -7,11 +7,12 @@ import {
   Phone,
   Clock,
   Navigation,
-  Bot,
+  Stethoscope,
   User,
   Send,
   Loader2,
   ChevronDown,
+  Check,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { emergencyChat } from '../services/clinicsService'
@@ -31,6 +32,17 @@ const WELCOME_MSG = {
   id: 'welcome',
   sender: 'ai',
   text: 'مرحباً! أنا هنا لمساعدتك في إيجاد أقرب عيادة بيطرية لموقعك.\n\nيمكنك أن تسألني مثلاً:\n• "أقرب عيادة بيطرية"\n• "ما هي مواعيد العمل؟"\n• "أريد عيادة على بُعد 5 كم"',
+}
+
+// ── تحويل بسيط لـ **نص** إلى Bold من غير أي مكتبة خارجية ──
+function renderFormattedText(text) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g)
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-bold">{part.slice(2, -2)}</strong>
+    }
+    return <React.Fragment key={i}>{part}</React.Fragment>
+  })
 }
 
 export default function EmergencyPage() {
@@ -137,111 +149,196 @@ export default function EmergencyPage() {
   }
 
   return (
-    <div dir="rtl" className="flex flex-col h-[calc(100vh-145px)] max-w-4xl mx-auto font-cairo">
+  <div
+    dir="rtl"
+    className="w-full px-6 py-6 font-cairo"
+  >
 
-      {/* ── Header ─────────────────────────────────────────── */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
-          <AlertTriangle className="w-5 h-5 text-red-600" />
+    {/* Layout */}
+    <div className="flex gap-6 items-start">
+
+      {/* ───────────── Sidebar ───────────── */}
+      <div className="w-[320px] flex-shrink-0">
+
+        {/* Title */}
+        <div className="text-right">
+          <h1 className="text-4xl font-black text-[#1e4520] leading-tight">
+            طوارئ بيطرية
+          </h1>
+
+          <p className="text-sm text-stone-500 mt-2 leading-7">
+            ابحث عن أقرب عيادة بيطرية وتحدث مع المساعد الذكي
+          </p>
         </div>
-        <div>
-          <h1 className="text-base font-bold text-stone-800">طوارئ بيطرية</h1>
-          <p className="text-xs text-stone-500">ابحث عن أقرب عيادة بيطرية وتحدث مع المساعد الذكي</p>
-        </div>
-      </div>
 
-      {/* ── شريط الموقع ────────────────────────────────────── */}
-      <div className="mb-4 p-3 rounded-xl border border-stone-200 bg-white flex flex-wrap items-center gap-3">
+        {/* Cards */}
+        <div className="flex flex-col gap-4 mt-6">
 
-        {/* حالة GPS */}
-        <div className="flex items-center gap-2">
-          {locStatus === 'loading' && (
-            <Loader2 className="w-4 h-4 text-stone-400 animate-spin" />
-          )}
-          {locStatus === 'granted' && (
-            <span className="flex items-center gap-1.5 text-xs text-emerald-700 font-medium">
-              <Navigation className="w-3.5 h-3.5" />
-              تم تحديد موقعك
-            </span>
-          )}
-          {(locStatus === 'denied' || locStatus === 'idle') && (
-            <button
-              onClick={requestGPS}
-              className="flex items-center gap-1.5 text-xs text-[#2d5a1b] font-medium hover:underline"
+          {/* GPS */}
+          <div
+            className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${
+              locStatus === 'granted'
+                ? 'bg-[#f0f7ee] border-[#2d5a1b]'
+                : 'bg-white border-[#dfe8db]'
+            }`}
+          >
+
+            <div
+              className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                locStatus === 'granted'
+                  ? 'bg-[#2d5a1b] text-white'
+                  : 'bg-[#f0f7ee] text-[#2d5a1b] border border-[#c8dfc8]'
+              }`}
             >
-              <Navigation className="w-3.5 h-3.5" />
-              تفعيل الموقع
-            </button>
-          )}
-        </div>
-
-        {/* Divider */}
-        {locStatus === 'denied' && (
-          <>
-            <span className="text-stone-300 text-xs">أو</span>
-
-            {/* Dropdown المحافظة */}
-            <div className="relative flex-1 min-w-[160px]">
-              <select
-                value={governorate}
-                onChange={(e) => setGovernorate(e.target.value)}
-                className="w-full appearance-none text-xs bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 pr-8 text-stone-700 outline-none focus:border-[#2d5a1b] transition-colors"
-              >
-                <option value="">اختر محافظتك</option>
-                {GOVERNORATES.map((g) => (
-                  <option key={g} value={g}>{g}</option>
-                ))}
-              </select>
-              <ChevronDown className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400 pointer-events-none" />
+              {locStatus === 'loading' ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : locStatus === 'granted' ? (
+                <Check className="w-4 h-4" />
+              ) : (
+                <Navigation className="w-4 h-4" />
+              )}
             </div>
 
-            <p className="text-[10px] text-amber-600 flex items-center gap-1">
-              <MapPin className="w-3 h-3" />
-              للدقة الأعلى فعّل الموقع
-            </p>
-          </>
-        )}
+            <div className="flex-1">
+              <p className="text-sm font-bold text-stone-800">
+                تحديد الموقع
+              </p>
+
+              {locStatus === 'granted' && (
+                <span className="text-xs text-emerald-600 font-semibold">
+                  الموقع مُفعّل
+                </span>
+              )}
+
+              {locStatus === 'loading' && (
+                <span className="text-xs text-stone-500">
+                  جاري التحديد...
+                </span>
+              )}
+
+              {(locStatus === 'idle' || locStatus === 'denied') && (
+                <span className="text-xs text-stone-400">
+                  GPS غير مفعّل
+                </span>
+              )}
+            </div>
+
+            {(locStatus === 'idle' || locStatus === 'denied') && (
+              <button
+                onClick={requestGPS}
+                className="flex items-center gap-1.5 bg-[#2d5a1b] hover:bg-[#3d6b47] text-white text-xs font-bold px-3 py-2 rounded-xl transition-colors"
+              >
+                <Navigation className="w-3.5 h-3.5" />
+                تفعيل
+              </button>
+            )}
+          </div>
+
+          {/* Governorates */}
+          <div
+            className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${
+              governorate && locStatus !== 'granted'
+                ? 'bg-[#f0f7ee] border-[#2d5a1b]'
+                : 'bg-white border-[#dfe8db]'
+            }`}
+          >
+
+            <div
+              className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                governorate && locStatus !== 'granted'
+                  ? 'bg-[#2d5a1b] text-white'
+                  : 'bg-[#f0f7ee] text-[#2d5a1b] border border-[#c8dfc8]'
+              }`}
+            >
+              <MapPin className="w-4 h-4" />
+            </div>
+
+            <div className="flex-1">
+              <p className="text-sm font-bold text-stone-800 mb-1">
+                اختيار يدوي
+              </p>
+
+              <div className="relative">
+                <select
+                  value={governorate}
+                  onChange={(e) => setGovernorate(e.target.value)}
+                  className="w-full appearance-none text-xs bg-[#fbf9f6] border border-[#dfe8db] rounded-xl pl-3 pr-8 py-2 text-stone-700 outline-none focus:border-[#2d5a1b]"
+                >
+                  <option value="">اختر محافظتك</option>
+
+                  {GOVERNORATES.map((g) => (
+                    <option key={g} value={g}>
+                      {g}
+                    </option>
+                  ))}
+                </select>
+
+                <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
 
-      {/* ── الشات ──────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+      {/* ───────────── Chat ───────────── */}
+      <div className="flex flex-col bg-white rounded-[32px] border border-[#2d5a1b] shadow-md overflow-hidden flex-1 h-[600px]">
 
+        {/* Header */}
+        <div className="flex items-center gap-4 px-6 py-4 border-b border-[#cfe0c9] bg-white flex-shrink-0">
+
+          <div className="relative w-12 h-12 rounded-2xl bg-[#2d5a1b] flex items-center justify-center flex-shrink-0 shadow-sm">
+            <Stethoscope className="w-5 h-5 text-white" />
+
+            <span className="absolute -bottom-1 -left-1 w-3 h-3 bg-emerald-400 border-2 border-white rounded-full" />
+          </div>
+
+          <div className="text-right">
+            <p className="text-lg font-black text-[#1e4520]">
+              المساعد البيطري الذكي
+            </p>
+
+            <p className="text-sm text-emerald-600 font-semibold mt-1">
+              متصل الآن
+            </p>
+          </div>
+        </div>
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-5 bg-stone-50/50">
+        <div className="overflow-y-auto p-5 space-y-4 bg-[#f4faf2] flex-1">
           {messages.map((msg) => {
             const isAi = msg.sender === 'ai'
             return (
-              <div key={msg.id} className="flex flex-col">
-                <div className={`flex gap-3 max-w-[85%] ${isAi ? 'self-start' : 'self-end flex-row-reverse'}`}>
+              <div key={msg.id} className={`flex ${isAi ? 'justify-start' : 'justify-end'}`}>
+                <div className={`flex gap-2 max-w-[60%] ${isAi ? 'flex-row' : 'flex-row-reverse'}`}>
 
                   {/* Avatar */}
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 self-end ${
                     isAi
-                      ? 'bg-emerald-50 text-[#2d5a1b] border border-emerald-100'
-                      : 'bg-blue-100 text-blue-700'
+                      ? 'bg-gradient-to-br from-[#3d6b47] to-[#154b23] text-white shadow-sm'
+                      : 'bg-blue-50 text-blue-600 border border-blue-100'
                   }`}>
-                    {isAi ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
+                    {isAi ? <Stethoscope className="w-3.5 h-3.5" /> : <User className="w-3.5 h-3.5" />}
                   </div>
 
                   {/* Bubble */}
-                  <div className={`p-4 rounded-2xl text-sm leading-relaxed shadow-sm ${
+                  <div className={`px-3.5 py-2.5 text-[13px] leading-6 shadow-sm ${
                     isAi
-                      ? 'bg-white border border-stone-200 text-stone-800 rounded-tr-none'
-                      : 'bg-[#2d5a1b] text-white rounded-tl-none'
+                      ? 'bg-white border border-[#dfe8db] text-stone-800 rounded-2xl rounded-tr-md'
+                      : 'bg-[#2d5a1b] text-white rounded-2xl rounded-tl-md'
                   }`}>
-                    <p className="whitespace-pre-line">{msg.text}</p>
+                    <p className="whitespace-pre-line break-words">{renderFormattedText(msg.text)}</p>
 
                     {/* كروت العيادات */}
                     {isAi && msg.clinics?.length > 0 && (
-                      <div className="mt-4 space-y-2">
+                      <div className="mt-3 space-y-2">
                         {msg.clinics.map((c) => (
                           <div
                             key={c.place_id}
-                            className="p-3 rounded-xl bg-stone-50 border border-stone-100 text-xs space-y-1.5"
+                            className="p-3 rounded-xl bg-[#fbf9f6] border border-[#dfe8db] border-r-4 border-r-[#2d5a1b] text-xs space-y-1.5"
                           >
-                            <div className="font-bold text-stone-800 flex items-center justify-between">
+                            <div className="font-bold text-stone-800 flex items-center justify-between gap-2">
                               <span>{c.name}</span>
-                              <span className="text-[#2d5a1b] font-medium">{c.distance_km} كم</span>
+                              <span className="text-[#2d5a1b] font-semibold bg-white border border-[#c8dfc8] px-2 py-0.5 rounded-full flex-shrink-0">{c.distance_km} كم</span>
                             </div>
                             {c.address && (
                               <div className="flex items-center gap-1.5 text-stone-500">
@@ -252,7 +349,7 @@ export default function EmergencyPage() {
                             {c.phone && (
                               <div className="flex items-center gap-1.5 text-stone-500">
                                 <Phone className="w-3 h-3 flex-shrink-0" />
-                                <a href={`tel:${c.phone}`} className="text-[#2d5a1b] hover:underline">
+                                <a href={`tel:${c.phone}`} className="text-[#2d5a1b] hover:underline font-medium">
                                   {c.phone}
                                 </a>
                               </div>
@@ -275,14 +372,16 @@ export default function EmergencyPage() {
 
           {/* Typing indicator */}
           {isTyping && (
-            <div className="flex gap-3 max-w-[80%] self-start">
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-emerald-50 text-[#2d5a1b] border border-emerald-100 flex-shrink-0">
-                <Bot className="w-4 h-4 animate-pulse" />
-              </div>
-              <div className="p-4 rounded-2xl bg-white border border-stone-200 rounded-tr-none shadow-sm flex items-center gap-1.5">
-                <span className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div className="flex justify-start">
+              <div className="flex gap-2 max-w-[60%]">
+                <div className="w-7 h-7 rounded-full flex items-center justify-center bg-gradient-to-br from-[#3d6b47] to-[#154b23] text-white flex-shrink-0 self-end shadow-sm">
+                  <Stethoscope className="w-3.5 h-3.5" />
+                </div>
+                <div className="px-4 py-3 rounded-2xl rounded-tr-md bg-white border border-[#dfe8db] shadow-sm flex items-center gap-1.5">
+                  <span className="w-2 h-2 bg-[#c8dfc8] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-2 h-2 bg-[#c8dfc8] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-2 h-2 bg-[#c8dfc8] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
               </div>
             </div>
           )}
@@ -290,21 +389,21 @@ export default function EmergencyPage() {
         </div>
 
         {/* Input */}
-        <div className="p-4 border-t border-stone-200 bg-white">
+        <div className="p-4 border-t border-[#cfe0c9] bg-[#f4faf2] flex-shrink-0">
           {/* Quick suggestions */}
           <div className="flex flex-wrap gap-2 mb-3">
             {['أقرب عيادة بيطرية', 'ما هي مواعيد العمل؟', 'أريد عيادة على بُعد 5 كم'].map((s) => (
               <button
                 key={s}
                 onClick={() => handleSend(s)}
-                className="text-xs px-3 py-1.5 rounded-full border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 hover:border-[#2d5a1b]/40 transition-colors"
+                className="text-xs px-3.5 py-1.5 rounded-full border border-[#dfe8db] bg-[#fbf9f6] text-stone-600 hover:bg-white hover:border-[#2d5a1b]/40 hover:text-[#2d5a1b] transition-colors"
               >
                 {s}
               </button>
             ))}
           </div>
 
-          <div className="flex items-center gap-2 bg-stone-50 border border-stone-200 rounded-xl p-1.5 focus-within:ring-2 focus-within:ring-[#2d5a1b]/20 focus-within:border-[#2d5a1b] transition-all">
+          <div className="flex items-center gap-2 bg-[#fbf9f6] border border-[#dfe8db] rounded-2xl p-1.5 focus-within:ring-2 focus-within:ring-[#2d5a1b]/20 focus-within:border-[#2d5a1b] transition-all">
             <input
               type="text"
               value={input}
@@ -316,13 +415,14 @@ export default function EmergencyPage() {
             <button
               onClick={() => handleSend()}
               disabled={!input.trim() || isTyping}
-              className="p-2 bg-[#2d5a1b] hover:bg-[#3d6b47] disabled:opacity-40 text-white rounded-lg transition-colors shadow-sm active:scale-95"
+              className="p-2.5 bg-[#2d5a1b] hover:bg-[#3d6b47] disabled:opacity-40 disabled:hover:bg-[#2d5a1b] text-white rounded-xl transition-colors shadow-sm active:scale-95 flex-shrink-0"
             >
-              <Send className="w-4 h-4 rotate-180" />
+              <Send className="w-4 h-4 -scale-x-100" />
             </button>
           </div>
         </div>
       </div>
+    </div>
     </div>
   )
 }
