@@ -1,20 +1,31 @@
 // layouts/MainLayout.jsx
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import Topbar from './Topbar'
 
+
+// المسارات اللي تتغير فيها الـ chrome (Sidebar + Topbar → Navbar)
+const EMERGENCY_PATHS = ['/emergencies']
+
 export default function MainLayout() {
+  const location = useLocation()
+  const isEmergencyPage = EMERGENCY_PATHS.some((path) =>
+    location.pathname.includes(path)
+  )
+
   return (
     <div
       dir="rtl"
       className="flex min-h-screen bg-[#f5f2eb] font-['Cairo',sans-serif]"
     >
-      {/* Sidebar — fixed على اليمين */}
-      <Sidebar />
+      {/* Sidebar — يختفي في صفحة الطوارئ */}
+      {!isEmergencyPage && <Sidebar />}
 
-      {/* Main content — يبدأ بعد عرض الـ sidebar */}
-      <div className="flex-1 mr-56 flex flex-col min-h-screen">
-        <Topbar />
+      {/* Main content */}
+      <div className={`flex-1 ${isEmergencyPage ? '' : 'mr-56'} flex flex-col min-h-screen`}>
+        {/* Topbar */}
+        {!isEmergencyPage && <Topbar />}
+
         <main className="flex-1 p-6 overflow-auto bg-[#f5f2eb]">
           {/* الصفحة الحالية تتحمل هنا */}
           <Outlet />

@@ -15,7 +15,7 @@ const AnimalProfileHeader = ({ animal }) => {
   const species = SPECIES_MAP[animal?.species] || { label: animal?.species || 'غير محدد' };
   const gender = GENDER_MAP[animal?.gender] || { label: animal?.gender, symbol: '', color: 'text-gray-600' };
   const healthStatus = HEALTH_STATUS_MAP[animal?.health_status] || HEALTH_STATUS_MAP.healthy;
-  const displayName = animal?.name || animal?.tag_number || 'بدون اسم';
+  const displayName = animal?.tag_number || 'بدون وسم';
   const speciesEmoji = {
     cattle: '🐄',
     sheep: '🐑',

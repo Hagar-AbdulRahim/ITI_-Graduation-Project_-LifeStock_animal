@@ -2,17 +2,40 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
-import { ArrowRight, Save, X, Loader2, Syringe, Info, HelpCircle } from 'lucide-react';
+import { ArrowRight, Save, X, Loader2, Syringe, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { fetchAnimalById, addVaccination } from '../../redux/animalSlice';
+
+// ── auto-fill فترة التكرار من اسم اللقاح ────────────────────────────────────
+const VACCINE_INTERVALS = {
+  'قلاعية': 6, 'fmd': 6, 'aphthovac': 6, 'servac': 6, 'aftovax': 6,
+  'طاعون المجترات': 36, 'ppr': 36,
+  'جدري': 12, 'pox': 12,
+  'كلوستريديا': 12, 'clostridial': 12, 'cd&t': 12,
+  'جمرة': 12, 'anthrax': 12,
+  'جلد عقدي': 12, 'lumpy': 12, 'lsd': 12,
+  'تسمم دموي': 12, 'septicemia': 12,
+  'ليبتوسبيرا': 6, 'leptospira': 6, 'lepto': 6,
+  'تنفسية': 12, 'brd': 12, 'ibr': 12,
+};
+
+const getIntervalFromName = (name) => {
+  if (!name) return null;
+  const lower = name.toLowerCase();
+  for (const [key, val] of Object.entries(VACCINE_INTERVALS)) {
+    if (lower.includes(key)) return val;
+  }
+  return null;
+};
 
 const AddVaccinationPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { animal, loading, error } = useSelector((state) => state.animal);
+  const { animal, loading } = useSelector((state) => state.animal);
   const [submitting, setSubmitting] = useState(false);
+  const [intervalHint, setIntervalHint] = useState(null);
 
   const {
     register,
@@ -20,69 +43,65 @@ const AddVaccinationPage = () => {
     watch,
     setValue,
     formState: { errors, isValid },
-    trigger
+    trigger,
   } = useForm({
     mode: 'onChange',
     defaultValues: {
       vaccine_type: 'recurring',
-      is_first_dose: true,
       vaccine_name: '',
-      last_date: '',
+      administration_date: '',
+      repeat_every_months: '',
       scheduled_date: '',
       dose_ml: '',
-      next_due_date: '',
-      notes: ''
-    }
+      notes: '',
+    },
   });
 
   const vaccineType = watch('vaccine_type');
-  const isFirstDose = watch('is_first_dose');
-  const lastDate = watch('last_date');
-  const nextDueDate = watch('next_due_date');
+  const vaccineName = watch('vaccine_name');
 
   useEffect(() => {
-    if (id && (!animal || animal._id !== id)) {
-      dispatch(fetchAnimalById(id));
-    }
+    if (id && (!animal || animal._id !== id)) dispatch(fetchAnimalById(id));
   }, [dispatch, id, animal]);
 
-  // When vaccine type changes, reset irrelevant validations
+  useEffect(() => { trigger(); }, [vaccineType, trigger]);
+
+  // auto-fill من اسم اللقاح
   useEffect(() => {
-    trigger();
-  }, [vaccineType, isFirstDose, trigger]);
+    if (vaccineType !== 'recurring' || !vaccineName) { setIntervalHint(null); return; }
+    const interval = getIntervalFromName(vaccineName);
+    if (interval) {
+      setValue('repeat_every_months', interval);
+      setIntervalHint(`تم تحديد الفترة تلقائياً: كل ${interval} شهر`);
+    } else {
+      setIntervalHint(null);
+    }
+  }, [vaccineName, vaccineType, setValue]);
+
+  const getTodayString = () => new Date().toISOString().split('T')[0];
+  const getTomorrowString = () => {
+    const d = new Date(); d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
+  };
 
   const onSubmit = async (data) => {
     setSubmitting(true);
-    
-    // Construct payload strictly based on form values & types
     const payload = {
       vaccine_name: data.vaccine_name.trim(),
       vaccine_type: data.vaccine_type,
     };
-
     if (data.vaccine_type === 'recurring') {
-      payload.is_first_dose = data.is_first_dose === true || data.is_first_dose === 'true';
-      if (!payload.is_first_dose) {
-        payload.last_date = data.last_date;
-      }
-      if (data.dose_ml) {
-        payload.dose_ml = Number(data.dose_ml);
-      }
-      // إرسال next_due_date بس لو المستخدم اختار قيمة فعلاً
-      if (data.next_due_date && data.next_due_date.trim()) {
-        payload.next_due_date = data.next_due_date;
-      }
+      payload.administration_date = data.administration_date;
+      payload.repeat_every_months = Number(data.repeat_every_months);
+      if (data.dose_ml) payload.dose_ml = Number(data.dose_ml);
     } else {
       payload.scheduled_date = data.scheduled_date;
+      if (data.dose_ml) payload.dose_ml = Number(data.dose_ml);
     }
-
-    if (data.notes && data.notes.trim()) {
-      payload.notes = data.notes.trim();
-    }
+    if (data.notes?.trim()) payload.notes = data.notes.trim();
 
     try {
       const response = await dispatch(addVaccination({ id, data: payload })).unwrap();
-      // Use the message returned from API response
       toast.success(response.message || 'تم تسجيل التطعيم بنجاح');
       navigate(`/animals/${id}/vaccinations`);
     } catch (err) {
@@ -94,25 +113,10 @@ const AddVaccinationPage = () => {
 
   const inputCls = (hasError) =>
     `w-full px-4 py-2.5 border rounded-xl text-sm outline-none transition-all font-cairo bg-white
-     ${
-       hasError
-         ? 'border-red-400 focus:ring-2 focus:ring-red-200'
-         : 'border-stone-200 focus:ring-2 focus:ring-[#2a5c2a]/20 focus:border-[#2a5c2a]'
-     }`;
-
+     ${hasError
+       ? 'border-red-400 focus:ring-2 focus:ring-red-200'
+       : 'border-stone-200 focus:ring-2 focus:ring-[#2a5c2a]/20 focus:border-[#2a5c2a]'}`;
   const labelCls = 'block text-[13px] font-bold text-stone-700 mb-2';
-
-  // Get tomorrow's date for scheduled_date minimum limit (must be future date, disabled today or past)
-  const getTomorrowString = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split('T')[0];
-  };
-
-  // Get today's date for last_date maximum limit (must be today or past, no future)
-  const getTodayString = () => {
-    return new Date().toISOString().split('T')[0];
-  };
 
   if (loading.animal && !animal) {
     return (
@@ -124,6 +128,7 @@ const AddVaccinationPage = () => {
 
   return (
     <div className="min-h-screen bg-[#f5f7f5] font-cairo" dir="rtl">
+
       {/* ── Sticky Header ─────────────────────────────────────────── */}
       <div className="bg-white border-b border-stone-100 sticky top-0 z-20 shadow-sm">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -136,12 +141,13 @@ const AddVaccinationPage = () => {
               <ArrowRight className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-[17px] font-bold text-stone-900">
-                تسجيل تطعيم جديد
-              </h1>
+              <h1 className="text-[17px] font-bold text-stone-900">تسجيل تطعيم جديد</h1>
               <p className="text-[11px] text-stone-400 font-medium">
-                إضافة تطعيم للحيوان: <span className="font-semibold text-[#2a5c2a]">{animal?.name || animal?.tag_number || '...'}</span>
-              </p>
+              إضافة تطعيم للحيوان:{' '}
+              <span className="font-semibold text-[#2a5c2a]">
+                #{animal?.tag_number || '...'}
+              </span>
+            </p>
             </div>
           </div>
           <span className="text-[12px] text-emerald-700 font-bold bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full flex items-center gap-1.5">
@@ -153,20 +159,17 @@ const AddVaccinationPage = () => {
 
       <main className="max-w-3xl mx-auto px-6 py-8">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          
-          {/* ── TYPE TOGGLE SECTION ──────────────────────────────── */}
+
+          {/* ── TYPE TOGGLE ──────────────────────────────────────── */}
           <div className="bg-white rounded-[20px] border border-stone-200 shadow-sm p-6">
             <h2 className="text-[14px] font-bold text-stone-900 mb-4 pb-3 border-b border-stone-100 flex items-center gap-2">
               <Syringe className="w-4 h-4 text-[#2a5c2a]" />
               نوع التطعيم أو اللقاح
             </h2>
-            
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={() => {
-                  setValue('vaccine_type', 'recurring');
-                }}
+                onClick={() => setValue('vaccine_type', 'recurring')}
                 className={`py-3.5 px-4 rounded-xl border font-bold text-sm transition-all flex flex-col items-center justify-center gap-1 ${
                   vaccineType === 'recurring'
                     ? 'bg-emerald-50 border-[#2a5c2a] text-[#2a5c2a] shadow-xs'
@@ -176,12 +179,9 @@ const AddVaccinationPage = () => {
                 <span>متكرر (دوري)</span>
                 <span className="text-[10px] font-medium opacity-80">مثل لقاحات الحمى القلاعية، الجمرة الخبيثة</span>
               </button>
-
               <button
                 type="button"
-                onClick={() => {
-                  setValue('vaccine_type', 'one_time');
-                }}
+                onClick={() => setValue('vaccine_type', 'one_time')}
                 className={`py-3.5 px-4 rounded-xl border font-bold text-sm transition-all flex flex-col items-center justify-center gap-1 ${
                   vaccineType === 'one_time'
                     ? 'bg-purple-50 border-purple-500 text-purple-700 shadow-xs'
@@ -194,13 +194,13 @@ const AddVaccinationPage = () => {
             </div>
           </div>
 
-          {/* ── BASIC INFO SECTION ──────────────────────────────── */}
+          {/* ── BASIC INFO ───────────────────────────────────────── */}
           <div className="bg-white rounded-[20px] border border-stone-200 shadow-sm p-6 space-y-5">
             <h2 className="text-[14px] font-bold text-stone-900 mb-2 pb-3 border-b border-stone-100">
               تفاصيل التطعيم الأساسية
             </h2>
-            
-            {/* Vaccine Name */}
+
+            {/* اسم اللقاح */}
             <div>
               <label className={labelCls}>
                 اسم اللقاح / التطعيم <span className="text-rose-500">*</span>
@@ -216,85 +216,67 @@ const AddVaccinationPage = () => {
                 className={inputCls(errors.vaccine_name)}
               />
               {errors.vaccine_name && (
-                <p className="text-[11px] text-rose-500 mt-1">
-                  {errors.vaccine_name.message}
-                </p>
+                <p className="text-[11px] text-rose-500 mt-1">{errors.vaccine_name.message}</p>
               )}
             </div>
 
-            {/* DYNAMIC FIELDS: RECURRING */}
+            {/* ── RECURRING FIELDS ─────────────────────────────── */}
             {vaccineType === 'recurring' && (
               <div className="space-y-5">
-                {/* First Dose Question */}
-                <div className="bg-stone-50 rounded-xl p-4 border border-stone-150">
-                  <label className="block text-xs font-bold text-stone-700 mb-3">
-                    هل هذا التطعيم أول مرة يأخذه الحيوان؟
+
+                {/* تاريخ إعطاء الجرعة */}
+                <div>
+                  <label className={labelCls}>
+                    تاريخ إعطاء الجرعة <span className="text-rose-500">*</span>
                   </label>
-                  
-                  <div className="flex gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setValue('is_first_dose', true)}
-                      className={`flex-1 py-2 px-4 rounded-lg border text-xs font-bold transition-all ${
-                        isFirstDose === true
-                          ? 'bg-white border-[#2a5c2a] text-[#2a5c2a] shadow-xs'
-                          : 'bg-stone-100/50 border-stone-200 text-stone-500 hover:bg-stone-100'
-                      }`}
-                    >
-                      نعم، أول مرة
-                    </button>
-                    
-                    <button
-                      type="button"
-                      onClick={() => setValue('is_first_dose', false)}
-                      className={`flex-1 py-2 px-4 rounded-lg border text-xs font-bold transition-all ${
-                        isFirstDose === false
-                          ? 'bg-white border-[#2a5c2a] text-[#2a5c2a] shadow-xs'
-                          : 'bg-stone-100/50 border-stone-200 text-stone-500 hover:bg-stone-100'
-                      }`}
-                    >
-                      لا، أخذ جرعات سابقة
-                    </button>
-                  </div>
+                  <input
+                    type="date"
+                    max={getTodayString()}
+                    {...register('administration_date', {
+                      required: 'تاريخ إعطاء الجرعة مطلوب',
+                      validate: (val) =>
+                        new Date(val) <= new Date() || 'لا يمكن اختيار تاريخ مستقبلي',
+                    })}
+                    className={inputCls(errors.administration_date)}
+                  />
+                  {errors.administration_date && (
+                    <p className="text-[11px] text-rose-500 mt-1">{errors.administration_date.message}</p>
+                  )}
+                  <span className="text-[11px] text-stone-400 block mt-1.5 flex items-center gap-1">
+                    <Info className="w-3.5 h-3.5" />
+                    موعد الجرعة القادمة سيُحسب تلقائياً من هذا التاريخ.
+                  </span>
                 </div>
 
-                {/* Last Date Field - Show ONLY if not first dose */}
-                {!isFirstDose && (
-                  <div>
-                    <label className={labelCls}>
-                      تاريخ آخر جرعة أخذها الحيوان <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      max={getTodayString()} // Today or past only
-                      {...register('last_date', {
-                        required: {
-                          value: vaccineType === 'recurring' && !isFirstDose,
-                          message: 'تاريخ آخر جرعة مطلوب عند عدم تفعيل أول جرعة'
-                        },
-                        validate: (val) => {
-                          if (vaccineType === 'recurring' && !isFirstDose) {
-                            if (!val) return 'تاريخ آخر جرعة مطلوب';
-                            if (new Date(val) > new Date()) return 'لا يمكن اختيار تاريخ مستقبلي لآخر جرعة';
-                          }
-                          return true;
-                        }
-                      })}
-                      className={inputCls(errors.last_date)}
-                    />
-                    {errors.last_date && (
-                      <p className="text-[11px] text-rose-500 mt-1">
-                        {errors.last_date.message}
-                      </p>
-                    )}
-                    <span className="text-[11px] text-stone-400 block mt-1.5 flex items-center gap-1">
+                {/* فترة التكرار */}
+                <div>
+                  <label className={labelCls}>
+                    يتكرر كل (أشهر) <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="120"
+                    placeholder="مثال: 6"
+                    {...register('repeat_every_months', {
+                      required: 'فترة التكرار مطلوبة',
+                      min: { value: 1, message: 'الحد الأدنى شهر واحد' },
+                      max: { value: 120, message: 'الحد الأقصى 120 شهر' },
+                    })}
+                    className={inputCls(errors.repeat_every_months)}
+                  />
+                  {errors.repeat_every_months && (
+                    <p className="text-[11px] text-rose-500 mt-1">{errors.repeat_every_months.message}</p>
+                  )}
+                  {intervalHint && (
+                    <p className="text-[11px] text-emerald-700 mt-1 flex items-center gap-1">
                       <Info className="w-3.5 h-3.5" />
-                      موعد الجرعة القادمة سيتم حسابه تلقائياً بناءً على هذا التاريخ.
-                    </span>
-                  </div>
-                )}
+                      {intervalHint}
+                    </p>
+                  )}
+                </div>
 
-                {/* Dose ML */}
+                {/* حجم الجرعة */}
                 <div>
                   <label className={labelCls}>حجم الجرعة بالملليلتر (اختياري)</label>
                   <input
@@ -302,119 +284,68 @@ const AddVaccinationPage = () => {
                     step="0.01"
                     placeholder="مثال: 2"
                     {...register('dose_ml', {
-                      min: {
-                        value: 0.01,
-                        message: 'يجب أن يكون حجم الجرعة أكبر من صفر'
-                      }
+                      min: { value: 0.01, message: 'يجب أن يكون حجم الجرعة أكبر من صفر' },
                     })}
                     className={inputCls(errors.dose_ml)}
                   />
                   {errors.dose_ml && (
-                    <p className="text-[11px] text-rose-500 mt-1">
-                      {errors.dose_ml.message}
-                    </p>
+                    <p className="text-[11px] text-rose-500 mt-1">{errors.dose_ml.message}</p>
                   )}
                 </div>
+              </div>
+            )}
 
-                {/* Next Due Date - Optional, shown for all recurring regardless of is_first_dose */}
+            {/* ── ONE TIME FIELDS ──────────────────────────────── */}
+            {vaccineType === 'one_time' && (
+              <div className="space-y-5">
                 <div>
                   <label className={labelCls}>
-                    موعد الجرعة القادمة
-                    <span className="text-stone-400 font-normal text-[11px] mr-1">(اختياري)</span>
+                    تاريخ التطعيم المجدول (موعد مستقبلي) <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="date"
-                    {...register('next_due_date', {
+                    min={getTomorrowString()}
+                    {...register('scheduled_date', {
+                      required: 'تاريخ التطعيم المجدول مطلوب للقاحات لمرة واحدة',
                       validate: (val) => {
-                        if (!val || !val.trim()) return true; // اختياري، لو فاضي مفيش مشكلة
                         const selected = new Date(val);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
                         selected.setHours(0, 0, 0, 0);
-                        if (isFirstDose) {
-                          // أول جرعة: لازم يكون بعد النهارده
-                          const today = new Date();
-                          today.setHours(0, 0, 0, 0);
-                          if (selected <= today) {
-                            return 'موعد الجرعة القادمة يجب أن يكون بعد اليوم';
-                          }
-                        } else {
-                          // مش أول جرعة: لازم يكون بعد last_date
-                          if (!lastDate) return true; // لو last_date فاضية، السيرفر هيتحقق
-                          const last = new Date(lastDate);
-                          last.setHours(0, 0, 0, 0);
-                          if (selected <= last) {
-                            return 'موعد الجرعة القادمة يجب أن يكون بعد تاريخ آخر جرعة';
-                          }
-                        }
-                        return true;
-                      }
+                        return selected > today || 'يجب أن يكون تاريخ التطعيم في المستقبل (من الغد فصاعداً)';
+                      },
                     })}
-                    className={inputCls(errors.next_due_date)}
+                    className={inputCls(errors.scheduled_date)}
                   />
-                  {errors.next_due_date && (
-                    <p className="text-[11px] text-rose-500 mt-1">
-                      {errors.next_due_date.message}
-                    </p>
+                  {errors.scheduled_date && (
+                    <p className="text-[11px] text-rose-500 mt-1">{errors.scheduled_date.message}</p>
                   )}
                   <span className="text-[11px] text-stone-400 block mt-1.5 flex items-center gap-1">
                     <Info className="w-3.5 h-3.5" />
-                    لو سبتيه فاضي، هيتحدد تلقائياً بعد 12 شهر من تاريخ آخر جرعة
+                    يجب أن يكون التاريخ غداً أو تاريخ مستقبلي أبعد.
                   </span>
                 </div>
 
-                {isFirstDose && (
-                  <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-3.5 text-xs text-[#2a5c2a] leading-relaxed flex items-start gap-2">
-                    <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                    <span>
-                      بما أنها الجرعة الأولى للحيوان، سيقوم النظام تلقائياً بتحديد موعد الجرعة القادمة الموصى بها وحساب الفترة المناسبة للتطعيم التنشيطي — إلا لو اخترتِ موعداً يدوياً بالأعلى.
-                    </span>
-                  </div>
-                )}
+                {/* حجم الجرعة */}
+                <div>
+                  <label className={labelCls}>حجم الجرعة بالملليلتر (اختياري)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="مثال: 2"
+                    {...register('dose_ml', {
+                      min: { value: 0.01, message: 'يجب أن يكون حجم الجرعة أكبر من صفر' },
+                    })}
+                    className={inputCls(errors.dose_ml)}
+                  />
+                  {errors.dose_ml && (
+                    <p className="text-[11px] text-rose-500 mt-1">{errors.dose_ml.message}</p>
+                  )}
+                </div>
               </div>
             )}
 
-            {/* DYNAMIC FIELDS: ONE_TIME */}
-            {vaccineType === 'one_time' && (
-              <div>
-                <label className={labelCls}>
-                  تاريخ التطعيم المجدول (موعد مستقبلي) <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="date"
-                  min={getTomorrowString()} // Tomorrow or later
-                  {...register('scheduled_date', {
-                    required: {
-                      value: vaccineType === 'one_time',
-                      message: 'تاريخ التطعيم المجدول مطلوب للقاحات لمرة واحدة'
-                    },
-                    validate: (val) => {
-                      if (vaccineType === 'one_time') {
-                        if (!val) return 'تاريخ التطعيم مطلوب';
-                        const selected = new Date(val);
-                        const today = new Date();
-                        today.setHours(0,0,0,0);
-                        selected.setHours(0,0,0,0);
-                        if (selected <= today) {
-                          return 'يجب أن يكون تاريخ التطعيم في المستقبل (من الغد فصاعداً)';
-                        }
-                      }
-                      return true;
-                    }
-                  })}
-                  className={inputCls(errors.scheduled_date)}
-                />
-                {errors.scheduled_date && (
-                  <p className="text-[11px] text-rose-500 mt-1">
-                    {errors.scheduled_date.message}
-                  </p>
-                )}
-                <span className="text-[11px] text-stone-400 block mt-1.5 flex items-center gap-1">
-                  <Info className="w-3.5 h-3.5" />
-                  يجب أن يكون التاريخ غداً أو تاريخ مستقبلي أبعد.
-                </span>
-              </div>
-            )}
-
-            {/* Notes */}
+            {/* ملاحظات */}
             <div>
               <label className={labelCls}>ملاحظات إضافية (اختياري)</label>
               <textarea
@@ -426,14 +357,12 @@ const AddVaccinationPage = () => {
                 className={`${inputCls(errors.notes)} resize-none`}
               />
               {errors.notes && (
-                <p className="text-[11px] text-rose-500 mt-1">
-                  {errors.notes.message}
-                </p>
+                <p className="text-[11px] text-rose-500 mt-1">{errors.notes.message}</p>
               )}
             </div>
           </div>
 
-          {/* ── ACTION BUTTONS ────────────────────────────────────── */}
+          {/* ── ACTION BUTTONS ───────────────────────────────────── */}
           <div className="flex items-center justify-between pt-2">
             <button
               type="button"
@@ -452,11 +381,7 @@ const AddVaccinationPage = () => {
                   : 'bg-stone-300 cursor-not-allowed text-stone-500 shadow-none'
               }`}
             >
-              {submitting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
+              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               حفظ سجل التطعيم
             </button>
           </div>

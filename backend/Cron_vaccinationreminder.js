@@ -1,6 +1,6 @@
 const cron        = require("node-cron");
 const Vaccination = require("./models/vaccination");
-const User         = require("./models/user");
+const User        = require("./models/user");
 const { sendNotification } = require("./services/notificationService");
 
 const SPECIES_LABELS = { cattle: "أبقار", sheep: "أغنام", goat: "ماعز" };
@@ -41,9 +41,7 @@ const sendBatch = async (vaccinations, flagField, timestampField, messageSuffix)
     const body = `موعد ${vaccination.vaccine_name} لـ ${animalLabel} في مزرعة ${farm.name} ${messageSuffix}`;
 
     const notification = await sendNotification({
-      user,
-      title,
-      body,
+      user, title, body,
       type: "vaccination_reminder",
       animal_id: animal._id,
       vaccination_id: vaccination._id,
@@ -74,11 +72,14 @@ const runVaccinationReminderJob = async () => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    const { start: todayStart, end: todayEnd }       = dayRange(today);
+    const { start: todayStart,    end: todayEnd    } = dayRange(today);
     const { start: tomorrowStart, end: tomorrowEnd } = dayRange(tomorrow);
 
-    // ── 1) تذكير قبل الميعاد بيوم ──────────────────────────────────────────────
+    // ── شرط is_active: true في كل الـ queries ────────────────────────────────
+
+    // 1) تذكير قبل الميعاد بيوم
     const dueTomorrow = await Vaccination.find({
+      is_active: true,           // ← جديد
       reminder_sent: false,
       $or: [
         { vaccine_type: "recurring", next_due_date:  { $gte: tomorrowStart, $lte: tomorrowEnd } },
@@ -88,8 +89,9 @@ const runVaccinationReminderJob = async () => {
 
     const beforeResult = await sendBatch(dueTomorrow, "reminder_sent", "reminder_sent_at", "غداً");
 
-    // ── 2) تذكير يوم الميعاد نفسه ───────────────────────────────────────────────
+    // 2) تذكير يوم الميعاد نفسه
     const dueToday = await Vaccination.find({
+      is_active: true,           // ← جديد
       day_of_reminder_sent: false,
       $or: [
         { vaccine_type: "recurring", next_due_date:  { $gte: todayStart, $lte: todayEnd } },
@@ -99,8 +101,9 @@ const runVaccinationReminderJob = async () => {
 
     const todayResult = await sendBatch(dueToday, "day_of_reminder_sent", "day_of_reminder_sent_at", "اليوم");
 
-    // ── 3) لقاحات فات موعدها ولم يُرسل لها إشعار بعد ──────────────────────────
+    // 3) لقاحات فات موعدها
     const dueOverdue = await Vaccination.find({
+      is_active: true,           // ← جديد
       day_of_reminder_sent: false,
       $or: [
         { vaccine_type: "recurring", next_due_date:  { $lt: todayStart } },

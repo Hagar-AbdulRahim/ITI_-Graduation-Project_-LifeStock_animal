@@ -115,9 +115,6 @@ export default function Sidebar() {
 
         {/* Bottom Links */}
         <div className="px-3 pb-4 bg-white rounded-t-2xl shadow-xl py-4 space-y-2 border-t border-stone-100">
-          <button className="flex items-center justify-center gap-2 w-full py-2.5 px-3 rounded-lg text-[#2d5a1b] hover:bg-stone-100 transition-all duration-300 font-medium">
-            <span>⚙</span> الإعدادات
-          </button>
           <button
             onClick={handleLogout}
             className="flex items-center justify-center gap-2 w-full py-2.5 px-3 rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-300 font-medium"

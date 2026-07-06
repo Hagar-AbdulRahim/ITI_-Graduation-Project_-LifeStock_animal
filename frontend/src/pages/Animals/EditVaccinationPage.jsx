@@ -11,10 +11,8 @@ const EditVaccinationPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { animal, vaccinations, loading, error } = useSelector((state) => state.animal);
-  
-  // Find the specific vaccination
-  const vaccination = vaccinations?.find(v => v._id === vacId);
+  const { animal, vaccinations, loading } = useSelector((state) => state.animal);
+  const vaccination = vaccinations?.find((v) => v._id === vacId);
   const [submitting, setSubmitting] = useState(false);
 
   const {
@@ -23,33 +21,26 @@ const EditVaccinationPage = () => {
     watch,
     setValue,
     formState: { errors, isValid },
-    trigger
-  } = useForm({
-    mode: 'onChange'
-  });
+    trigger,
+  } = useForm({ mode: 'onChange' });
 
-  const lastDateValue = watch('last_date');
   const completedValue = watch('completed');
 
-  // Load animal and vaccinations list if not loaded
   useEffect(() => {
-    if (id && (!animal || animal._id !== id)) {
-      dispatch(fetchAnimalById(id));
-    }
-    if (id && (!vaccinations || vaccinations.length === 0)) {
-      dispatch(fetchAnimalVaccinations(id));
-    }
+    if (id && (!animal || animal._id !== id)) dispatch(fetchAnimalById(id));
+    if (id && (!vaccinations || vaccinations.length === 0)) dispatch(fetchAnimalVaccinations(id));
   }, [dispatch, id, animal, vaccinations]);
 
-  // Fill form values once vaccination data is ready
   useEffect(() => {
     if (vaccination) {
       setValue('vaccine_name', vaccination.vaccine_name || '');
-      setValue('vaccine_type', vaccination.vaccine_type || 'recurring');
-      setValue('is_first_dose', vaccination.is_first_dose);
-      setValue('last_date', vaccination.last_date ? new Date(vaccination.last_date).toISOString().split('T')[0] : '');
-      setValue('next_due_date', vaccination.next_due_date ? new Date(vaccination.next_due_date).toISOString().split('T')[0] : '');
-      setValue('scheduled_date', vaccination.scheduled_date ? new Date(vaccination.scheduled_date).toISOString().split('T')[0] : '');
+      setValue('administration_date', vaccination.administration_date
+        ? new Date(vaccination.administration_date).toISOString().split('T')[0] : '');
+      setValue('repeat_every_months', vaccination.repeat_every_months || '');
+      setValue('next_due_date', vaccination.next_due_date
+        ? new Date(vaccination.next_due_date).toISOString().split('T')[0] : '');
+      setValue('scheduled_date', vaccination.scheduled_date
+        ? new Date(vaccination.scheduled_date).toISOString().split('T')[0] : '');
       setValue('dose_ml', vaccination.dose_ml || '');
       setValue('administered_by', vaccination.administered_by || '');
       setValue('batch_number', vaccination.batch_number || '');
@@ -62,27 +53,25 @@ const EditVaccinationPage = () => {
   const onSubmit = async (data) => {
     setSubmitting(true);
     const isOneTime = vaccination.vaccine_type === 'one_time';
-    
-    // Construct payload dynamically based on record type
+
     const payload = {
       vaccine_name: data.vaccine_name.trim(),
       notes: data.notes ? data.notes.trim() : null,
       dose_ml: data.dose_ml ? Number(data.dose_ml) : null,
       administered_by: data.administered_by ? data.administered_by.trim() : null,
       batch_number: data.batch_number ? data.batch_number.trim() : null,
-      completed: data.completed
+      completed: data.completed,
     };
 
     if (isOneTime) {
       payload.scheduled_date = data.scheduled_date;
     } else {
-      payload.is_first_dose = vaccination.is_first_dose;
-      if (!vaccination.is_first_dose) {
-        payload.last_date = data.last_date;
-      }
-      // If next_due_date is modified from the original next_due_date
-      const originalNext = vaccination.next_due_date ? new Date(vaccination.next_due_date).toISOString().split('T')[0] : '';
-      if (data.next_due_date !== originalNext) {
+      if (data.administration_date) payload.administration_date = data.administration_date;
+      if (data.repeat_every_months) payload.repeat_every_months = Number(data.repeat_every_months);
+      // لو next_due_date اتغير يدوياً نبعته، والباك إند هيحترمه ومش هيعيد حسابه
+      const originalNext = vaccination.next_due_date
+        ? new Date(vaccination.next_due_date).toISOString().split('T')[0] : '';
+      if (data.next_due_date && data.next_due_date !== originalNext) {
         payload.next_due_date = data.next_due_date;
       }
     }
@@ -100,24 +89,16 @@ const EditVaccinationPage = () => {
 
   const inputCls = (hasError) =>
     `w-full px-4 py-2.5 border rounded-xl text-sm outline-none transition-all font-cairo bg-white
-     ${
-       hasError
-         ? 'border-red-400 focus:ring-2 focus:ring-red-200'
-         : 'border-stone-200 focus:ring-2 focus:ring-[#2a5c2a]/20 focus:border-[#2a5c2a]'
-     }`;
-
+     ${hasError
+       ? 'border-red-400 focus:ring-2 focus:ring-red-200'
+       : 'border-stone-200 focus:ring-2 focus:ring-[#2a5c2a]/20 focus:border-[#2a5c2a]'}`;
   const labelCls = 'block text-[13px] font-bold text-stone-700 mb-2';
 
-  // Limits
   const getTomorrowString = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split('T')[0];
+    const d = new Date(); d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
   };
-
-  const getTodayString = () => {
-    return new Date().toISOString().split('T')[0];
-  };
+  const getTodayString = () => new Date().toISOString().split('T')[0];
 
   if (loading.animal || (loading.vaccinations && !vaccination)) {
     return (
@@ -143,6 +124,7 @@ const EditVaccinationPage = () => {
 
   return (
     <div className="min-h-screen bg-[#f5f7f5] font-cairo" dir="rtl">
+
       {/* ── Sticky Header ─────────────────────────────────────────── */}
       <div className="bg-white border-b border-stone-100 sticky top-0 z-20 shadow-sm">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -157,7 +139,7 @@ const EditVaccinationPage = () => {
             <div>
               <h1 className="text-[17px] font-bold text-stone-900">تعديل سجل التطعيم</h1>
               <p className="text-[11px] text-stone-400 font-medium">
-                الحيوان: <span className="font-semibold text-[#2a5c2a]">{animal?.name || animal?.tag_number || '...'}</span>
+                الحيوان: <span className="font-semibold text-[#2a5c2a]">#{animal?.tag_number || '...'}</span>
               </p>
             </div>
           </div>
@@ -170,21 +152,21 @@ const EditVaccinationPage = () => {
 
       <main className="max-w-3xl mx-auto px-6 py-8">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          
-          {/* Main Info */}
+
+          {/* ── Main Info ────────────────────────────────────────── */}
           <div className="bg-white rounded-[20px] border border-stone-200 shadow-sm p-6 space-y-5">
             <div className="flex items-center justify-between pb-3 border-b border-stone-100">
-              <h2 className="text-[14px] font-bold text-stone-900">
-                بيانات التطعيم الحالية
-              </h2>
+              <h2 className="text-[14px] font-bold text-stone-900">بيانات التطعيم الحالية</h2>
               <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                vaccination.vaccine_type === 'one_time' ? 'bg-purple-50 text-purple-700' : 'bg-emerald-50 text-[#2a5c2a]'
+                vaccination.vaccine_type === 'one_time'
+                  ? 'bg-purple-50 text-purple-700'
+                  : 'bg-emerald-50 text-[#2a5c2a]'
               }`}>
                 {vaccination.vaccine_type === 'one_time' ? 'لمرة واحدة (طارئ)' : 'متكرر (دوري)'}
               </span>
             </div>
 
-            {/* Vaccine Name */}
+            {/* اسم اللقاح */}
             <div>
               <label className={labelCls}>اسم اللقاح / التطعيم <span className="text-rose-500">*</span></label>
               <input
@@ -196,31 +178,43 @@ const EditVaccinationPage = () => {
               {errors.vaccine_name && <p className="text-[11px] text-rose-500 mt-1">{errors.vaccine_name.message}</p>}
             </div>
 
-            {/* If Recurring */}
+            {/* ── Recurring fields ──────────────────────────────── */}
             {vaccination.vaccine_type === 'recurring' && (
               <div className="space-y-5">
-                {/* Last Date (Editable only if not first dose) */}
-                {!vaccination.is_first_dose ? (
-                  <div>
-                    <label className={labelCls}>تاريخ آخر جرعة أخذها الحيوان <span className="text-rose-500">*</span></label>
-                    <input
-                      type="date"
-                      max={getTodayString()}
-                      {...register('last_date', {
-                        required: 'تاريخ آخر جرعة مطلوب'
-                      })}
-                      className={inputCls(errors.last_date)}
-                    />
-                    {errors.last_date && <p className="text-[11px] text-rose-500 mt-1">{errors.last_date.message}</p>}
-                  </div>
-                ) : (
-                  <div className="bg-emerald-50/40 p-3 rounded-lg border border-emerald-100/50 text-xs text-[#2a5c2a] flex items-center gap-1.5">
-                    <Info className="w-4 h-4" />
-                    <span>تم تسجيل هذا التطعيم كأول جرعة للحيوان (لا يوجد تاريخ جرعات سابقة).</span>
-                  </div>
-                )}
 
-                {/* Next Due Date (Postpone / Edit) */}
+                {/* تاريخ إعطاء الجرعة */}
+                <div>
+                  <label className={labelCls}>تاريخ إعطاء الجرعة</label>
+                  <input
+                    type="date"
+                    max={getTodayString()}
+                    {...register('administration_date')}
+                    className={inputCls(errors.administration_date)}
+                  />
+                  <span className="text-[11px] text-stone-400 block mt-1.5 flex items-center gap-1">
+                    <Info className="w-3.5 h-3.5" />
+                    لو غيّرته، هيُعاد حساب الجرعة القادمة تلقائياً.
+                  </span>
+                </div>
+
+                {/* فترة التكرار */}
+                <div>
+                  <label className={labelCls}>يتكرر كل (أشهر)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="120"
+                    placeholder="مثال: 6"
+                    {...register('repeat_every_months', {
+                      min: { value: 1, message: 'الحد الأدنى شهر' },
+                      max: { value: 120, message: 'الحد الأقصى 120 شهر' },
+                    })}
+                    className={inputCls(errors.repeat_every_months)}
+                  />
+                  {errors.repeat_every_months && <p className="text-[11px] text-rose-500 mt-1">{errors.repeat_every_months.message}</p>}
+                </div>
+
+                {/* Next Due Date — تأجيل يدوي */}
                 <div>
                   <label className={labelCls}>موعد الجرعة القادمة المستحقة</label>
                   <input
@@ -235,16 +229,14 @@ const EditVaccinationPage = () => {
               </div>
             )}
 
-            {/* If One-time */}
+            {/* ── One-time fields ───────────────────────────────── */}
             {vaccination.vaccine_type === 'one_time' && (
               <div>
                 <label className={labelCls}>تاريخ التطعيم المجدول <span className="text-rose-500">*</span></label>
                 <input
                   type="date"
                   min={getTomorrowString()}
-                  {...register('scheduled_date', {
-                    required: 'تاريخ التطعيم المجدول مطلوب'
-                  })}
+                  {...register('scheduled_date', { required: 'تاريخ التطعيم المجدول مطلوب' })}
                   className={inputCls(errors.scheduled_date)}
                 />
                 {errors.scheduled_date && <p className="text-[11px] text-rose-500 mt-1">{errors.scheduled_date.message}</p>}
@@ -252,14 +244,14 @@ const EditVaccinationPage = () => {
             )}
           </div>
 
-          {/* Additional details */}
+          {/* ── Additional Details ───────────────────────────────── */}
           <div className="bg-white rounded-[20px] border border-stone-200 shadow-sm p-6 space-y-5">
             <h2 className="text-[14px] font-bold text-stone-900 pb-3 border-b border-stone-100">
               تفاصيل إضافية وحالة الإتمام
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Dose ML */}
+              {/* حجم الجرعة */}
               <div>
                 <label className={labelCls}>حجم الجرعة (مل)</label>
                 <input
@@ -267,14 +259,14 @@ const EditVaccinationPage = () => {
                   step="0.01"
                   placeholder="مثال: 1.5"
                   {...register('dose_ml', {
-                    min: { value: 0.01, message: 'يجب أن تكون الجرعة أكبر من صفر' }
+                    min: { value: 0.01, message: 'يجب أن تكون الجرعة أكبر من صفر' },
                   })}
                   className={inputCls(errors.dose_ml)}
                 />
                 {errors.dose_ml && <p className="text-[11px] text-rose-500 mt-1">{errors.dose_ml.message}</p>}
               </div>
 
-              {/* Batch Number */}
+              {/* رقم التشغيلة */}
               <div>
                 <label className={labelCls}>رقم التشغيلة (Batch Number)</label>
                 <input
@@ -285,7 +277,7 @@ const EditVaccinationPage = () => {
                 />
               </div>
 
-              {/* Administered By */}
+              {/* أعطيت بواسطة */}
               <div className="md:col-span-2">
                 <label className={labelCls}>أعطيت بواسطة (اسم الطبيب/المشرف)</label>
                 <input
@@ -297,7 +289,7 @@ const EditVaccinationPage = () => {
               </div>
             </div>
 
-            {/* Notes */}
+            {/* ملاحظات */}
             <div>
               <label className={labelCls}>ملاحظات</label>
               <textarea
@@ -308,7 +300,7 @@ const EditVaccinationPage = () => {
               />
             </div>
 
-            {/* Completed toggle */}
+            {/* completed toggle */}
             {!vaccination.completed ? (
               <div className="bg-stone-50 rounded-xl p-4 border border-stone-250 flex items-center justify-between">
                 <div>
@@ -316,11 +308,7 @@ const EditVaccinationPage = () => {
                   <span className="text-[11px] text-stone-400">قم بتفعيل الخيار لتسجيل إتمام الجرعة وتحديث حالتها لمكتمل.</span>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    {...register('completed')}
-                    className="sr-only peer"
-                  />
+                  <input type="checkbox" {...register('completed')} className="sr-only peer" />
                   <div className="w-11 h-6 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:-translate-x-full rtl:peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                 </label>
               </div>
@@ -332,7 +320,7 @@ const EditVaccinationPage = () => {
             )}
           </div>
 
-          {/* Action Buttons */}
+          {/* ── Action Buttons ───────────────────────────────────── */}
           <div className="flex items-center justify-between pt-2">
             <button
               type="button"
@@ -351,11 +339,7 @@ const EditVaccinationPage = () => {
                   : 'bg-stone-300 cursor-not-allowed text-stone-500 shadow-none'
               }`}
             >
-              {submitting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
+              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               حفظ التغييرات
             </button>
           </div>

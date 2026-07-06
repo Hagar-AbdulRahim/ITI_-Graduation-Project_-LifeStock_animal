@@ -12,12 +12,13 @@ export const chatWithAI = (animalId, message, history = []) => {
 }
 
 // 🩺 DIAGNOSE WITH AI — Text (Health Cases)
-export const diagnoseWithAI = (animalId, symptoms, species) => {
+export const diagnoseWithAI = (animalId, symptoms, species, chatHistory = []) => {
   return api
     .post(`/api/health-cases/diagnose`, {
       animal_id: animalId || undefined,
       symptoms: [symptoms],
       species: species || undefined,
+      chatHistory,
     })
     .then((res) => res.data)
 }
@@ -25,17 +26,20 @@ export const diagnoseWithAI = (animalId, symptoms, species) => {
 // 📸 DIAGNOSE WITH IMAGE
 export const diagnoseWithImage = (imageFile, animalId, species, symptoms) => {
   const formData = new FormData()
+  const files = Array.isArray(imageFile) ? imageFile : [imageFile]
 
-  // Fix MIME type: .jfif and other JPEG variants often get sent as application/octet-stream
-  const ext = imageFile.name.split('.').pop().toLowerCase()
   const mimeMap = { jfif: 'image/jpeg', jpe: 'image/jpeg', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' }
-  const correctMime = mimeMap[ext] || imageFile.type || 'image/jpeg'
 
-  const fixedFile = imageFile.type === correctMime
-    ? imageFile
-    : new File([imageFile], imageFile.name.replace(`.${ext}`, '.jpg'), { type: correctMime })
+  files.forEach((file) => {
+    const ext = file.name.split('.').pop().toLowerCase()
+    const correctMime = mimeMap[ext] || file.type || 'image/jpeg'
+    const fixedFile = file.type === correctMime
+      ? file
+      : new File([file], file.name.replace(`.${ext}`, '.jpg'), { type: correctMime })
 
-  formData.append('image', fixedFile)
+    formData.append('images', fixedFile)
+  })
+
   if (animalId) formData.append('animal_id', animalId)
   if (species) formData.append('species', species)
   if (symptoms) formData.append('symptoms', symptoms)
@@ -57,6 +61,34 @@ export const diagnoseWithVoice = (audioBlob, animalId, species) => {
 
   return api
     .post(`/api/health-cases/diagnose/voice`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 90000,
+    })
+    .then((res) => res.data)
+}
+
+// 🎙️🖼️ DIAGNOSE WITH AUDIO + IMAGES
+export const diagnoseWithMixed = (audioBlob, imageFiles, animalId, species, symptoms) => {
+  const formData = new FormData()
+  formData.append('audio', audioBlob, 'recording.webm')
+  const mimeMap = { jfif: 'image/jpeg', jpe: 'image/jpeg', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' }
+
+  const files = Array.isArray(imageFiles) ? imageFiles : [imageFiles]
+  files.forEach((file) => {
+    const ext = file.name.split('.').pop().toLowerCase()
+    const correctMime = mimeMap[ext] || file.type || 'image/jpeg'
+    const fixedFile = file.type === correctMime
+      ? file
+      : new File([file], file.name.replace(`.${ext}`, '.jpg'), { type: correctMime })
+    formData.append('images', fixedFile)
+  })
+
+  if (animalId) formData.append('animal_id', animalId)
+  if (species) formData.append('species', species)
+  if (symptoms) formData.append('symptoms', symptoms)
+
+  return api
+    .post(`/api/health-cases/diagnose/image`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       timeout: 90000,
     })

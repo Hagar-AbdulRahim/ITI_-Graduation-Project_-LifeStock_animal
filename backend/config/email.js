@@ -108,4 +108,53 @@ const sendPasswordResetOtp = async (user, otp) => {
   });
 };
 
-module.exports = { sendVerificationEmail, sendPasswordResetOtp };
+const contactUsEmailHTML = (name, email, subject, message) => `
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; direction: rtl; }
+    .container { max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .header { background: #1b4d2c; padding: 24px; text-align: right; color: white; }
+    .header h1 { margin: 0; font-size: 20px; }
+    .body { padding: 32px 24px; color: #444; font-size: 15px; line-height: 1.6; }
+    .detail { margin-bottom: 15px; }
+    .detail strong { color: #1b4d2c; display: inline-block; width: 120px; }
+    .message-box { background: #f9f9f9; border-right: 4px solid #1b4d2c; padding: 15px; margin-top: 20px; border-radius: 4px; white-space: pre-wrap; }
+    .footer { background: #f9f9f9; padding: 16px 24px; text-align: center; font-size: 12px; color: #aaa; border-top: 1px solid #eee; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>رسالة جديده من منصة رعاية 📩</h1>
+    </div>
+    <div class="body">
+      <p>يوجد رسالة جديدة تم إرسالها عبر نموذج الاتصال في الموقع:</p>
+      
+      <div class="detail"><strong>اسم المرسل:</strong> ${name}</div>
+      <div class="detail"><strong>البريد الإلكتروني:</strong> <span dir="ltr">${email}</span></div>
+      <div class="detail"><strong>الموضوع:</strong> ${subject}</div>
+      
+      <div class="message-box">${message}</div>
+    </div>
+    <div class="footer">
+      هذا إيميل تلقائي من نظام منصة صحة المواشي
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+const sendContactUsEmail = async (contactData) => {
+  const transporter = createTransporter();
+  await transporter.sendMail({
+    from: `"رسائل المنصة" <${process.env.EMAIL_USER}>`,
+    to: "sahmah227@gmail.com",
+    subject: `رسالة جديده من منصة رعاية`,
+    html: contactUsEmailHTML(contactData.name, contactData.email, contactData.subject, contactData.message),
+  });
+};
+
+module.exports = { sendVerificationEmail, sendPasswordResetOtp, sendContactUsEmail };
