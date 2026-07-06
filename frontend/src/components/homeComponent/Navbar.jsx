@@ -6,240 +6,27 @@ import { fetchMyFarms } from '../../redux/farmSlice'
 import toast from 'react-hot-toast'
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
-const IconGrid = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-    />
-  </svg>
-)
-const IconPaw = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M12 19c-4 0-7-3-7-7 0-2.5 1-4.5 2.5-6M12 19c4 0 7-3 7-7 0-2.5-1-4.5-2.5-6M9 5a1 1 0 100-2 1 1 0 000 2zm6 0a1 1 0 100-2 1 1 0 000 2zM7 8a1 1 0 100-2 1 1 0 000 2zm10 0a1 1 0 100-2 1 1 0 000 2z"
-    />
-  </svg>
-)
-const IconBot = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h16a2 2 0 012 2v10a2 2 0 01-2 2h-2"
-    />
-  </svg>
-)
-const IconActivity = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-    />
-  </svg>
-)
-const IconCamera = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-    />
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-    />
-  </svg>
-)
-const IconSyringe = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
-    />
-  </svg>
-)
-const IconShieldCheck = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-    />
-  </svg>
-)
-const IconBriefcase = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-    />
-  </svg>
-)
-const IconBook = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-    />
-  </svg>
-)
-const IconBarChart = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-    />
-  </svg>
-)
-const IconLogout = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-    />
-  </svg>
-)
-const IconMenu = () => (
-  <svg
-    className="w-5 h-5"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M4 6h16M4 12h16M4 18h16"
-    />
-  </svg>
-)
-const IconX = () => (
-  <svg
-    className="w-5 h-5"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M6 18L18 6M6 6l12 12"
-    />
-  </svg>
-)
-const IconLogin = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
-    />
-  </svg>
-)
+const IconGrid        = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>;
+const IconActivity    = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>;
+const IconLogout      = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>;
+const IconMenu        = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>;
+const IconX           = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>;
+const IconLogin       = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>;
+const IconEmergency   = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v6m3-3H9m11 0a8 8 0 11-16 0 8 8 0 0116 0z" /></svg>;
+const IconBriefcase   = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>;
+const IconShieldCheck = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>;
 
-// ─── Nav Links definition (matches Sidebar routes) ────────────────────────────
+// ─── Nav Links definition ──────────────────────────────────────────────────
 const NAV_LINKS = [
-  { id: 'farms', label: 'المزارع', icon: <IconGrid />, path: '/farms' },
-  { id: 'animals', label: 'الحيوانات', icon: <IconPaw />, path: '/animals' },
-  {
-    id: 'vaccine-agent',
-    label: 'مستشار اللقاحات',
-    icon: <IconShieldCheck />,
-    path: '/vaccine-agent',
-  },
-  {
-    id: 'services',
-    label: 'خدماتنا',
-    icon: <IconBriefcase />,
-    path: '/services',
-  },
-]
+  { id: 'farms',          label: 'المزارع',          icon: <IconGrid />,        path: '' },
+  { id: 'diagnosis',      label: 'التشخيص',          icon: <IconActivity />,    path: '/ai-assistant' },
+  { id: 'vaccine-agent',  label: 'مستشار اللقاحات',  icon: <IconShieldCheck />, path: '/vaccine-agent' },
+  { id: 'services',       label: 'كيفية الاستخدام',  icon: <IconBriefcase />,   path: '/services' },
+  { id: 'emergency',      label: 'الطوارئ',          icon: <IconEmergency />,   path: '/emergencies' },
+];
+
+// روابط لازم المستخدم يكون مسجل دخول عشان يدخلها
+const AUTH_PROTECTED_LINKS = ['farms', 'diagnosis', 'vaccine-agent'];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 const Navbar = () => {
@@ -261,8 +48,10 @@ const Navbar = () => {
 
   const getDynamicPath = (link) => {
     if (link.id === 'farms') return '/farms'
+    if (link.id === 'diagnosis') return '/ai-assistant'
     if (link.id === 'vaccine-agent') return '/vaccine-agent'
     if (link.id === 'services') return '/services'
+    if (link.id === 'emergency') return '/emergencies'
     return firstFarmId ? `/farms/${firstFarmId}${link.path}` : '/farms'
   }
 
@@ -272,7 +61,6 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Close mobile menu on resize to desktop
   useEffect(() => {
     const onResize = () => {
       if (window.innerWidth >= 1024) setMenuOpen(false)
@@ -289,12 +77,19 @@ const Navbar = () => {
     setShowDropdown(false)
   }
 
+  const handleNavClick = (e, link) => {
+    if (AUTH_PROTECTED_LINKS.includes(link.id) && !isAuthenticated) {
+      e.preventDefault()
+      navigate('/login')
+      setMenuOpen(false)
+    }
+  }
+
   const navbarBg =
     scrolled || menuOpen
       ? 'bg-[#f8f8f5]/95 backdrop-blur-md shadow-sm border-b border-gray-200/50'
       : 'bg-[#f8f8f5]/85 backdrop-blur-sm'
 
-  // ── Desktop link style
   const desktopLink = ({ isActive }) =>
     `group relative flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-sm font-semibold tracking-wide transition-all duration-300 ${
       isActive
@@ -332,10 +127,7 @@ const Navbar = () => {
                 </svg>
               </div>
               <div className="leading-tight">
-                <p className="text-sm font-bold text-gray-900">رعاية الماشية</p>
-                <p className="text-[10px] text-[#1b4d2c] font-semibold">
-                  LivestockCare AI
-                </p>
+                <p className="text-sm font-bold text-gray-900">رعاية</p>
               </div>
             </button>
 
@@ -345,12 +137,21 @@ const Navbar = () => {
                 <NavLink
                   key={link.id}
                   to={getDynamicPath(link)}
+                  onClick={(e) => handleNavClick(e, link)}
                   className={desktopLink}
                 >
                   {({ isActive }) => (
                     <>
                       <span
-                        className={`flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-300 ${isActive ? 'bg-[#2d5a1b]/10 text-[#2d5a1b]' : 'bg-[#f2f5eb] text-[#4b5a44] group-hover:bg-[#e8f3df] group-hover:text-[#2d5a1b]'}`}
+                        className={`flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-300 ${
+                          link.id === 'emergency'
+                            ? isActive
+                              ? 'bg-red-100 text-red-600'
+                              : 'bg-red-50 text-red-500 group-hover:bg-red-100 group-hover:text-red-600'
+                            : isActive
+                              ? 'bg-[#2d5a1b]/10 text-[#2d5a1b]'
+                              : 'bg-[#f2f5eb] text-[#4b5a44] group-hover:bg-[#e8f3df] group-hover:text-[#2d5a1b]'
+                        }`}
                       >
                         {link.icon}
                       </span>
@@ -367,7 +168,6 @@ const Navbar = () => {
             {/* ── Right Actions ── */}
             <div className="flex items-center gap-3">
               {isAuthenticated ? (
-                /* ── User dropdown ── */
                 <div className="relative">
                   <button
                     onClick={() => setShowDropdown(!showDropdown)}
@@ -394,7 +194,6 @@ const Navbar = () => {
                     </svg>
                   </button>
 
-                  {/* Dropdown Menu */}
                   {showDropdown && (
                     <div className="absolute left-0 top-full mt-2 w-44 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                       <button
@@ -419,7 +218,6 @@ const Navbar = () => {
                   )}
                 </div>
               ) : (
-                /* ── Login / Register buttons ── */
                 <div className="hidden md:flex items-center gap-2">
                   <button
                     onClick={() => navigate('/login')}
@@ -437,7 +235,6 @@ const Navbar = () => {
                 </div>
               )}
 
-              {/* ── Hamburger (mobile) ── */}
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
                 className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
@@ -463,7 +260,10 @@ const Navbar = () => {
               <NavLink
                 key={link.id}
                 to={getDynamicPath(link)}
-                onClick={() => setMenuOpen(false)}
+                onClick={(e) => {
+                  handleNavClick(e, link)
+                  setMenuOpen(false)
+                }}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-4 py-3 rounded-2xl border text-sm font-semibold transition-all duration-300 ${
                     isActive
@@ -472,14 +272,19 @@ const Navbar = () => {
                   }`
                 }
               >
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f2f5eb] text-[#2d5a1b]">
+                <span
+                  className={`flex h-9 w-9 items-center justify-center rounded-xl ${
+                    link.id === 'emergency'
+                      ? 'bg-red-50 text-red-500'
+                      : 'bg-[#f2f5eb] text-[#2d5a1b]'
+                  }`}
+                >
                   {link.icon}
                 </span>
                 {link.label}
               </NavLink>
             ))}
 
-            {/* Mobile Auth buttons */}
             <div className="pt-2 border-t border-gray-100 mt-2 space-y-2">
               {isAuthenticated ? (
                 <button
@@ -517,7 +322,6 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Backdrop to close dropdown */}
       {showDropdown && (
         <div
           className="fixed inset-0 z-40"

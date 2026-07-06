@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 import AOS from 'aos'
 import Navbar from '@/components/homeComponent/Navbar'
 import HeroSection from '@/components/homeComponent/HeroSection'
+import AboutSection from '@/components/homeComponent/AboutSection'
 import FeaturesGrid from '@/components/homeComponent/FeaturesGrid'
 import StatsBar from '@/components/homeComponent/StatsBar'
 import TestimonialSection from '@/components/homeComponent/TestimonialSection'
@@ -23,6 +24,7 @@ const LandingPage = () => {
     <div className="min-h-screen bg-[#f8f8f5]">
       <Navbar />
       <HeroSection />
+      <AboutSection />
       <FeaturesGrid />
       <StatsBar />
       <TestimonialSection />

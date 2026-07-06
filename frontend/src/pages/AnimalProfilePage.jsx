@@ -179,10 +179,10 @@ export default function AnimalProfilePage() {
   const notes = a.notes || null
   const createdAt = a.created_at
     ? new Date(a.created_at).toLocaleDateString('ar-EG', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
     : '—'
 
   return (
@@ -375,7 +375,7 @@ export default function AnimalProfilePage() {
             </div>
 
             <div className="px-6 py-4 grid grid-cols-1 sm:grid-cols-2 gap-x-10">
-              <InfoRow label="رقم الوسم" value={a.tag_number} mono />
+              <InfoRow label="رقم التعريف" value={a.tag_number} mono />
               <InfoRow
                 label="النوع"
                 value={`${species.emoji} ${species.label}`}
@@ -432,7 +432,7 @@ export default function AnimalProfilePage() {
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-400 font-medium flex items-center gap-1.5">
-                  <Tag className="w-3 h-3" /> رقم الوسم
+                  <Tag className="w-3 h-3" /> رقم التعريف
                 </span>
                 <span className="font-bold text-gray-700 font-mono">
                   {a.tag_number}

@@ -1,47 +1,45 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Plus, Loader2, AlertCircle, Search, Bell, HelpCircle, ChevronRight, LayoutGrid, Leaf, Map, Settings, Edit3, Trash2 } from 'lucide-react';
+import { MapPin, Plus, Loader2, Search, Bell, HelpCircle, LayoutGrid, Leaf, Map, Edit3, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import FarmForm from '../../components/FarmForm';
 import { fetchMyFarms } from '../../redux/farmSlice';
 import { updateFarm, deleteFarm } from '../../services/farmService';
 
-// ─── TOP NAVBAR ──────────────────────────────────────
 const TopNavbar = ({ searchQuery, setSearchQuery }) => {
   const navigate = useNavigate();
   return (
-  <header className="bg-white h-20 border-b border-gray-100 px-8 flex items-center justify-between sticky top-0 z-20 font-cairo">
-    <div className="flex-1 max-w-xl">
-      <div className="relative flex items-center w-full max-w-md">
-        <Search className="w-4 h-4 text-gray-400 absolute right-4" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="البحث عن مزرعة بالاسم أو الموقع..."
-          className="w-full bg-[#fbf9f6] border border-gray-200 rounded-full py-2.5 pr-11 pl-4 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-[#154b23]/20 focus:border-[#154b23] transition-all"
-        />
+    <header className="bg-white h-20 border-b border-gray-100 px-8 flex items-center justify-between sticky top-0 z-20 font-cairo">
+      <div className="flex-1 max-w-xl">
+        <div className="relative flex items-center w-full max-w-md">
+          <Search className="w-4 h-4 text-gray-400 absolute right-4" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="البحث عن مزرعة بالاسم أو الموقع..."
+            className="w-full bg-[#fbf9f6] border border-gray-200 rounded-full py-2.5 pr-11 pl-4 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-[#154b23]/20 focus:border-[#154b23] transition-all"
+          />
+        </div>
       </div>
-    </div>
 
-    <div className="flex items-center gap-6">
-      <div className="flex items-center gap-4 text-gray-400">
-        <button 
-          onClick={() => navigate('/notifications')}
-          className="hover:text-gray-600 transition-colors relative"
-        >
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
-        <button className="hover:text-gray-600 transition-colors">
-          <HelpCircle className="w-5 h-5" />
-        </button>
+      <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 text-gray-400">
+          <button
+            onClick={() => navigate('/notifications')}
+            className="hover:text-gray-600 transition-colors relative"
+          >
+            <Bell className="w-5 h-5" />
+            <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+          </button>
+          <button className="hover:text-gray-600 transition-colors">
+            <HelpCircle className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="h-8 w-px bg-gray-200"></div>
       </div>
-      <div className="h-8 w-px bg-gray-200"></div>
-
-    </div>
-  </header>
+    </header>
   );
 };
 
@@ -76,88 +74,90 @@ const FarmCard = ({ farm }) => {
   };
 
   return (
-    <div className="bg-white border border-stone-100 rounded-[24px] shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col font-cairo cursor-pointer h-full">
-      
-      {/* Green Header Area */}
-      <div className="relative bg-[#1b4d2c] pt-5 pb-6 px-5" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.1) 1.5px, transparent 1.5px)', backgroundSize: '16px 16px' }}>
-        {/* Top actions */}
-        <div className="flex items-center justify-between mb-4">
-          {/* Icon on the right (first in RTL) */}
-          <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
-            <Map className="w-5 h-5 text-white" />
-          </div>
-
-          {/* Edit / Delete Buttons on the left (last in RTL) */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDeleteConfirm(true); }}
-              className="w-8 h-8 flex items-center justify-center rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors shadow-sm"
-              title="حذف المزرعة"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); setEditMode(true); }}
-              className="w-8 h-8 flex items-center justify-center rounded-xl bg-white text-stone-600 hover:bg-stone-100 transition-colors shadow-sm"
-              title="تعديل المزرعة"
-            >
-              <Edit3 className="w-4 h-4" />
-            </button>
-          </div>
+    <div
+      onClick={() => navigate(`/farms/${farm._id}`)}
+      className="bg-white border border-stone-200/80 border-t-4 border-t-[#1b4d2c] rounded-[32px] 
+                 shadow-[0_2px_8px_-2px_rgba(27,77,44,0.08)] 
+                 hover:shadow-[0_12px_35px_-8px_rgba(27,77,44,0.25)] 
+                 hover:-translate-y-2
+                 transition-all duration-500 ease-out
+                 overflow-hidden flex flex-col font-cairo cursor-pointer h-full relative group p-6"
+    >
+      {/* Top Section: Icon & Actions */}
+      <div className="flex items-center justify-between mb-4">
+        {/* Farm Icon with soft green tint */}
+        <div className="w-11 h-11 rounded-2xl bg-[#1b4d2c]/5 flex items-center justify-center border border-[#1b4d2c]/10 text-[#1b4d2c] group-hover:scale-110 transition-all duration-500 shadow-sm">
+          <Map className="w-5 h-5" />
         </div>
 
-        {/* Farm Name */}
-        <div className="text-right mt-2">
-          <h3 className="font-bold text-white text-xl">{farm.name}</h3>
+        {/* Edit / Delete Buttons */}
+        <div className="flex items-center gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity duration-300">
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDeleteConfirm(true); }}
+            className="w-8 h-8 flex items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
+            title="حذف المزرعة"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); setEditMode(true); }}
+            className="w-8 h-8 flex items-center justify-center rounded-xl bg-stone-50 text-stone-500 hover:bg-[#1b4d2c] hover:text-white transition-colors"
+            title="تعديل المزرعة"
+          >
+            <Edit3 className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-      {/* White Body Area */}
-      <div className="p-5 flex flex-col flex-grow bg-white">
-        
-        {/* Info Cards Stack */}
-        <div className="flex flex-col gap-3">
-          {/* Location */}
-          <div className="bg-stone-50 rounded-2xl p-4 flex items-center justify-start gap-4 border border-stone-100/60">
-            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm border border-stone-100 text-stone-500 flex-shrink-0">
-              <MapPin className="w-4 h-4" />
-            </div>
-            <div className="text-right">
-              <p className="text-stone-400 text-xs font-medium mb-1">الموقع</p>
-              <p className="font-bold text-stone-800 text-sm">{farm.governorate || 'غير محدد'}</p>
-            </div>
-          </div>
+      {/* Farm Name */}
+      <div className="text-right">
+        <h3 className="font-black text-stone-900 text-lg transition-colors duration-500">{farm.name}</h3>
+      </div>
 
-          {/* Animals Count */}
-          <div className="bg-stone-50 rounded-2xl p-4 flex items-center justify-start gap-4 border border-stone-100/60">
-            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm border border-stone-100 text-stone-500 flex-shrink-0">
-              <LayoutGrid className="w-4 h-4" />
-            </div>
-            <div className="text-right">
-              <p className="text-stone-400 text-xs font-medium mb-1">الحيوانات</p>
-              <p className="font-bold text-stone-800 text-sm">{farm.total_animals || 0} رأس</p>
-            </div>
+      {/* Modern Grid Statistics with styled backgrounds */}
+      <div className="grid grid-cols-1 gap-3 py-4 my-2">
+        {/* Location Box */}
+        <div className="flex items-center justify-start gap-3 bg-stone-50/70 rounded-2xl p-3 border border-stone-200/20 transition-colors duration-500">
+          <div className="w-8 h-8 rounded-xl bg-white border border-stone-100 flex items-center justify-center text-[#1b4d2c] flex-shrink-0 shadow-sm transition-colors duration-500">
+            <MapPin className="w-4 h-4" />
+          </div>
+          <div className="text-right">
+            <span className="text-[10px] text-stone-400 font-bold block mb-0.5 transition-colors duration-500">الموقع والجغرافيا</span>
+            <span className="font-bold text-stone-800 text-[13px] transition-colors duration-500">{farm.governorate || 'غير محدد'}</span>
           </div>
         </div>
 
-        {/* Description */}
-        {farm.description && (
-          <div className="mt-4 text-right">
-            <p className="text-stone-500 text-xs leading-relaxed line-clamp-1">{farm.description}</p>
+        {/* Animals Box */}
+        <div className="flex items-center justify-start gap-3 bg-stone-50/70 rounded-2xl p-3 border border-stone-200/20 transition-colors duration-500">
+          <div className="w-8 h-8 rounded-xl bg-white border border-stone-100 flex items-center justify-center text-[#1b4d2c] flex-shrink-0 shadow-sm transition-colors duration-500">
+            <LayoutGrid className="w-4 h-4" />
           </div>
-        )}
-
-        {/* Manage Button */}
-        <div className="mt-auto pt-5">
-          <button
-            onClick={(e) => { e.stopPropagation(); navigate(`/farms/${farm._id}`); }}
-            className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#1b4d2c] text-white font-bold rounded-2xl hover:bg-[#153e23] transition-colors shadow-md shadow-green-900/10 active:scale-[0.98]"
-          >
-            إدارة المزرعة
-            <span className="text-lg leading-none" style={{ transform: 'scaleX(-1)' }}>➔</span>
-          </button>
+          <div className="text-right">
+            <span className="text-[10px] text-stone-400 font-bold block mb-0.5 transition-colors duration-500">إحصاء القطيع</span>
+            <span className="font-bold text-stone-800 text-[13px] transition-colors duration-500">{farm.total_animals || 0} رأس من الماشية</span>
+          </div>
         </div>
+      </div>
 
+      {/* Description */}
+      {farm.description ? (
+        <div className="text-right mb-6 h-9 overflow-hidden">
+          <p className="text-stone-500 text-xs leading-relaxed line-clamp-2 transition-colors duration-500">{farm.description}</p>
+        </div>
+      ) : (
+        <div className="text-right mb-6 h-9 flex items-center">
+          <p className="text-stone-300 text-xs italic transition-colors duration-500">لا يوجد وصف للمزرعة</p>
+        </div>
+      )}
+
+      {/* Manage Button */}
+      <div className="mt-auto">
+        <button
+          onClick={(e) => { e.stopPropagation(); navigate(`/farms/${farm._id}`); }}
+          className="w-full py-3 bg-[#1b4d2c] text-white font-black text-xs rounded-xl shadow-sm group-hover:shadow-[0_8px_20px_-6px_rgba(27,77,44,0.3)] transition-all duration-500 active:scale-[0.98]"
+        >
+          إدارة المزرعة
+        </button>
       </div>
 
       {/* Edit Modal using shared FarmForm */}
@@ -170,7 +170,7 @@ const FarmCard = ({ farm }) => {
             className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full max-h-[80vh] overflow-y-auto border border-gray-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-bold mb-4">تعديل المزرعة</h3>
+            <h3 className="text-lg font-bold mb-4 text-stone-900 text-right">تعديل المزرعة</h3>
             <FarmForm
               defaultValues={{ name: farm.name, governorate: farm.governorate, description: farm.description || '' }}
               onSubmit={handleUpdate}
@@ -192,9 +192,9 @@ const FarmCard = ({ farm }) => {
             className="bg-white p-6 rounded-lg shadow-lg max-w-sm"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="mb-4">هل أنت متأكد من حذف المزرعة؟</p>
+            <p className="mb-4 text-stone-900 text-right">هل أنت متأكد من حذف المزرعة؟</p>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowDeleteConfirm(false)} className="px-4 py-2 bg-gray-300 rounded">إلغاء</button>
+              <button onClick={() => setShowDeleteConfirm(false)} className="px-4 py-2 bg-gray-300 text-stone-900 rounded">إلغاء</button>
               <button onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded">حذف</button>
             </div>
           </div>
@@ -224,66 +224,66 @@ const FarmsPage = () => {
   });
 
   return (
-    <div className="min-h-screen bg-[#f5f2eb] flex flex-col font-cairo" dir="rtl">
+    <div className="min-h-screen bg-white flex flex-col font-cairo" dir="rtl">
       <TopNavbar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
       <main className="flex-1 flex flex-col">
         {/* Page Banner / Header */}
-        <div className="bg-white border-b border-stone-200/60 py-10 px-8 shadow-sm">
-          <div className="max-w-[1400px] mx-auto w-full flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div className="bg-[#1b4d2c] border-b border-stone-800/10 py-6 px-8 shadow-sm">
+          <div className="max-w-[1400px] mx-auto w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="text-right">
-            <h1 className="text-3xl font-black text-stone-900 tracking-tight mb-4">المزارع الخاصة بي</h1>
-            <p className="text-[14px] text-stone-500 font-medium">
-              إدارة منشآتك الزراعية، متابعة الإنتاج، والتحكم في القطاعات بصورة احترافية.
-            </p>
-          </div>
-          <button
-            onClick={() => navigate('/farms/add')}
-            className="flex items-center justify-center gap-2 px-7 py-3.5 bg-gradient-to-r from-[#1b4d2c] to-[#2a7543] text-white rounded-xl text-[14px] font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all shadow-md shadow-green-900/10 active:scale-95"
-          >
-            <Plus className="w-5 h-5" />
-            إضافة مزرعة
-          </button>
+
+              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">المزارع الخاصة بي</h1>
+              <p className="text-[13px] sm:text-[14px] text-stone-200 font-medium mt-1">
+                إدارة منشآتك الزراعية، متابعة الإنتاج، والتحكم في القطاعات بصورة احترافية.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate('/farms/add')}
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-white text-[#1b4d2c] hover:bg-stone-50 rounded-xl text-[14px] font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all shadow-md active:scale-95 self-start sm:self-center"
+            >
+              <Plus className="w-5 h-5" />
+              إضافة مزرعة
+            </button>
+
           </div>
         </div>
 
         {/* Content Container */}
         <div className="max-w-[1400px] mx-auto w-full px-8 py-10 flex-1 flex flex-col">
-        {/* Alerts / Loading */}
-        {loading.farms && displayFarms.length === 0 && (
-          <div className="flex-1 flex items-center justify-center">
-            <Loader2 className="w-8 h-8 text-[#154b23] animate-spin" />
-          </div>
-        )}
-
-        {/* Content */}
-        {!loading.farms && displayFarms.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center py-20 text-center bg-white rounded-[32px] border border-gray-100 shadow-sm mt-4">
-            <div className="w-24 h-24 rounded-full bg-[#154b23]/5 flex items-center justify-center mb-6">
-              <Leaf className="w-12 h-12 text-[#154b23]" />
+          {/* Alerts / Loading */}
+          {loading.farms && displayFarms.length === 0 && (
+            <div className="flex-1 flex items-center justify-center">
+              <Loader2 className="w-8 h-8 text-[#154b23] animate-spin" />
             </div>
-            <p className="text-gray-900 font-bold text-2xl mb-3">لا تمتلك أي مزارع بعد</p>
-            <p className="text-gray-500 text-sm font-medium mb-8 max-w-md">قم بإضافة مزرعتك الأولى للبدء في إدارة النظام والحيوانات والاستفادة من الذكاء الاصطناعي في المراقبة.</p>
-            <button
-              onClick={() => navigate('/farms/add')}
-              className="bg-[#154b23] hover:bg-[#0f3619] text-white px-8 py-3.5 rounded-2xl text-sm font-bold transition-all shadow-md shadow-[#154b23]/20 active:scale-95 flex items-center gap-2"
-            >
-              <Plus className="w-5 h-5" />
-              إضافة مزرعتك الأولى
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 flex-1 items-start content-start mt-4">
-            {displayFarms.map((farm) => (
-              <FarmCard
-                key={farm._id}
-                farm={farm}
-              />
-            ))}
-            
+          )}
 
-          </div>
-        )}
+          {/* Content */}
+          {!loading.farms && displayFarms.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center py-20 text-center bg-white rounded-[32px] border border-gray-100 shadow-sm mt-4">
+              <div className="w-24 h-24 rounded-full bg-[#154b23]/5 flex items-center justify-center mb-6">
+                <Leaf className="w-12 h-12 text-[#154b23]" />
+              </div>
+              <p className="text-gray-900 font-bold text-2xl mb-3">لا تمتلك أي مزارع بعد</p>
+              <p className="text-gray-500 text-sm font-medium mb-8 max-w-md">قم بإضافة مزرعتك الأولى للبدء في إدارة النظام والحيوانات والاستفادة من الذكاء الاصطناعي في المراقبة.</p>
+              <button
+                onClick={() => navigate('/farms/add')}
+                className="bg-[#154b23] hover:bg-[#0f3619] text-white px-8 py-3.5 rounded-2xl text-sm font-bold transition-all shadow-md shadow-[#154b23]/20 active:scale-95 flex items-center gap-2"
+              >
+                <Plus className="w-5 h-5" />
+                إضافة مزرعتك الأولى
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 flex-1 items-start content-start mt-4">
+              {displayFarms.map((farm) => (
+                <FarmCard
+                  key={farm._id}
+                  farm={farm}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </main>
 
