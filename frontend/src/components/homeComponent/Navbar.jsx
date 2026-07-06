@@ -7,25 +7,18 @@ import toast from 'react-hot-toast';
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IconGrid        = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>;
-const IconPaw         = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19c-4 0-7-3-7-7 0-2.5 1-4.5 2.5-6M12 19c4 0 7-3 7-7 0-2.5-1-4.5-2.5-6M9 5a1 1 0 100-2 1 1 0 000 2zm6 0a1 1 0 100-2 1 1 0 000 2zM7 8a1 1 0 100-2 1 1 0 000 2zm10 0a1 1 0 100-2 1 1 0 000 2z" /></svg>;
-const IconBot         = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h16a2 2 0 012 2v10a2 2 0 01-2 2h-2" /></svg>;
 const IconActivity    = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>;
-const IconCamera      = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
-const IconSyringe     = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>;
-const IconBook        = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>;
-const IconBarChart    = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>;
 const IconLogout      = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>;
 const IconMenu        = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>;
 const IconX           = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>;
 const IconLogin       = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>;
+const IconEmergency   = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v6m3-3H9m11 0a8 8 0 11-16 0 8 8 0 0116 0z" /></svg>;
 
-// ─── Nav Links definition (matches Sidebar routes) ────────────────────────────
+// ─── Nav Links definition ──────────────────────────────────────────────────
 const NAV_LINKS = [
-  { id: 'farms',         label: 'المزارع',               icon: <IconGrid />,     path: '/farms' },
-  { id: 'animals',       label: 'الحيوانات',              icon: <IconPaw />,      path: '/animals' },
-  { id: 'diagnosis',     label: 'التشخيص',               icon: <IconActivity />, path: '/diagnosis' },
-  { id: 'image-analysis',label: 'تحليل الصور',            icon: <IconCamera />,   path: '/image-analysis' },
-  { id: 'vaccinations',  label: 'التطعيمات',              icon: <IconSyringe />,  path: '/vaccinations' },
+  { id: 'farms',          label: 'المزارع',      icon: <IconGrid />,      path: '' },
+  { id: 'diagnosis',      label: 'التشخيص',      icon: <IconActivity />,  path: '/diagnosis' },
+  { id: 'emergency',      label: 'الطوارئ',      icon: <IconEmergency />, path: '/emergencies' },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -57,7 +50,6 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Close mobile menu on resize to desktop
   useEffect(() => {
     const onResize = () => { if (window.innerWidth >= 1024) setMenuOpen(false); };
     window.addEventListener('resize', onResize);
@@ -73,15 +65,14 @@ const Navbar = () => {
   };
 
   const navbarBg = scrolled || menuOpen
-    ? 'bg-[#f8f8f5]/95 backdrop-blur-md shadow-sm border-b border-gray-200/50'
-    : 'bg-[#f8f8f5]/85 backdrop-blur-sm';
+    ? 'bg-gradient-to-r from-[#0f3d2e] to-[#1b4d2c] shadow-lg border-b border-black/10'
+    : 'bg-gradient-to-r from-[#123f2e] to-[#1b4d2c]/95 backdrop-blur-sm';
 
-  // ── Desktop link style
   const desktopLink = ({ isActive }) =>
     `flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
       isActive
-        ? 'bg-[#1b4d2c]/10 text-[#1b4d2c] font-semibold'
-        : 'text-gray-600 hover:text-[#1b4d2c] hover:bg-[#1b4d2c]/5'
+        ? 'bg-white/15 text-white font-semibold'
+        : 'text-green-50/85 hover:text-white hover:bg-white/10'
     }`;
 
   return (
@@ -91,14 +82,14 @@ const Navbar = () => {
         className={`fixed top-0 right-0 left-0 z-50 transition-all duration-300 ${navbarBg}`}
       >
         <div className="max-w-[1400px] mx-auto px-6">
-          <div className="flex items-center justify-between h-16">
+          <div className="relative flex items-center justify-between h-16">
 
             {/* ── Logo ── */}
             <button
               onClick={() => navigate('/')}
               className="flex items-center gap-2.5 flex-shrink-0 group"
             >
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1b4d2c] to-[#1b4d2c] flex items-center justify-center shadow-md shadow-green-900/20 group-hover:scale-105 transition-transform">
+              <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
                 <svg viewBox="0 0 24 24" fill="white" className="w-5 h-5">
                   <circle cx="8"  cy="6"  r="1" fill="white" />
                   <circle cx="16" cy="6"  r="1" fill="white" />
@@ -108,20 +99,21 @@ const Navbar = () => {
                 </svg>
               </div>
               <div className="leading-tight">
-                <p className="text-sm font-bold text-gray-900">رعاية الماشية</p>
-                <p className="text-[10px] text-[#1b4d2c] font-semibold">LivestockCare AI</p>
+                <p className="text-sm font-bold text-white">رعاية </p>
               </div>
             </button>
 
-            {/* ── Desktop Nav Links ── */}
-            <div className="hidden lg:flex items-center gap-1 overflow-x-auto">
+            {/* ── Desktop Nav Links (centered) ── */}
+            <div className="hidden lg:flex items-center gap-1 absolute left-1/2 -translate-x-1/2">
               {NAV_LINKS.map((link) => (
                 <NavLink
                   key={link.id}
                   to={getDynamicPath(link)}
                   className={desktopLink}
                 >
-                  <span className="text-[#1b4d2c] opacity-70">{link.icon}</span>
+                  <span className={link.id === 'emergency' ? 'text-red-300' : 'text-green-100/80'}>
+                    {link.icon}
+                  </span>
                   {link.label}
                 </NavLink>
               ))}
@@ -130,24 +122,22 @@ const Navbar = () => {
             {/* ── Right Actions ── */}
             <div className="flex items-center gap-3">
               {isAuthenticated ? (
-                /* ── User dropdown ── */
                 <div className="relative">
                   <button
                     onClick={() => setShowDropdown(!showDropdown)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#1b4d2c]/8 hover:bg-[#1b4d2c]/15 border border-[#1b4d2c]/20 transition-all duration-200"
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 transition-all duration-200"
                   >
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#1b4d2c] to-[#1b4d2c] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                    <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                       {user?.name ? user.name[0] : 'م'}
                     </div>
-                    <span className="text-sm font-semibold text-gray-800 hidden md:block max-w-[100px] truncate">
+                    <span className="text-sm font-semibold text-white hidden md:block max-w-[100px] truncate">
                       {user?.name || 'المستخدم'}
                     </span>
-                    <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={`w-4 h-4 text-green-100 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
 
-                  {/* Dropdown Menu */}
                   {showDropdown && (
                     <div className="absolute left-0 top-full mt-2 w-44 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                       <button
@@ -169,28 +159,26 @@ const Navbar = () => {
                   )}
                 </div>
               ) : (
-                /* ── Login / Register buttons ── */
                 <div className="hidden md:flex items-center gap-2">
                   <button
                     onClick={() => navigate('/login')}
-                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-[#1b4d2c] hover:bg-[#1b4d2c]/5 rounded-lg transition-all duration-200"
+                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10 rounded-lg transition-all duration-200"
                   >
                     <IconLogin />
                     تسجيل الدخول
                   </button>
                   <button
                     onClick={() => navigate('/register')}
-                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#1b4d2c] to-[#1b4d2c] rounded-lg shadow-md shadow-green-800/20 hover:shadow-lg hover:shadow-green-800/25 hover:scale-[1.02] active:scale-95 transition-all duration-200"
+                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-[#1b4d2c] bg-white rounded-lg shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all duration-200"
                   >
                     ابدأ الآن
                   </button>
                 </div>
               )}
 
-              {/* ── Hamburger (mobile) ── */}
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+                className="lg:hidden p-2 rounded-lg text-white hover:bg-white/10 transition-colors"
                 aria-label="Toggle menu"
               >
                 {menuOpen ? <IconX /> : <IconMenu />}
@@ -206,7 +194,7 @@ const Navbar = () => {
             menuOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
           }`}
         >
-          <div className="px-4 pb-4 pt-2 border-t border-gray-100 space-y-1" dir="rtl">
+          <div className="px-4 pb-4 pt-2 border-t border-white/10 space-y-1" dir="rtl">
             {NAV_LINKS.map((link) => (
               <NavLink
                 key={link.id}
@@ -215,22 +203,23 @@ const Navbar = () => {
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? 'bg-[#1b4d2c]/10 text-[#1b4d2c] font-semibold'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-[#1b4d2c]'
+                      ? 'bg-white/15 text-white font-semibold'
+                      : 'text-green-50/85 hover:bg-white/10 hover:text-white'
                   }`
                 }
               >
-                <span className="text-[#1b4d2c] opacity-80">{link.icon}</span>
+                <span className={link.id === 'emergency' ? 'text-red-300' : 'text-green-100/80'}>
+                  {link.icon}
+                </span>
                 {link.label}
               </NavLink>
             ))}
 
-            {/* Mobile Auth buttons */}
-            <div className="pt-2 border-t border-gray-100 mt-2 space-y-2">
+            <div className="pt-2 border-t border-white/10 mt-2 space-y-2">
               {isAuthenticated ? (
                 <button
                   onClick={handleLogout}
-                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold text-red-100 bg-red-500/20 hover:bg-red-500/30 transition-colors"
                 >
                   <IconLogout />
                   تسجيل الخروج
@@ -239,14 +228,14 @@ const Navbar = () => {
                 <>
                   <button
                     onClick={() => { navigate('/login'); setMenuOpen(false); }}
-                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold text-[#1b4d2c] border border-[#1b4d2c]/30 hover:bg-[#1b4d2c]/5 transition-colors"
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold text-white border border-white/30 hover:bg-white/10 transition-colors"
                   >
                     <IconLogin />
                     تسجيل الدخول
                   </button>
                   <button
                     onClick={() => { navigate('/register'); setMenuOpen(false); }}
-                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-[#1b4d2c] to-[#1b4d2c] shadow-md transition-all active:scale-95"
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold text-[#1b4d2c] bg-white shadow-md transition-all active:scale-95"
                   >
                     ابدأ الآن
                   </button>
@@ -257,7 +246,6 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Backdrop to close dropdown */}
       {showDropdown && (
         <div
           className="fixed inset-0 z-40"

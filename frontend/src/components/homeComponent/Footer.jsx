@@ -36,9 +36,9 @@ const Footer = () => {
   ]
 
   return (
-    <footer className="pt-16 pb-8 px-6 bg-[#11331d]" dir="rtl" id="contact">
+    <footer className="pt-10 pb-6 px-6 bg-[#11331d]" dir="rtl" id="contact">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
 
           {/* Column 1: Logo and Description */}
           <div
@@ -48,25 +48,13 @@ const Footer = () => {
             data-aos-delay="0"
             data-aos-once="true"
           >
-            <div className="flex items-center gap-2.5 mb-4">
-              <span className="font-extrabold text-white text-2xl tracking-wide">رعاية</span>
-              <span className="text-xl">🌿</span>
+            <div className="flex items-center gap-2.5 mb-3">
+              <span className="font-extrabold text-white text-xl tracking-wide">رعاية</span>
+
             </div>
-            <p className="text-sm leading-relaxed mb-6 text-emerald-200/70">
+            <p className="text-sm leading-relaxed mb-4 text-emerald-200/70">
               منصة متخصصة في تقديم حلول الذكاء الاصطناعي لإدارة الثروة الحيوانية وتشخيص الأمراض بشكل مبكر ودقيق لضمان صحة قطعانك.
             </p>
-            {/* Social Icons */}
-            <div className="flex items-center gap-3">
-              {socialIcons.map((social) => (
-                <a
-                  key={social.name}
-                  href={social.href}
-                  className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 bg-white/5 border border-white/10 hover:bg-[#1b4d2c] hover:border-[#1b4d2c]"
-                >
-                  {social.icon}
-                </a>
-              ))}
-            </div>
           </div>
 
           {/* Column 2: Important Links */}
@@ -77,8 +65,8 @@ const Footer = () => {
             data-aos-delay="100"
             data-aos-once="true"
           >
-            <h3 className="font-bold text-white text-base mb-5">روابط هامة</h3>
-            <ul className="space-y-3">
+            <h3 className="font-bold text-white text-base mb-4">روابط هامة</h3>
+            <ul className="space-y-2.5">
               <li>
                 <button
                   onClick={() => navigate('/')}
@@ -119,6 +107,14 @@ const Footer = () => {
                   تواصل معنا
                 </a>
               </li>
+              <li>
+                <a
+                  href="#emergency"
+                  className="text-sm transition-colors text-emerald-200/60 hover:text-white"
+                >
+                  طوارئ
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -130,8 +126,8 @@ const Footer = () => {
             data-aos-delay="200"
             data-aos-once="true"
           >
-            <h3 className="font-bold text-white text-base mb-5">وسائل التواصل</h3>
-            <ul className="space-y-4 text-sm text-emerald-200/60">
+            <h3 className="font-bold text-white text-base mb-4">وسائل التواصل</h3>
+            <ul className="space-y-3 text-sm text-emerald-200/60">
               <li className="flex items-center gap-3">
                 <svg className="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -162,13 +158,20 @@ const Footer = () => {
             data-aos-delay="300"
             data-aos-once="true"
           >
-            <h3 className="font-bold text-white text-base mb-5">تواصل معنا</h3>
-            <p className="text-sm text-emerald-200/60 leading-relaxed mb-6">
+            <h3 className="font-bold text-white text-base mb-4">تواصل معنا</h3>
+            <p className="text-sm text-emerald-200/60 leading-relaxed mb-4">
               هل لديك سؤال أو تريد معرفة المزيد؟ فريقنا جاهز لمساعدتك في أي وقت.
             </p>
 
+            <a
+              href="#contact"
+              className="inline-block text-sm font-semibold text-white bg-[#1b4d2c] hover:bg-[#1b4d2c]/80 transition-colors px-4 py-2 rounded-lg mb-4"
+            >
+              تواصل معنا الآن
+            </a>
+
             {/* Social links with labels */}
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {socialIcons.map((social) => (
                 <a
                   key={social.name}
@@ -187,7 +190,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t flex flex-col md:flex-row items-center justify-between gap-4 border-white/5">
+        <div className="pt-6 border-t flex flex-col md:flex-row items-center justify-between gap-4 border-white/5">
           <p className="text-xs text-center text-emerald-200/40">
             تصميم وتطوير فريق <span className="text-emerald-200/80 font-bold">رعاية</span>
           </p>
