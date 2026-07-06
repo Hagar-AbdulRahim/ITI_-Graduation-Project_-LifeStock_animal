@@ -134,6 +134,14 @@ const AppRoutes = () => {
 
       {/* Standalone Animal subpages (with their own custom headers & back buttons) */}
       <Route
+        path="/farms/:farmId/animals/add"
+        element={
+          <ProtectedRoute>
+            <AddAnimalPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/animals/add"
         element={
           <ProtectedRoute>

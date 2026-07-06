@@ -348,7 +348,7 @@ useEffect(() => {
           {/* Left: Add / Import buttons */}
           <div className="flex items-center gap-3">
             <button
-              onClick={() => navigate(`/animals/add`)}
+              onClick={() => navigate(farmId ? `/farms/${farmId}/animals/add` : '/animals/add')}
               className="flex items-center gap-2 px-4 py-2 bg-[#2a5c2a] text-white rounded-xl text-sm font-bold hover:bg-[#1e4520] transition-colors shadow-sm"
             >
               <Plus className="w-4 h-4" />
