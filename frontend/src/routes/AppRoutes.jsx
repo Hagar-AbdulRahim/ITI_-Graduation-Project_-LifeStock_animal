@@ -226,24 +226,26 @@ const AppRoutes = () => {
     </Route>
 
       <Route
-        path="/vaccine-agent"
-        element={
-          <ProtectedRoute>
-            <VaccineAgentPage />
-          </ProtectedRoute>
-        }
-      />
+  path="/vaccine-agent"
+  element={
+    <ProtectedRoute>
+      <MainLayout />
+    </ProtectedRoute>
+  }
+>
+  <Route index element={<VaccineAgentPage />} />
+  </Route>
 
-      <Route
-        path="/ai-assistant"
-        element={
-          <ProtectedRoute>
-            <AiAssistantPage />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Public: accessible without login */}
+  <Route
+    path="/ai-assistant"
+    element={
+      <ProtectedRoute>
+        <MainLayout />
+      </ProtectedRoute>
+    }
+  >
+    <Route index element={<AiAssistantPage />} />
+  </Route>
       {/* Public: accessible without login */}
       <Route path="/emergencies" element={<MainLayout />}>
         <Route index element={<EmergencyPage />} />
