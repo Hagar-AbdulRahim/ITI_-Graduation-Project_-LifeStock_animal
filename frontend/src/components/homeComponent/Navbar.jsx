@@ -13,8 +13,8 @@ const IconMenu        = () => <svg className="w-5 h-5" fill="none" stroke="curre
 const IconX           = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>;
 const IconLogin       = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>;
 const IconEmergency   = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v6m3-3H9m11 0a8 8 0 11-16 0 8 8 0 0116 0z" /></svg>;
-const IconBriefcase   = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>;
 const IconShieldCheck = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>;
+const IconBriefcase   = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>;
 
 // ─── Nav Links definition ──────────────────────────────────────────────────
 const NAV_LINKS = [
@@ -91,7 +91,7 @@ const Navbar = () => {
       : 'bg-[#f8f8f5]/85 backdrop-blur-sm'
 
   const desktopLink = ({ isActive }) =>
-    `group relative flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-sm font-semibold tracking-wide transition-all duration-300 ${
+    `group relative flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-base font-semibold tracking-wide transition-all duration-300 ${
       isActive
         ? 'border-[#2d5a1b]/20 bg-[#f4f8ef] text-[#1b4d2c] shadow-[0_10px_30px_-14px_rgba(45,90,27,0.35)]'
         : 'border-transparent text-[#4b5a44] hover:border-[#2d5a1b]/20 hover:bg-[#f7fbf2] hover:text-[#1b4d2c] hover:shadow-[0_10px_24px_-16px_rgba(45,90,27,0.35)]'
@@ -105,18 +105,18 @@ const Navbar = () => {
       >
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="flex items-center justify-between h-16">
-          {/* ── Logo ── */}
-                                             <button
-                                               onClick={() => navigate('/')}
-                                               className="flex items-center gap-2.5 flex-shrink-0 group"
-                                             >
-                                               <div className="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center shadow-md group-hover:scale-105 transition-transform bg-white/15">
-                                                 <img src={logoImg} alt="رعاية" className="w-full h-full object-cover" />
-                                               </div>
-                                               <div className="leading-tight">
-                                                 <p className="text-sm font-bold text-black">رعاية </p>
-                                               </div>
-                                             </button>
+            {/* ── Logo ── */}
+            <button
+              onClick={() => navigate('/')}
+              className="group flex items-center gap-3 px-4 py-3 rounded-2xl border border-transparent text-base font-semibold transition-all duration-300 hover:bg-[#f4f8ef]"
+            >
+              <div className="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center shadow-md group-hover:scale-105 transition-transform bg-white/15">
+                <img src={logoImg} alt="رعاية" className="w-full h-full object-cover" />
+              </div>
+              <div className="leading-tight">
+                <p className="text-lg font-bold text-black">رعاية </p>
+              </div>
+            </button>
             {/* ── Desktop Nav Links ── */}
             <div className="hidden lg:flex items-center gap-1 overflow-x-auto">
               {NAV_LINKS.map((link) => (
@@ -162,7 +162,7 @@ const Navbar = () => {
                     <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#1b4d2c] to-[#1b4d2c] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                       {user?.name ? user.name[0] : 'م'}
                     </div>
-                    <span className="text-sm font-semibold text-gray-800 hidden md:block max-w-[100px] truncate">
+                    <span className="text-base font-semibold text-gray-800 hidden md:block max-w-[120px] truncate">
                       {user?.name || 'المستخدم'}
                     </span>
                     <svg
@@ -187,7 +187,7 @@ const Navbar = () => {
                           navigate('/farms')
                           setShowDropdown(false)
                         }}
-                        className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-2.5 w-full px-4 py-2.5 text-base text-gray-700 hover:bg-gray-50 transition-colors"
                       >
                         <IconGrid />
                         مزارعي
@@ -195,7 +195,7 @@ const Navbar = () => {
                       <hr className="my-1.5 border-gray-100" />
                       <button
                         onClick={handleLogout}
-                        className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                        className="flex items-center gap-2.5 w-full px-4 py-2.5 text-base text-red-600 hover:bg-red-50 transition-colors"
                       >
                         <IconLogout />
                         تسجيل الخروج
@@ -207,14 +207,14 @@ const Navbar = () => {
                 <div className="hidden md:flex items-center gap-2">
                   <button
                     onClick={() => navigate('/login')}
-                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-[#1b4d2c] border border-[#2d5a1b]/20 bg-white/80 rounded-xl shadow-sm hover:bg-[#f4f8ef] hover:border-[#2d5a1b]/40 transition-all duration-200"
+                    className="flex items-center gap-1.5 px-4 py-2 text-base font-semibold text-[#1b4d2c] border border-[#2d5a1b]/20 bg-white/80 rounded-xl shadow-sm hover:bg-[#f4f8ef] hover:border-[#2d5a1b]/40 transition-all duration-200"
                   >
                     <IconLogin />
                     تسجيل الدخول
                   </button>
                   <button
                     onClick={() => navigate('/register')}
-                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#2d5a1b] via-[#356b24] to-[#4a7b2d] rounded-xl shadow-[0_12px_30px_-16px_rgba(45,90,27,0.55)] hover:shadow-[0_14px_34px_-14px_rgba(45,90,27,0.65)] hover:scale-[1.02] active:scale-95 transition-all duration-200"
+                    className="flex items-center gap-1.5 px-4 py-2 text-base font-bold text-white bg-gradient-to-r from-[#2d5a1b] via-[#356b24] to-[#4a7b2d] rounded-xl shadow-[0_12px_30px_-16px_rgba(45,90,27,0.55)] hover:shadow-[0_14px_34px_-14px_rgba(45,90,27,0.65)] hover:scale-[1.02] active:scale-95 transition-all duration-200"
                   >
                     ابدأ الآن
                   </button>
@@ -275,7 +275,7 @@ const Navbar = () => {
               {isAuthenticated ? (
                 <button
                   onClick={handleLogout}
-                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-base font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
                 >
                   <IconLogout />
                   تسجيل الخروج
@@ -287,7 +287,7 @@ const Navbar = () => {
                       navigate('/login')
                       setMenuOpen(false)
                     }}
-                    className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-semibold text-[#1b4d2c] border border-[#2d5a1b]/20 bg-white/80 hover:bg-[#f4f8ef] transition-colors"
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-base font-semibold text-[#1b4d2c] border border-[#2d5a1b]/20 bg-white/80 hover:bg-[#f4f8ef] transition-colors"
                   >
                     <IconLogin />
                     تسجيل الدخول
@@ -297,7 +297,7 @@ const Navbar = () => {
                       navigate('/register')
                       setMenuOpen(false)
                     }}
-                    className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-[#2d5a1b] via-[#356b24] to-[#4a7b2d] shadow-[0_12px_30px_-16px_rgba(45,90,27,0.55)] transition-all active:scale-95"
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-base font-bold text-white bg-gradient-to-r from-[#2d5a1b] via-[#356b24] to-[#4a7b2d] shadow-[0_12px_30px_-16px_rgba(45,90,27,0.55)] transition-all active:scale-95"
                   >
                     ابدأ الآن
                   </button>
