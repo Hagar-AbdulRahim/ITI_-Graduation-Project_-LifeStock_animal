@@ -112,7 +112,7 @@ const ContactUsPage = () => {
 
             {/* Bottom decorative element to fill space instead of social media */}
             <div className="relative z-10 mt-16 pt-8 border-t border-white/10">
-              <p className="text-green-400 text-xs text-center font-bold tracking-widest uppercase">منصة رعاية للمواشي</p>
+              <p className="text-green-400 text-xs text-center font-bold tracking-widest uppercase">منصة رعاية </p>
             </div>
           </div>
 

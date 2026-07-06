@@ -18,12 +18,15 @@ const IconShieldCheck = () => <svg className="w-4 h-4" fill="none" stroke="curre
 
 // ─── Nav Links definition ──────────────────────────────────────────────────
 const NAV_LINKS = [
-  { id: 'farms',          label: 'المزارع',        icon: <IconGrid />,        path: '' },
-  { id: 'diagnosis',      label: 'التشخيص',        icon: <IconActivity />,    path: '/ai-assistant' },
-  { id: 'vaccine-agent',  label: 'مستشار اللقاحات', icon: <IconShieldCheck />, path: '/vaccine-agent' },
-  { id: 'services',       label: 'خدماتنا',        icon: <IconBriefcase />,   path: '/services' },
-  { id: 'emergency',      label: 'الطوارئ',        icon: <IconEmergency />,   path: '/emergencies' },
+  { id: 'farms',          label: 'المزارع',          icon: <IconGrid />,        path: '' },
+  { id: 'diagnosis',      label: 'التشخيص',          icon: <IconActivity />,    path: '/ai-assistant' },
+  { id: 'vaccine-agent',  label: 'مستشار اللقاحات',  icon: <IconShieldCheck />, path: '/vaccine-agent' },
+  { id: 'services',       label: 'كيفية الاستخدام',  icon: <IconBriefcase />,   path: '/services' },
+  { id: 'emergency',      label: 'الطوارئ',          icon: <IconEmergency />,   path: '/emergencies' },
 ];
+
+// روابط لازم المستخدم يكون مسجل دخول عشان يدخلها
+const AUTH_PROTECTED_LINKS = ['farms', 'diagnosis', 'vaccine-agent'];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 const Navbar = () => {
@@ -75,7 +78,7 @@ const Navbar = () => {
   }
 
   const handleNavClick = (e, link) => {
-    if (link.id === 'farms' && !isAuthenticated) {
+    if (AUTH_PROTECTED_LINKS.includes(link.id) && !isAuthenticated) {
       e.preventDefault()
       navigate('/login')
       setMenuOpen(false)

@@ -241,7 +241,10 @@ const AppRoutes = () => {
       />
 
       {/* Public: accessible without login */}
-      <Route path="/emergencies" element={<EmergencyPage />} />
+      {/* Public: accessible without login */}
+      <Route path="/emergencies" element={<MainLayout />}>
+        <Route index element={<EmergencyPage />} />
+      </Route>
 
       <Route
         path="/diagnosis"
