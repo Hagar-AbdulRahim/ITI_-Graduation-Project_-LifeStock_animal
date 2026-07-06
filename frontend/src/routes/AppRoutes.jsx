@@ -221,6 +221,7 @@ const AppRoutes = () => {
     >
       <Route index element={<NotificationsPage />} />
     </Route>
+
       <Route
         path="/vaccine-agent"
         element={
@@ -238,6 +239,12 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
+      {/* Public: accessible without login */}
+      {/* Public: accessible without login */}
+      <Route path="/emergencies" element={<MainLayout />}>
+        <Route index element={<EmergencyPage />} />
+      </Route>
 
       <Route
         path="/diagnosis"

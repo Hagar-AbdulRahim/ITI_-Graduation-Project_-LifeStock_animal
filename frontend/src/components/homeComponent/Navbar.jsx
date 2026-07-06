@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { logout } from '../../redux/authSlice'
 import { fetchMyFarms } from '../../redux/farmSlice'
 import toast from 'react-hot-toast'
-import logoImg from '../../assets/images/logo.jpg'
+
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IconGrid        = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>;
 const IconActivity    = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>;
@@ -105,18 +105,32 @@ const Navbar = () => {
       >
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="flex items-center justify-between h-16">
-          {/* ── Logo ── */}
-                                             <button
-                                               onClick={() => navigate('/')}
-                                               className="flex items-center gap-2.5 flex-shrink-0 group"
-                                             >
-                                               <div className="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center shadow-md group-hover:scale-105 transition-transform bg-white/15">
-                                                 <img src={logoImg} alt="رعاية" className="w-full h-full object-cover" />
-                                               </div>
-                                               <div className="leading-tight">
-                                                 <p className="text-sm font-bold text-black">رعاية </p>
-                                               </div>
-                                             </button>
+            {/* ── Logo ── */}
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2.5 flex-shrink-0 group"
+            >
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1b4d2c] to-[#1b4d2c] flex items-center justify-center shadow-md shadow-green-900/20 group-hover:scale-105 transition-transform">
+                <svg viewBox="0 0 24 24" fill="white" className="w-5 h-5">
+                  <circle cx="8" cy="6" r="1" fill="white" />
+                  <circle cx="16" cy="6" r="1" fill="white" />
+                  <circle
+                    cx="12"
+                    cy="14"
+                    r="7"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="1.5"
+                  />
+                  <circle cx="9" cy="13" r="1.2" fill="white" />
+                  <circle cx="15" cy="13" r="1.2" fill="white" />
+                </svg>
+              </div>
+              <div className="leading-tight">
+                <p className="text-sm font-bold text-gray-900">رعاية</p>
+              </div>
+            </button>
+
             {/* ── Desktop Nav Links ── */}
             <div className="hidden lg:flex items-center gap-1 overflow-x-auto">
               {NAV_LINKS.map((link) => (
@@ -292,15 +306,15 @@ const Navbar = () => {
                     <IconLogin />
                     تسجيل الدخول
                   </button>
-               <button
-  onClick={() => {
-    navigate('/register')
-    setMenuOpen(false)
-  }}
- className="flex items-center gap-2.5 bg-[#1b4d2c] hover:bg-[#16a34a] text-white font-bold text-sm sm:text-base px-8 py-4 rounded-full transition-all duration-300 shadow-lg shadow-green-900/30 hover:shadow-xl hover:shadow-green-500/25 border border-white/10 hover:border-white/20 backdrop-blur-sm active:scale-95"
->
-  ابدأ الآن
-</button>
+                  <button
+                    onClick={() => {
+                      navigate('/register')
+                      setMenuOpen(false)
+                    }}
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-[#2d5a1b] via-[#356b24] to-[#4a7b2d] shadow-[0_12px_30px_-16px_rgba(45,90,27,0.55)] transition-all active:scale-95"
+                  >
+                    ابدأ الآن
+                  </button>
                 </>
               )}
             </div>

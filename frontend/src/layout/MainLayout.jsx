@@ -1,30 +1,40 @@
 // layouts/MainLayout.jsx
 import { Outlet, useLocation } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import Sidebar from './Sidebar'
 import Topbar from './Topbar'
+import Navbar from '../components/homeComponent/Navbar'
 
-
-// المسارات اللي تتغير فيها الـ chrome (Sidebar + Topbar → Navbar)
-const EMERGENCY_PATHS = ['/emergencies']
+// المسارات اللي فيها الـ chrome بيتغير حسب حالة تسجيل الدخول
+const GUEST_NAVBAR_PATHS = ['/emergencies']
 
 export default function MainLayout() {
   const location = useLocation()
-  const isEmergencyPage = EMERGENCY_PATHS.some((path) =>
+  const { isAuthenticated } = useSelector((state) => state.auth)
+
+  const isSpecialPath = GUEST_NAVBAR_PATHS.some((path) =>
     location.pathname.includes(path)
   )
+  const isEmergencyPage = location.pathname.includes('/emergencies')
+
+  // النافبار يظهر بس لو الصفحة من الصفحات الخاصة والمستخدم guest
+  const showNavbarOnly = isSpecialPath && !isAuthenticated
+
+  // السايدبار يتخفي في حالتين: guest في صفحة خاصة، أو أي حد في صفحة الطوارئ
+  const hideSidebar = showNavbarOnly || isEmergencyPage
 
   return (
     <div
       dir="rtl"
       className="flex min-h-screen bg-[#f5f2eb] font-['Cairo',sans-serif]"
     >
-      {/* Sidebar — يختفي في صفحة الطوارئ */}
-      {!isEmergencyPage && <Sidebar />}
+      {/* Sidebar — مختفي في صفحة الطوارئ دايمًا، وفي أي صفحة خاصة لو guest */}
+      {!hideSidebar && <Sidebar />}
 
       {/* Main content */}
-      <div className={`flex-1 ${isEmergencyPage ? '' : 'mr-56'} flex flex-col min-h-screen`}>
-        {/* Topbar */}
-        {!isEmergencyPage && <Topbar />}
+      <div className={`flex-1 ${hideSidebar ? '' : 'mr-56'} flex flex-col min-h-screen`}>
+        {/* لو guest في صفحة خاصة → Navbar، غير كده → Topbar العادي (حتى لو الطوارئ) */}
+        {showNavbarOnly ? <Navbar /> : <Topbar />}
 
         <main className="flex-1 p-6 overflow-auto bg-[#f5f2eb]">
           {/* الصفحة الحالية تتحمل هنا */}
