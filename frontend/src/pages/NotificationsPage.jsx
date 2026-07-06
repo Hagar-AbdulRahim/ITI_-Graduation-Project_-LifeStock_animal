@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import {
-  Bell, BellOff, Loader2, CheckCheck, RefreshCw,
-  AlertTriangle, ArrowRight, Trash2, CheckCircle2, Search, HelpCircle,
+  Bell,
+  BellOff,
+  Loader2,
+  CheckCheck,
+  AlertTriangle,
+  Trash2,
+  CheckCircle2,
+  Search,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { useSelector as useReduxSelector } from 'react-redux'
 import {
   fetchNotifications,
   markAsRead,
@@ -53,60 +57,6 @@ const fullDateTime = (dateStr) =>
 const stripEmoji = (str) =>
   str.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim()
 
-/* ─── TopNavbar ─────────────────────────────────────────────────────────────── */
-const TopNavbar = ({ onRefresh }) => {
-  const navigate = useNavigate()
-  const user   = useReduxSelector((s) => s.auth.user)
-  const unread = useReduxSelector((s) => s.notifications.unread_count)
-
-  return (
-    <header className="bg-white h-20 border-b border-gray-100 px-8 flex items-center justify-between sticky top-0 z-20 font-cairo" dir="rtl">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-gray-500 hover:text-[#2d5a1b] transition-colors text-sm font-bold"
-        >
-          <ArrowRight className="w-4 h-4" />
-          رجوع
-        </button>
-        <div className="h-5 w-px bg-gray-200" />
-        <div>
-          <h1 className="text-base font-black text-[#2d5a1b]">الإشعارات</h1>
-          <p className="text-[11px] text-gray-400">تحديث تلقائي كل دقيقة</p>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-4 text-gray-400">
-          <button onClick={onRefresh} className="hover:text-[#2d5a1b] transition-colors" title="تحديث">
-            <RefreshCw className="w-5 h-5" />
-          </button>
-          <button onClick={() => navigate('/notifications')} className="hover:text-gray-600 transition-colors relative">
-            <Bell className="w-5 h-5" />
-            {unread > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
-                {unread > 9 ? '9+' : unread}
-              </span>
-            )}
-          </button>
-          <button className="hover:text-gray-600 transition-colors">
-            <HelpCircle className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="h-8 w-px bg-gray-200" />
-        <div className="flex items-center gap-3">
-          {user?.avatar ? (
-            <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-[#2d5a1b] text-white flex items-center justify-center text-sm font-black shadow-sm">
-              {user?.name?.charAt(0) || 'م'}
-            </div>
-          )}
-        </div>
-      </div>
-    </header>
-  )
-}
 
 /* ─── main ───────────────────────────────────────────────────────────────────── */
 export default function NotificationsPage() {
@@ -176,9 +126,9 @@ export default function NotificationsPage() {
   ]
 
    return (
-  <div className="min-h-screen bg-[#fbf9f6] font-cairo" dir="rtl">
+  <div className="font-cairo" dir="rtl">
     
-    <TopNavbar onRefresh={() => dispatch(fetchNotifications())} />
+    
 
     <div className="max-w-4xl mx-auto px-6 sm:px-8 py-8">
 

@@ -6,6 +6,7 @@ import dashboardReducer from './dashBoard/dashboardSlice';
 import homeDashboardReducer from '../features/HomeDashboard/dashboardSlice';
 import notificationReducer from './notificationSlice';
 import reviewReducer from './reviewSlice';
+import contactReducer from './contactSlice';
 
 export const store = configureStore({
     reducer: {
@@ -16,5 +17,6 @@ export const store = configureStore({
         homeDashboard: homeDashboardReducer,
         notifications: notificationReducer,
         reviews:       reviewReducer,
+        contact:       contactReducer,
     },
 });

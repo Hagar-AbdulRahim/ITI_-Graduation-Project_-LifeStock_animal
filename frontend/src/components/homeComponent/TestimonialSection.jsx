@@ -104,7 +104,7 @@ const TestimonialSection = () => {
                   </div>
 
                   {/* Rating */}
-                  <div className="flex justify-start gap-1">
+                  <div className="flex justify-start gap-1 mt-4 mb-3">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <svg key={star} className={`w-4 h-4 ${star <= (t.rating || 5) ? 'text-amber-400 fill-amber-400' : 'text-stone-200 fill-stone-200'}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />

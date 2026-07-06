@@ -3,14 +3,12 @@
 // صفحة مساعد الذكاء الاصطناعي — LivestockCare AI
 // ────────────────────────────────────────────────────────────
 import React, { useState, useRef, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { chatWithAI, diagnoseWithAI, diagnoseWithImage, diagnoseWithVoice } from '../services/AiServices/ChatAi';
+import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
+import { diagnoseWithAI, diagnoseWithImage, diagnoseWithMixed, diagnoseWithVoice } from '../services/AiServices/ChatAi';
 import { animalService } from '../features/animals/services/animalService';
 import healthCaseService from '../services/healthCaseService';
 import AiDiagnosisCard from '../components/AiDiagnosisCard';
 import { 
-  TrendingUp, 
-  ClipboardCheck, 
   Bot, 
   User, 
   Mic, 
@@ -21,21 +19,112 @@ import {
   X, 
   FileText, 
   Calendar, 
-  Check, 
   AlertCircle,
   FileSpreadsheet,
-  Activity,
-  Heart,
-  Plus
+  Play,
+  Image as ImageIcon,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import cowImg from '../assets/images/cow.jpg';
 
 // ── Mock Sessions Data ──────────────────────────────────────
 const MOCK_SESSIONS = [];
 
+const isWelcomeMessage = (msg) => msg.id === 'msg-1';
+
+const toChatRole = (sender) => (sender === 'ai' ? 'assistant' : 'user');
+
+const getDiagnosisConversationPayload = (messages, currentUserMsg) => {
+  const conversation = [...messages, currentUserMsg]
+    .filter((msg) => !isWelcomeMessage(msg))
+    .filter((msg) => msg.sender === 'ai' || msg.sender === 'user')
+    .filter((msg) => typeof msg.text === 'string' && msg.text.trim().length > 0);
+
+  const firstUserIndex = conversation.findIndex((msg) => msg.sender === 'user');
+  if (firstUserIndex === -1) {
+    return { symptoms: currentUserMsg.text, chatHistory: [] };
+  }
+
+  const initialSymptoms = conversation[firstUserIndex].text;
+  const chatHistory = conversation.slice(firstUserIndex + 1).map((msg) => ({
+    role: toChatRole(msg.sender),
+    content: msg.text,
+  }));
+
+  return { symptoms: initialSymptoms, chatHistory };
+};
+
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').replace(/\/api$/, '');
+
+const resolveMediaUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http') || url.startsWith('blob:')) return url;
+  return `${API_BASE}${url.startsWith('/') ? url : `/${url}`}`;
+};
+
+const getSessionImageUrls = (session) => {
+  const urls = Array.isArray(session.image_urls) && session.image_urls.length
+    ? session.image_urls
+    : session.image_url
+    ? [session.image_url]
+    : [];
+  return urls.map(resolveMediaUrl).filter(Boolean);
+};
+
+const getSessionSymptomsText = (session) => {
+  if (Array.isArray(session.symptoms)) return session.symptoms.join('، ');
+  return session.symptoms || 'جلسة سابقة';
+};
+
+const buildDiagnosisDataFromSession = (session) => ({
+  success: true,
+  status: 'diagnosed',
+  record_id: session._id,
+  data: {
+    diagnosis: session.ai_diagnosis,
+    confidence: session.confidence,
+    severity: session.severity,
+    matched_symptoms: session.matched_symptoms || [],
+    immediate_actions: session.suggested_actions || [],
+    vet_required: session.vet_required,
+    vet_urgency: session.vet_urgency,
+    reasoning: session.image_findings || null,
+  },
+});
+
+const getBackendOnlyMessage = (response) => {
+  const data = response?.data;
+  if (response?.status === 'needs_clarification') {
+    return response.question || response.message || null;
+  }
+
+  const diagnosis = typeof data?.diagnosis === 'string' ? data.diagnosis.trim() : '';
+  const hasDetailedDiagnosis = Boolean(
+    data?.status === 'diagnosed' ||
+    diagnosis &&
+    !['غير محدد', 'غير معروف', 'غير متوفر'].includes(diagnosis) &&
+    (
+      data?.severity_explanation ||
+      data?.reasoning ||
+      data?.treatment?.summary ||
+      data?.treatment?.medicines?.length > 0 ||
+      data?.treatment?.general_instructions?.length > 0 ||
+      data?.prevention ||
+      data?.prevention_tips?.length > 0 ||
+      data?.disease_info ||
+      data?.matched_symptoms?.length > 0 ||
+      data?.immediate_actions?.length > 0 ||
+      data?.suggested_vaccines?.length > 0
+    )
+  );
+
+  if (hasDetailedDiagnosis) return null;
+
+  return data?.message || response?.message || diagnosis || null;
+};
+
 export default function AiAssistantPage() {
   const [searchParams] = useSearchParams();
+  const { farmId } = useParams();
   const animalId = searchParams.get('animalId');
   const navigate = useNavigate();
   const defaultSession = {
@@ -57,28 +146,18 @@ export default function AiAssistantPage() {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [attachedFile, setAttachedFile] = useState(null); // image file
+  const [attachedFiles, setAttachedFiles] = useState([]); // image files
   const [attachedAudio, setAttachedAudio] = useState(null); // audio blob
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
-  const [animalData, setAnimalData] = useState(null);
-  const [animalVaccinations, setAnimalVaccinations] = useState([]);
-  const [isLoadingSidebar, setIsLoadingSidebar] = useState(false);
+  const [animalSpecies, setAnimalSpecies] = useState(null);
 
   useEffect(() => {
     if (animalId) {
-      setIsLoadingSidebar(true);
-      Promise.all([
-        animalService.getAnimalById(animalId),
-        animalService.getAnimalVaccinations(animalId)
-      ])
-      .then(([animalRes, vaccinesRes]) => {
-        setAnimalData(animalRes.data);
-        setAnimalVaccinations(vaccinesRes.data || []);
-      })
-      .catch(err => console.error("Error fetching animal data for AI Assistant:", err))
-      .finally(() => setIsLoadingSidebar(false));
+      animalService.getAnimalById(animalId)
+        .then((res) => setAnimalSpecies(res.data?.species || null))
+        .catch((err) => console.error("Error fetching animal species:", err));
     }
   }, [animalId]);
 
@@ -89,6 +168,7 @@ export default function AiAssistantPage() {
 
   const [historySessions, setHistorySessions] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [expandedMsgId, setExpandedMsgId] = useState(null);
 
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -115,36 +195,53 @@ export default function AiAssistantPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  // Handle Loading Session from History
+  const toggleMsgMedia = (msgId) => {
+    setExpandedMsgId((prev) => (prev === msgId ? null : msgId));
+  };
+
+  // Handle Loading Session from History — append to current chat
   const loadSession = (session) => {
-    const formattedDate = new Date(session.created_at).toLocaleDateString('ar-EG');
-    const newSession = {
-      id: session._id,
-      title: `جلسة ${formattedDate}`,
-      date: formattedDate,
-      messages: [
-        {
-          id: `msg-user-${session._id}`,
-          sender: 'user',
-          text: session.symptoms || "جلسة سابقة",
-        },
-        {
-          id: `msg-ai-${session._id}`,
-          sender: 'ai',
-          text: 'بناءً على الأعراض المدخلة في هذه الجلسة السابقة:',
-          hasActionSteps: false,
-          diagnosisData: {
-            success: true,
-            data: session.diagnosis_result
-          }
-        }
-      ]
+    const symptomsText = getSessionSymptomsText(session);
+    const imageUrls = getSessionImageUrls(session);
+    const inputType = session.input_type || 'text';
+    const hasVoice = inputType.includes('voice');
+    const hasImage = inputType.includes('image') || imageUrls.length > 0;
+
+    const userMsg = {
+      id: `msg-user-${session._id}-${Date.now()}`,
+      sender: 'user',
+      text: hasVoice && hasImage
+        ? `🎤🖼️ ${symptomsText}`
+        : hasVoice
+        ? `🎤 ${symptomsText}`
+        : hasImage
+        ? `🖼️ ${symptomsText}`
+        : symptomsText,
+      attachment: hasVoice && hasImage
+        ? `تسجيل صوتي و${imageUrls.length} صورة`
+        : hasImage
+        ? `${imageUrls.length} صورة`
+        : hasVoice
+        ? 'تسجيل صوتي'
+        : null,
+      imageUrls,
+      inputType,
+      recordId: session._id,
     };
 
-    setActiveSession(newSession);
-    setMessages(newSession.messages);
+    const aiMsg = {
+      id: `msg-ai-${session._id}-${Date.now()}`,
+      sender: 'ai',
+      text: 'بناءً على الأعراض المدخلة في هذه الجلسة السابقة:',
+      hasActionSteps: false,
+      diagnosisData: buildDiagnosisDataFromSession(session),
+      recordId: session._id,
+    };
+
+    setMessages((prev) => [...prev, userMsg, aiMsg]);
+    setExpandedMsgId(userMsg.id);
     setShowHistoryPanel(false);
-    toast.success(`تم تحميل الجلسة السابقة`);
+    toast.success('تم عرض السجل في المحادثة');
   };
 
 
@@ -152,32 +249,57 @@ export default function AiAssistantPage() {
   // Send Message Logic
   const handleSendMessage = async (textToSend = inputValue) => {
     const hasText = textToSend.trim();
-    const hasImage = !!attachedFile;
+    const hasImage = attachedFiles.length > 0;
     const hasAudio = !!attachedAudio;
 
     if (!hasText && !hasImage && !hasAudio) return;
+
+    const audioBlob = attachedAudio;
+    const imageFiles = [...attachedFiles];
+    const audioUrl = hasAudio ? URL.createObjectURL(audioBlob) : null;
+    const imageUrls = hasImage ? imageFiles.map((file) => URL.createObjectURL(file)) : [];
 
     // ── Add user message ──────────────────────────────────────────────────────
     const userMsg = {
       id: `msg-user-${Date.now()}`,
       sender: 'user',
-      text: hasAudio ? '🎤 تم إرسال تسجيل صوتي...' : hasImage ? `🖼️ تم إرفاق صورة: ${attachedFile.name}${hasText ? ` — ${textToSend}` : ''}` : textToSend,
-      attachment: attachedFile ? attachedFile.name : null
+      text: hasAudio && hasImage
+        ? `🎤🎞️ تم إرفاق تسجيل صوتي و${imageFiles.length} صورة${imageFiles.length > 1 ? 'ً' : ''}${hasText ? ` — ${textToSend}` : ''}`
+        : hasAudio
+        ? '🎤 تم إرسال تسجيل صوتي...'
+        : hasImage
+        ? `🖼️ تم إرفاق ${imageFiles.length} صورة${imageFiles.length > 1 ? 'ً' : ''}${hasText ? ` — ${textToSend}` : ''}`
+        : textToSend,
+      attachment: hasAudio && hasImage ? `تسجيل صوتي و${imageFiles.length} صورة` : hasImage ? `${imageFiles.length} صورة` : hasAudio ? 'تسجيل صوتي' : null,
+      audioUrl,
+      imageUrls,
+      inputType: hasAudio && hasImage ? 'voice+image' : hasAudio ? 'voice' : hasImage ? 'image' : 'text',
     };
 
     setMessages(prev => [...prev, userMsg]);
     setInputValue('');
-    setAttachedFile(null);
+    setAttachedFiles([]);
     setAttachedAudio(null);
+    setExpandedMsgId(userMsg.id);
     setIsTyping(true);
 
     try {
       let res;
 
-      if (hasAudio) {
-        // 🎤 Voice diagnosis
-        res = await diagnoseWithVoice(attachedAudio, animalId, animalData?.species);
+      if (hasAudio && hasImage) {
+        // 🎙️🖼️ Mixed voice + images diagnosis
+        res = await diagnoseWithMixed(audioBlob, imageFiles, animalId, animalSpecies, hasText ? textToSend : undefined);
         // Show transcribed text as user message update
+        if (res?.transcribed_text) {
+          setMessages(prev => prev.map(m =>
+            m.id === userMsg.id
+              ? { ...m, text: `🎤 ما تم تفريغه من التسجيل: "${res.transcribed_text}"` }
+              : m
+          ));
+        }
+      } else if (hasAudio) {
+        // 🎤 Voice diagnosis
+        res = await diagnoseWithVoice(audioBlob, animalId, animalSpecies);
         if (res?.transcribed_text) {
           setMessages(prev => prev.map(m =>
             m.id === userMsg.id
@@ -187,22 +309,40 @@ export default function AiAssistantPage() {
         }
       } else if (hasImage) {
         // 🖼️ Image diagnosis
-        res = await diagnoseWithImage(attachedFile, animalId, animalData?.species, hasText ? textToSend : undefined);
+        res = await diagnoseWithImage(imageFiles, animalId, animalSpecies, hasText ? textToSend : undefined);
       } else {
         // 📝 Text diagnosis
-        res = await diagnoseWithAI(animalId, textToSend);
+        const { symptoms, chatHistory } = getDiagnosisConversationPayload(messages, userMsg);
+        res = await diagnoseWithAI(animalId, symptoms, animalSpecies, chatHistory);
+      }
+
+      const backendOnlyMessage = getBackendOnlyMessage(res);
+      const serverImageUrls = res?.image_urls?.length
+        ? res.image_urls.map(resolveMediaUrl).filter(Boolean)
+        : res?.image_url
+        ? [resolveMediaUrl(res.image_url)]
+        : [];
+
+      if (serverImageUrls.length > 0) {
+        setMessages((prev) => prev.map((m) =>
+          m.id === userMsg.id ? { ...m, imageUrls: serverImageUrls } : m
+        ));
       }
 
       const aiMsg = {
         id: `msg-ai-${Date.now()}`,
         sender: 'ai',
-        text: hasAudio
+        text: backendOnlyMessage || (hasAudio
           ? 'بناءً على التسجيل الصوتي المدخل، هذا هو التشخيص المقترح:'
           : hasImage
           ? 'بناءً على تحليل الصورة المرفقة، هذا هو التشخيص المقترح:'
-          : animalId ? 'بناءً على الأعراض والبيانات الحيوية، هذا هو التشخيص المقترح:' : 'بناءً على الأعراض المدخلة، هذا هو التشخيص المقترح (استشارة عامة):',
+          : animalId ? 'بناءً على الأعراض والبيانات الحيوية، هذا هو التشخيص المقترح:' : 'بناءً على الأعراض المدخلة، هذا هو التشخيص المقترح (استشارة عامة):'),
         hasActionSteps: false,
-        diagnosisData: res
+        isClarificationQuestion: res?.status === 'needs_clarification',
+        clarificationCount: res?.clarification_count,
+        maxClarificationQuestions: res?.max_clarification_questions,
+        diagnosisData: backendOnlyMessage ? null : res,
+        recordId: res?.record_id || null,
       };
       setMessages(prev => [...prev, aiMsg]);
     } catch (error) {
@@ -247,7 +387,7 @@ export default function AiAssistantPage() {
         mediaRecorder.onstop = () => {
           const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
           setAttachedAudio(audioBlob);
-          setAttachedFile(null); // clear any image
+
           stream.getTracks().forEach(t => t.stop());
           toast.success('تم التسجيل! اضغط إرسال لإرساله للتحليل');
         };
@@ -264,35 +404,46 @@ export default function AiAssistantPage() {
 
   // 📎 Image File Attachment
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setAttachedFile(file);
-      setAttachedAudio(null); // clear any audio
-      toast.success(`تم إرفاق الصورة: ${file.name}`);
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    const addedFiles = files.slice(0, 4 - attachedFiles.length);
+    const newFiles = addedFiles.filter((file) => ['image/jpeg', 'image/png', 'image/webp'].includes(file.type));
+
+    if (newFiles.length > 0) {
+      setAttachedFiles((prev) => [...prev, ...newFiles].slice(0, 4));
+      toast.success(`تم إرفاق ${newFiles.length} صورة${newFiles.length > 1 ? 'ً' : ''}`);
     }
     e.target.value = '';
   };
 
   return (
-    <div dir="rtl" className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-145px)] max-w-7xl mx-auto overflow-hidden font-cairo">
+    <div dir="rtl" className="flex flex-col w-full max-w-4xl mx-auto px-3 sm:px-4 md:px-6 h-[calc(100dvh-120px)] sm:h-[calc(100dvh-130px)] min-h-[480px] overflow-hidden font-cairo">
       
-      {/* ── CENTER PANEL: Chat Interface ── */}
-      <div className="flex-1 flex flex-col h-full bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+      {/* Chat Interface — full width */}
+      <div className="flex-1 flex flex-col h-full bg-white rounded-xl sm:rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
         
         {/* Chat Header */}
-        <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-stone-200">
-          <div className="flex items-center gap-3">
-            <span className="relative flex h-3 w-3">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 bg-white border-b border-stone-200 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <span className="relative flex h-3 w-3 shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
             </span>
-            <h2 className="text-base font-bold text-stone-800">جلسة المساعد الذكي</h2>
+            <h2 className="text-sm sm:text-base font-bold text-stone-800 truncate">جلسة المساعد الذكي</h2>
           </div>
-          <div className="flex gap-2 text-xs">
+          <div className="flex gap-2 text-xs shrink-0">
+            <button
+              onClick={() => setShowHistoryPanel(true)}
+              className="flex items-center justify-center p-1.5 rounded-lg border border-stone-200 text-stone-600 bg-white hover:bg-stone-50 transition-colors"
+              title="سجل التشخيصات"
+            >
+              <History className="w-4 h-4" />
+            </button>
             <button 
-              onClick={() => navigate('/')}
+              onClick={() => navigate(farmId ? `/farms/${farmId}` : '/farms')}
               className="flex items-center justify-center p-1.5 rounded-lg border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
-              title="إغلاق والعودة للرئيسية"
+              title="رجوع"
             >
               <X className="w-4 h-4" />
             </button>
@@ -300,30 +451,89 @@ export default function AiAssistantPage() {
         </div>
 
         {/* Message List */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-stone-50/50">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 bg-stone-50/50">
           {messages.map((msg, index) => {
             const isAi = msg.sender === 'ai';
             return (
               <div key={msg.id} className="flex flex-col">
-                <div className={`flex gap-3 max-w-[85%] ${isAi ? 'self-start' : 'self-end flex-row-reverse'}`}>
+                <div className={`flex gap-2 sm:gap-3 w-full max-w-[95%] sm:max-w-[90%] md:max-w-[85%] ${isAi ? 'self-start' : 'self-end flex-row-reverse'}`}>
                   
                   {/* Icon Block */}
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ${
+                  <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ${
                     isAi ? 'bg-emerald-50 text-[#2d5a1b] border border-emerald-100' : 'bg-blue-100 text-blue-700'
                   }`}>
-                    {isAi ? <Bot className="w-5 h-5" /> : <User className="w-5 h-5" />}
+                    {isAi ? <Bot className="w-4 h-4 sm:w-5 sm:h-5" /> : <User className="w-4 h-4 sm:w-5 sm:h-5" />}
                   </div>
 
                   {/* Message Bubble */}
-                  <div className={`p-4 rounded-2xl shadow-sm leading-relaxed text-sm ${
+                  <div className={`p-3 sm:p-4 rounded-2xl shadow-sm leading-relaxed text-xs sm:text-sm min-w-0 ${
                     isAi 
                       ? 'bg-white border border-stone-200 text-stone-800 rounded-tr-none' 
                       : 'bg-[#2d5a1b] text-white rounded-tl-none font-medium'
                   }`}>
                     <p className="whitespace-pre-line">{msg.text}</p>
+
+                    {isAi && msg.isClarificationQuestion && (
+                      <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-bold text-amber-700">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        <span>
+                          يحتاج توضيح
+                          {msg.clarificationCount && msg.maxClarificationQuestions
+                            ? ` ${msg.clarificationCount}/${msg.maxClarificationQuestions}`
+                            : ''}
+                        </span>
+                      </div>
+                    )}
                     
-                    {/* File attachment preview inside user bubble */}
-                    {msg.attachment && (
+                    {/* Media attachment — click to play audio / show images */}
+                    {(msg.audioUrl || msg.imageUrls?.length > 0) && (
+                      <div className="mt-2 space-y-2">
+                        <button
+                          type="button"
+                          onClick={() => toggleMsgMedia(msg.id)}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-colors ${
+                            isAi
+                              ? 'bg-stone-100 hover:bg-stone-200 text-stone-700'
+                              : 'bg-white/15 hover:bg-white/25 text-white'
+                          }`}
+                        >
+                          {msg.audioUrl ? <Play className="w-3.5 h-3.5" /> : <ImageIcon className="w-3.5 h-3.5" />}
+                          <span>
+                            {expandedMsgId === msg.id
+                              ? 'إخفاء المرفقات'
+                              : msg.audioUrl && msg.imageUrls?.length
+                              ? 'تشغيل التسجيل وعرض الصور'
+                              : msg.audioUrl
+                              ? 'تشغيل التسجيل الصوتي'
+                              : `عرض ${msg.imageUrls.length} صورة`}
+                          </span>
+                        </button>
+
+                        {expandedMsgId === msg.id && (
+                          <div className={`space-y-2 p-2 rounded-xl ${isAi ? 'bg-stone-50 border border-stone-200' : 'bg-black/10'}`}>
+                            {msg.audioUrl && (
+                              <audio controls src={msg.audioUrl} className="w-full h-9 rounded-lg" />
+                            )}
+                            {msg.imageUrls?.length > 0 && (
+                              <div className={`grid gap-1.5 ${msg.imageUrls.length > 1 ? 'grid-cols-3' : 'grid-cols-1'}`}>
+                                {msg.imageUrls.map((url, idx) => (
+                                  <a key={idx} href={url} target="_blank" rel="noreferrer" className="block w-fit">
+                                    <img
+                                      src={url}
+                                      alt={`صورة ${idx + 1}`}
+                                      className="rounded-lg w-20 h-20 sm:w-24 sm:h-24 object-cover border border-white/20"
+                                    />
+                                  </a>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* File attachment label */}
+                    {msg.attachment && !msg.audioUrl && !msg.imageUrls?.length && (
                       <div className="mt-2 flex items-center gap-2 p-2 rounded-lg bg-black/10 text-xs text-white">
                         <FileSpreadsheet className="w-4 h-4 text-green-200" />
                         <span className="truncate">{msg.attachment}</span>
@@ -376,15 +586,22 @@ export default function AiAssistantPage() {
         </div>
 
         {/* Input Bar */}
-        <div className="p-4 border-t border-stone-200 bg-white">
+        <div className="p-3 sm:p-4 border-t border-stone-200 bg-white shrink-0">
           {/* Image attachment badge */}
-          {attachedFile && (
-            <div className="mb-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 text-stone-600 text-xs border border-stone-200">
-              <Paperclip className="w-3 h-3 text-stone-500" />
-              <span className="max-w-[200px] truncate">{attachedFile.name}</span>
-              <button onClick={() => setAttachedFile(null)} className="text-stone-400 hover:text-stone-600">
-                <X className="w-3.5 h-3.5" />
-              </button>
+          {attachedFiles.length > 0 && (
+            <div className="mb-2 flex flex-wrap items-center gap-2 px-3 py-2 rounded-xl bg-stone-100 text-stone-600 text-xs border border-stone-200">
+              <Paperclip className="w-3 h-3 text-stone-500 shrink-0" />
+              <span className="shrink-0">{attachedFiles.length} صورة{attachedFiles.length > 1 ? 'ً' : ''} مرفقة</span>
+              <div className="flex flex-wrap items-center gap-1">
+                {attachedFiles.map((file, idx) => (
+                  <span key={idx} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white text-stone-700 border border-stone-200 max-w-[140px] sm:max-w-none">
+                    <span className="truncate">{file.name}</span>
+                    <button onClick={() => setAttachedFiles((prev) => prev.filter((_, i) => i !== idx))} className="text-stone-400 hover:text-stone-600 shrink-0">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
             </div>
           )}
 
@@ -399,18 +616,18 @@ export default function AiAssistantPage() {
             </div>
           )}
 
-          <div className="relative flex items-center bg-stone-50 border border-stone-200 rounded-xl p-1.5 focus-within:ring-2 focus-within:ring-[#2d5a1b]/20 focus-within:border-[#2d5a1b] transition-all">
+          <div className="relative flex items-center bg-stone-50 border border-stone-200 rounded-xl p-1 sm:p-1.5 focus-within:ring-2 focus-within:ring-[#2d5a1b]/20 focus-within:border-[#2d5a1b] transition-all">
             <input 
               type="text" 
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
               placeholder="صف الأعراض أو اطلب تقريراً صحياً..."
-              className="flex-1 pr-3 pl-24 py-2 text-sm bg-transparent outline-none text-stone-800 placeholder:text-stone-400"
+              className="flex-1 pr-2 sm:pr-3 pl-[88px] sm:pl-24 py-2 text-xs sm:text-sm bg-transparent outline-none text-stone-800 placeholder:text-stone-400 min-w-0"
             />
             
             {/* Action Bar (Left Side) */}
-            <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+            <div className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 sm:gap-1.5">
               <button 
                 onClick={toggleRecording}
                 className={`p-2 rounded-lg transition-colors ${
@@ -435,6 +652,7 @@ export default function AiAssistantPage() {
                 ref={fileInputRef} 
                 onChange={handleFileChange} 
                 accept="image/jpeg,image/png,image/webp"
+                multiple
                 className="hidden" 
               />
 
@@ -448,102 +666,10 @@ export default function AiAssistantPage() {
             </div>
           </div>
 
-          <p className="mt-2 text-[11px] text-stone-400 text-center">
+          <p className="mt-2 text-[10px] sm:text-[11px] text-stone-400 text-center px-2">
             يمكن لـ LivestockCare AI ارتكاب أخطاء، تحقق دائماً من القرارات الطبية من خلال الملاحظة السريرية.
           </p>
         </div>
-      </div>
-
-      {/* ── LEFT PANEL: Context Sidebar ── */}
-      <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 flex flex-col gap-4 overflow-y-auto pr-1">
-        
-        {isLoadingSidebar ? (
-          <div className="p-5 rounded-2xl bg-white border border-stone-200 shadow-sm text-center text-stone-500 text-sm">
-            جاري تحميل البيانات...
-          </div>
-        ) : animalData ? (
-          <>
-            {/* Diagnosis Summary Card */}
-            <div className="p-5 rounded-2xl bg-white border border-stone-200 shadow-sm flex flex-col">
-              <div className="flex items-center gap-2 text-stone-800 font-bold mb-4">
-                <FileText className="w-5 h-5 text-[#2d5a1b]" />
-                <span className="text-sm">ملخص بيانات الحيوان</span>
-              </div>
-
-              {/* Cow Detail Box */}
-              <div className="p-3 bg-stone-50 rounded-xl border border-stone-100 flex items-center gap-3 mb-4">
-                {animalData.image ? (
-                  <img 
-                    src={animalData.image.startsWith('http') ? animalData.image : `http://localhost:5000${animalData.image}`} 
-                    alt={`رقم #${animalData.tag_number}`} 
-                    className="w-14 h-14 object-cover rounded-lg border border-stone-200 shadow-sm"
-                    onError={(e) => { e.target.style.display = 'none'; }}
-                  />
-                ) : (
-                  <div className="w-14 h-14 bg-stone-200 rounded-lg flex items-center justify-center">
-                    <Bot className="w-6 h-6 text-stone-400" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-bold text-stone-800 truncate">البقرة #{animalData.tag_number}</span>
-                    <span className="text-[10px] px-2 py-0.5 bg-stone-200 text-stone-700 rounded-full font-medium">{animalData.species}</span>
-                  </div>
-                  <div className="flex gap-4 text-[10px] text-stone-500">
-                    <span>العمر: {animalData.age_value} {animalData.age_unit}</span>
-                    <span>الوزن: {animalData.weight_kg ? `${animalData.weight_kg} كجم` : '-'}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <span className="text-[11px] text-stone-400 block mb-2">الحالة الصحية (حسب السجلات)</span>
-                <div className="flex flex-wrap gap-1.5">
-                  <span className={`text-[10px] font-bold px-2 py-1 rounded border ${
-                    animalData.health_status === 'healthy' ? 'bg-green-50 text-green-600 border-green-100' :
-                    animalData.health_status === 'sick' ? 'bg-red-50 text-red-600 border-red-100' :
-                    'bg-yellow-50 text-yellow-600 border-yellow-100'
-                  }`}>
-                    {animalData.health_status === 'healthy' ? 'سليم' : 
-                     animalData.health_status === 'sick' ? 'مريض' : 'تحت الملاحظة'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Vaccination Reminder Card */}
-            {animalVaccinations && animalVaccinations.length > 0 && (
-              <div className="relative p-5 rounded-2xl bg-gradient-to-br from-[#2d5a1b] to-[#3d6b47] text-white shadow-sm overflow-hidden flex flex-col justify-between min-h-[140px]">
-                <div className="absolute -left-4 -bottom-6 text-7xl font-bold opacity-5 pointer-events-none select-none tracking-wider">
-                  vaccines
-                </div>
-                
-                <div className="flex items-center gap-2 font-bold mb-2 z-10">
-                  <Heart className="w-5 h-5 text-green-200 fill-green-200/20" />
-                  <span className="text-sm">التطعيمات (سجلات الحيوان)</span>
-                </div>
-
-                <div className="space-y-2 mt-2 z-10">
-                  {animalVaccinations.slice(0, 3).map(vac => (
-                    <div key={vac._id} className="bg-white/10 p-2 rounded-lg text-xs border border-white/20">
-                      <div className="font-bold flex justify-between">
-                        <span>{vac.vaccine_name}</span>
-                        <span className="text-[10px] opacity-80">{vac.status === 'completed' ? 'مكتمل' : 'مجدول'}</span>
-                      </div>
-                      <div className="text-green-100 text-[10px] mt-1">تاريخ: {new Date(vac.scheduled_date || vac.next_due_date || vac.created_at).toLocaleDateString('ar-EG')}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="p-5 rounded-2xl bg-white border border-stone-200 shadow-sm flex flex-col text-center text-stone-500 text-sm py-10">
-            <Bot className="w-10 h-10 mx-auto text-stone-300 mb-2" />
-            <p>لا يوجد حيوان محدد.</p>
-            <p className="text-xs mt-1 text-stone-400">يمكنك بدء استشارة عامة أو اختيار حيوان من سجل المزرعة.</p>
-          </div>
-        )}
       </div>
 
       {/* ── MODAL 1: Full Report Modal ── */}
@@ -751,29 +877,32 @@ export default function AiAssistantPage() {
                 <div className="text-center text-stone-500 text-sm py-4">لا توجد جلسات سابقة.</div>
               ) : (
                 historySessions.map((session) => {
-                  const isActive = session._id === activeSession?.id;
+                  const isLoadedInChat = messages.some((m) => m.recordId === session._id);
                   const formattedDate = new Date(session.created_at).toLocaleDateString('ar-EG');
                   return (
                     <button
                       key={session._id}
                       onClick={() => loadSession(session)}
                       className={`w-full text-right p-3.5 rounded-xl border transition-all duration-200 block ${
-                        isActive 
-                          ? 'bg-[#2d5a1b]/5 border-[#2d5a1b] shadow-sm font-semibold' 
+                        isLoadedInChat
+                          ? 'bg-[#2d5a1b]/5 border-[#2d5a1b] shadow-sm font-semibold'
                           : 'border-stone-100 bg-stone-50 hover:bg-white hover:border-stone-200'
                       }`}
                     >
-                      <span className={`text-xs block mb-1 font-bold ${isActive ? 'text-[#2d5a1b]' : 'text-stone-700'}`}>
+                      <span className={`text-xs block mb-1 font-bold ${isLoadedInChat ? 'text-[#2d5a1b]' : 'text-stone-700'}`}>
                         جلسة {formattedDate}
                       </span>
                       <span className="text-[10px] text-stone-400 flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         {formattedDate}
                       </span>
-                      {session.diagnosis_result && session.diagnosis_result.diagnosis && (
+                      {session.ai_diagnosis && (
                         <span className="text-[10px] text-stone-500 block mt-1 truncate">
-                          التشخيص: {session.diagnosis_result.diagnosis}
+                          التشخيص: {session.ai_diagnosis}
                         </span>
+                      )}
+                      {(session.input_type?.includes('image') || session.image_url) && (
+                        <span className="text-[10px] text-stone-400 block mt-0.5">🖼️ يحتوي على صور</span>
                       )}
                     </button>
                   );

@@ -433,6 +433,7 @@ const AnimalMedicalRecordsPage = () => {
   const [loadingCases, setLoadingCases] = useState(true);
   const [errorCases, setErrorCases] = useState(null);
   const [selectedCaseId, setSelectedCaseId] = useState(null);
+  const [filter, setFilter] = useState('all'); // 'all', 'pending', 'resolved'
 
   useEffect(() => {
     if (id) {
@@ -478,6 +479,15 @@ const AnimalMedicalRecordsPage = () => {
 
   const animalLabel = animal?.tag_number || animal?.name || '...';
 
+  const pendingCases = cases.filter(c => !c.resolved);
+  const resolvedCases = cases.filter(c => c.resolved);
+
+  const TABS = [
+    { key: 'all',      label: 'الكل',         count: cases.length },
+    { key: 'pending',  label: 'قيد الانتظار', count: pendingCases.length },
+    { key: 'resolved', label: 'تم الشفاء',    count: resolvedCases.length },
+  ];
+
   return (
     <div className="min-h-screen bg-[#f5f7f5] font-cairo" dir="rtl">
       {/* ── Header ── */}
@@ -510,6 +520,36 @@ const AnimalMedicalRecordsPage = () => {
 
       {/* ── Content ── */}
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-4">
+        {/* Filter Section */}
+        {!loadingCases && !errorCases && cases.length > 0 && (
+          <div className="bg-gradient-to-br from-[#2d5a1b] to-[#2a5c2a] rounded-[24px] px-5 py-3.5 mb-8 shadow-[0_8px_30px_rgba(45,90,27,0.15)] border border-white/10">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              {TABS.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setFilter(tab.key)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-[14px] text-xs font-bold transition-all duration-300 ${
+                    filter === tab.key
+                      ? 'bg-white text-[#2d5a1b] shadow-sm'
+                      : 'bg-white/10 text-white hover:bg-white/20'
+                  }`}
+                >
+                  {tab.label}
+                  <span
+                    className={`text-[10px] min-w-[20px] h-4.5 px-1.5 py-0.5 rounded-full font-black flex items-center justify-center ${
+                      filter === tab.key
+                        ? 'bg-[#2d5a1b]/10 text-[#2d5a1b]'
+                        : 'bg-white/20 text-white'
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {loadingCases ? (
           /* Skeleton */
           <>{[1, 2, 3].map(n => <SkeletonCard key={n} />)}</>
@@ -552,27 +592,35 @@ const AnimalMedicalRecordsPage = () => {
 
         ) : (
           /* Cases list */
-          cases.map((item) => {
-            const sev = getSev(item.severity);
-            const visibleSymptoms = item.symptoms?.slice(0, 3) || [];
-            const extraCount = (item.symptoms?.length || 0) - 3;
+          (() => {
+            const showPending = filter === 'all' || filter === 'pending';
+            const showResolved = filter === 'all' || filter === 'resolved';
 
-            return (
-              <div
-                key={item._id}
-                className={`bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer ${sev.sideBorder}`}
-                onClick={() => setSelectedCaseId(item._id)}
-              >
-                {/* Card header */}
-                <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
-                  <div className="flex items-center gap-2.5">
-                    <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1 ${sev.dot}`} />
-                    <h3 className="font-black text-gray-900 text-base leading-snug">
-                      {item.ai_diagnosis || 'فحص صحي'}
-                    </h3>
-                  </div>
+            const renderCard = (item) => {
+              const sev = getSev(item.severity);
+              const visibleSymptoms = item.symptoms?.slice(0, 3) || [];
+              const extraCount = (item.symptoms?.length || 0) - 3;
+
+              return (
+                <div
+                  key={item._id}
+                  className={`bg-white border rounded-2xl p-5 shadow-sm transition-all duration-300 cursor-pointer hover:scale-[1.01] hover:shadow-lg ${
+                    item.resolved 
+                      ? 'border-gray-100 hover:border-emerald-300 border-r-4 border-r-emerald-500 bg-emerald-50/20 opacity-80 hover:opacity-100' 
+                      : 'border-gray-100 hover:border-red-300 border-r-4 border-r-red-500'
+                  }`}
+                  onClick={() => setSelectedCaseId(item._id)}
+                >
+                  {/* Card header */}
+                  <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+                    <div className="flex items-center gap-2.5">
+                      <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1 ${item.resolved ? 'bg-gray-400' : sev.dot}`} />
+                      <h3 className={`font-black text-base leading-snug ${item.resolved ? 'text-gray-500' : 'text-gray-900'}`}>
+                        {item.ai_diagnosis || 'فحص صحي'}
+                      </h3>
+                    </div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${sev.badge}`}>
+                    <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${item.resolved ? 'bg-gray-100 text-gray-500 border-gray-200' : sev.badge}`}>
                       {sev.label}
                     </span>
                     <span className={`flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
@@ -617,14 +665,43 @@ const AnimalMedicalRecordsPage = () => {
                     )}
                   </div>
                   {item.vet_required && (
-                    <span className="flex items-center gap-1 text-red-500 font-bold text-[10px]">
+                    <span className={`flex items-center gap-1 font-bold text-[10px] ${item.resolved ? 'text-gray-400' : 'text-red-500'}`}>
                       <ShieldAlert className="w-3.5 h-3.5" /> يحتاج طبيب بيطري
                     </span>
                   )}
                 </div>
               </div>
+              );
+            };
+
+            return (
+              <div className="space-y-6">
+                {showPending && pendingCases.length > 0 && (
+                  <div className="space-y-4">
+                    <h2 className="text-sm font-black text-gray-800 flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-red-500" /> الحالات قيد الانتظار
+                    </h2>
+                    {pendingCases.map(renderCard)}
+                  </div>
+                )}
+                
+                {showResolved && resolvedCases.length > 0 && (
+                  <div className="space-y-4">
+                    <h2 className="text-sm font-black text-gray-800 flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-500" /> الحالات التي تم شفاؤها
+                    </h2>
+                    {resolvedCases.map(renderCard)}
+                  </div>
+                )}
+                
+                {filter !== 'all' && ((filter === 'pending' && pendingCases.length === 0) || (filter === 'resolved' && resolvedCases.length === 0)) && (
+                  <div className="py-10 text-center text-gray-400 text-sm font-bold border-2 border-dashed border-gray-200 rounded-2xl">
+                    لا توجد حالات متطابقة مع الفلتر الحالي
+                  </div>
+                )}
+              </div>
             );
-          })
+          })()
         )}
       </main>
 

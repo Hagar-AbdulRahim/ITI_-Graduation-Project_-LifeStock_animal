@@ -23,6 +23,7 @@ const validate     = require("../middelwares/validationMW");
 const { protect }  = require("../middelwares/Auth.middleware");
 const uploadAudio  = require("../middelwares/Uploadaudio");
 const uploadImage  = require("../middelwares/Uploadimage");
+const uploadMixed  = require("../middelwares/Uploadmixed");
 
 router.use(protect);
 
@@ -33,7 +34,11 @@ router.post("/diagnose", [...diagnoseValidator, validate], diagnose);
 // باقي الحقول (animal_id, species, symptoms) تُرسل كـ form-data text fields بجانب الملف
 router.post(
   "/diagnose/image",
-  uploadImage.single("image"),
+  uploadMixed.fields([
+    { name: "images", maxCount: 4 },
+    { name: "image", maxCount: 1 },
+    { name: "audio", maxCount: 1 },
+  ]),
   [...diagnoseImageValidator, validate],
   diagnoseImage
 );
