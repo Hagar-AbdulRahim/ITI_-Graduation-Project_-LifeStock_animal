@@ -76,15 +76,12 @@ const HeroSection = () => {
         {/* CTA Buttons */}
         <div className="flex flex-wrap items-center gap-4 justify-center w-full">
           {/* Main Green Start Button */}
-          <button
-            onClick={() => navigate('/login')}
-            className="flex items-center gap-2.5 bg-[#1b4d2c] hover:bg-[#16a34a] text-white font-bold text-sm sm:text-base px-8 py-4 rounded-full transition-all duration-300 shadow-lg shadow-green-900/30 hover:shadow-xl hover:shadow-green-500/25 cursor-pointer group border border-white/10 hover:border-white/20 backdrop-blur-sm"
-          >
-            <span>ابدأ التجربة المجانية</span>
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 transform group-hover:-translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-          </button>
+        <button
+  onClick={() => navigate('/login')}
+  className="flex items-center gap-2.5 bg-[#1b4d2c] hover:bg-[#16a34a] text-white font-bold text-sm sm:text-base px-8 py-4 rounded-full transition-all duration-300 shadow-lg shadow-green-900/30 hover:shadow-xl hover:shadow-green-500/25 border border-white/10 hover:border-white/20 backdrop-blur-sm active:scale-95"
+>
+  <span>ابدأ التجربة المجانية</span>
+</button>
           {/* Play / Watch Button */}
           <button
             onClick={() => {
@@ -105,20 +102,7 @@ const HeroSection = () => {
           </button>
         </div>
         </div>
-      {/* Heartbeat SVG Line at the bottom */}
-      <div className="absolute bottom-6 left-0 right-0 h-14 flex items-center justify-center opacity-20 overflow-hidden pointer-events-none z-10">
-        <svg className="w-full h-full text-emerald-400" viewBox="0 0 1000 100" fill="none" preserveAspectRatio="none">
-          <path d="M0,50 L200,50 L220,50 L230,25 L240,75 L250,15 L260,85 L270,40 L285,60 L295,50 L305,50 L1000,50" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </div>
-      {/* Bottom gradient fade for smooth transition to next section */}
-      <div
-        className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
-        style={{
-          background: 'linear-gradient(to top, #f8f8f5 0%, transparent 100%)',
-          zIndex: 5,
-        }}
-      />
+     
     </section>
   )
 }

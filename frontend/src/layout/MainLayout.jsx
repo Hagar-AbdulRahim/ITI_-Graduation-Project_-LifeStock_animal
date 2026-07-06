@@ -5,8 +5,11 @@ import Sidebar from './Sidebar'
 import Topbar from './Topbar'
 import Navbar from '../components/homeComponent/Navbar'
 
-// المسارات اللي فيها الـ chrome بيتغير حسب حالة تسجيل الدخول
+// المسارات اللي فيها الـ chrome بيتغير حسب حالة تسجيل الدخول (Navbar للـ guest)
 const GUEST_NAVBAR_PATHS = ['/emergencies']
+
+// المسارات اللي السايدبار بيتخفي فيها دايمًا (بغض النظر عن حالة تسجيل الدخول)
+const NO_SIDEBAR_PATHS = ['/emergencies', '/ai-assistant', '/vaccine-agent']
 
 export default function MainLayout() {
   const location = useLocation()
@@ -15,25 +18,27 @@ export default function MainLayout() {
   const isSpecialPath = GUEST_NAVBAR_PATHS.some((path) =>
     location.pathname.includes(path)
   )
-  const isEmergencyPage = location.pathname.includes('/emergencies')
+  const isNoSidebarPage = NO_SIDEBAR_PATHS.some((path) =>
+    location.pathname.includes(path)
+  )
 
   // النافبار يظهر بس لو الصفحة من الصفحات الخاصة والمستخدم guest
   const showNavbarOnly = isSpecialPath && !isAuthenticated
 
-  // السايدبار يتخفي في حالتين: guest في صفحة خاصة، أو أي حد في صفحة الطوارئ
-  const hideSidebar = showNavbarOnly || isEmergencyPage
+  // السايدبار يتخفي في حالتين: guest في صفحة خاصة، أو أي حد في صفحات الطوارئ/التشخيص/اللقاحات
+  const hideSidebar = showNavbarOnly || isNoSidebarPage
 
   return (
     <div
       dir="rtl"
       className="flex min-h-screen bg-[#f5f2eb] font-['Cairo',sans-serif]"
     >
-      {/* Sidebar — مختفي في صفحة الطوارئ دايمًا، وفي أي صفحة خاصة لو guest */}
+      {/* Sidebar — مختفي في الطوارئ/التشخيص/اللقاحات دايمًا، وفي أي صفحة خاصة لو guest */}
       {!hideSidebar && <Sidebar />}
 
       {/* Main content */}
       <div className={`flex-1 ${hideSidebar ? '' : 'mr-56'} flex flex-col min-h-screen`}>
-        {/* لو guest في صفحة خاصة → Navbar، غير كده → Topbar العادي (حتى لو الطوارئ) */}
+        {/* لو guest في صفحة خاصة → Navbar، غير كده → Topbar العادي */}
         {showNavbarOnly ? <Navbar /> : <Topbar />}
 
         <main className="flex-1 p-6 overflow-auto bg-[#f5f2eb]">

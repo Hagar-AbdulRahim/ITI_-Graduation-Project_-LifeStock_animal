@@ -42,7 +42,7 @@ function PageHeader({ farmId }) {
   return (
     <div
       ref={ref}
-      className="flex items-center justify-between mb-6"
+      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0 mb-6"
       style={{
         opacity: inView ? 1 : 0,
         transform: inView ? 'translateY(0)' : 'translateY(-12px)',
@@ -61,11 +61,11 @@ function PageHeader({ farmId }) {
           .
         </p>
       </div>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2 w-full sm:w-auto">
         <button
           type="button"
           onClick={handleExport}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-stone-200 text-sm
+          className="flex-1 sm:flex-none flex justify-center items-center gap-2 px-3 sm:px-4 py-2 rounded-lg border border-stone-200 text-sm
                      text-stone-600 bg-white hover:bg-stone-50 transition-all duration-200 shadow-sm"
         >
           <svg
@@ -82,7 +82,7 @@ function PageHeader({ farmId }) {
         <button
           type="button"
           onClick={() => navigate(`/animals/add?farmId=${farmId}`)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold
+          className="flex-1 sm:flex-none flex justify-center items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold
                      bg-[#2d5a1b] text-white hover:bg-[#3d6b47] transition-all duration-200
                      shadow-md hover:shadow-[#2d5a1b]/30 hover:scale-[1.02] active:scale-95"
         >

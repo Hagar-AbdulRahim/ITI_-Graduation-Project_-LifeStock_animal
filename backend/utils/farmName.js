@@ -30,4 +30,8 @@ const areFarmNamesSimilar = (nameA, nameB) => {
   return false;
 };
 
+<<<<<<< HEAD
 module.exports = { normalizeFarmName, areFarmNamesSimilar };
+=======
+module.exports = { normalizeFarmName, areFarmNamesSimilar };
+>>>>>>> 49b33a8e652e401fa6ff7ff9aeb75b71af7f5062

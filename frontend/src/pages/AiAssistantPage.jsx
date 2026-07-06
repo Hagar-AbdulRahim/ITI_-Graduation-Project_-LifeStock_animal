@@ -418,7 +418,7 @@ export default function AiAssistantPage() {
   };
 
   return (
-    <div dir="rtl" className="flex flex-col w-full max-w-4xl mx-auto px-3 sm:px-4 md:px-6 h-[calc(100dvh-120px)] sm:h-[calc(100dvh-130px)] min-h-[480px] overflow-hidden font-cairo">
+    <div dir="rtl" className="flex flex-col w-full max-w-4xl mx-auto px-2 sm:px-4 md:px-6 h-[calc(100dvh-64px)] sm:h-[calc(100dvh-120px)] md:h-[calc(100dvh-130px)] min-h-[480px] overflow-hidden font-cairo">
       
       {/* Chat Interface — full width */}
       <div className="flex-1 flex flex-col h-full bg-white rounded-xl sm:rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
@@ -456,7 +456,7 @@ export default function AiAssistantPage() {
             const isAi = msg.sender === 'ai';
             return (
               <div key={msg.id} className="flex flex-col">
-                <div className={`flex gap-2 sm:gap-3 w-full max-w-[95%] sm:max-w-[90%] md:max-w-[85%] ${isAi ? 'self-start' : 'self-end flex-row-reverse'}`}>
+                <div className={`flex gap-2 sm:gap-3 w-full max-w-[90%] md:max-w-[75%] lg:max-w-[70%] ${isAi ? 'self-start' : 'self-end flex-row-reverse'}`}>
                   
                   {/* Icon Block */}
                   <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ${
@@ -550,7 +550,7 @@ export default function AiAssistantPage() {
 
                 {/* Suggestions display after welcome or appropriate messages */}
                 {isAi && msg.hasSuggestions && index === 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3 mr-12">
+                  <div className="flex flex-wrap gap-2 mt-3 mr-8 sm:mr-12">
                     <button
                       onClick={() => handleChipClick('كيف يجب أن أعالج بقرة تعاني من الانتفاخ؟')}
                       className="text-xs px-3.5 py-2 rounded-full border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 hover:border-[#2d5a1b]/50 transition-colors shadow-sm"
@@ -571,7 +571,7 @@ export default function AiAssistantPage() {
 
           {/* Typing Indicator */}
           {isTyping && (
-            <div className="flex gap-3 max-w-[80%] self-start">
+            <div className="flex gap-3 max-w-[90%] md:max-w-[75%] self-start">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-50 text-[#2d5a1b] border border-emerald-100 shadow-sm flex-shrink-0">
                 <Bot className="w-5 h-5 animate-pulse" />
               </div>
@@ -586,7 +586,7 @@ export default function AiAssistantPage() {
         </div>
 
         {/* Input Bar */}
-        <div className="p-3 sm:p-4 border-t border-stone-200 bg-white shrink-0">
+        <div className="p-2 sm:p-3 md:p-4 border-t border-stone-200 bg-white shrink-0">
           {/* Image attachment badge */}
           {attachedFiles.length > 0 && (
             <div className="mb-2 flex flex-wrap items-center gap-2 px-3 py-2 rounded-xl bg-stone-100 text-stone-600 text-xs border border-stone-200">
@@ -616,7 +616,7 @@ export default function AiAssistantPage() {
             </div>
           )}
 
-          <div className="relative flex items-center bg-stone-50 border border-stone-200 rounded-xl p-1 sm:p-1.5 focus-within:ring-2 focus-within:ring-[#2d5a1b]/20 focus-within:border-[#2d5a1b] transition-all">
+          <div className="relative flex items-center bg-stone-50 border border-stone-200 rounded-xl p-1 sm:p-1.5 focus-within:ring-2 focus-within:ring-[#2d5a1b]/20 focus-within:border-[#2d5a1b] transition-all min-h-[44px]">
             <input 
               type="text" 
               value={inputValue}
@@ -630,7 +630,7 @@ export default function AiAssistantPage() {
             <div className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 sm:gap-1.5">
               <button 
                 onClick={toggleRecording}
-                className={`p-2 rounded-lg transition-colors ${
+                className={`p-2 min-w-[36px] min-h-[36px] rounded-lg transition-colors ${
                   isRecording 
                     ? 'bg-red-100 text-red-600 animate-pulse' 
                     : 'text-stone-400 hover:bg-stone-100 hover:text-stone-600'
@@ -642,7 +642,7 @@ export default function AiAssistantPage() {
               
               <button 
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors"
+                className="p-2 min-w-[36px] min-h-[36px] rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors"
                 title="إرفاق ملف"
               >
                 <Paperclip className="w-4 h-4" />
@@ -658,7 +658,7 @@ export default function AiAssistantPage() {
 
               <button 
                 onClick={() => handleSendMessage()}
-                className="p-2 bg-[#2d5a1b] hover:bg-[#3d6b47] text-white rounded-lg transition-colors flex items-center justify-center shadow-sm active:scale-95"
+                className="p-2 min-w-[36px] min-h-[36px] bg-[#2d5a1b] hover:bg-[#3d6b47] text-white rounded-lg transition-colors flex items-center justify-center shadow-sm active:scale-95"
                 title="إرسال"
               >
                 <Send className="w-4 h-4 transform rotate-180" />
@@ -695,7 +695,7 @@ export default function AiAssistantPage() {
             <div className="p-6 space-y-6 overflow-y-auto text-sm text-stone-700">
               
               {/* Metadata Table */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-stone-50 rounded-xl border border-stone-200 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 p-3 sm:p-4 bg-stone-50 rounded-xl border border-stone-200 text-xs">
                 <div>
                   <span className="text-stone-400 block mb-1">المعرف</span>
                   <span className="font-bold text-stone-800">البقرة #402</span>
@@ -725,7 +725,7 @@ export default function AiAssistantPage() {
               {/* Vitals */}
               <div className="space-y-3">
                 <h4 className="font-bold text-[#2d5a1b] text-sm border-r-4 border-[#2d5a1b] pr-2">المؤشرات الحيوية المستشعرة</h4>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-center">
                     <span className="text-[11px] text-red-600 block mb-1">درجة حرارة الكرش</span>
                     <span className="text-lg font-black text-red-700">٤٠.٢ °م</span>
@@ -777,7 +777,7 @@ export default function AiAssistantPage() {
             </div>
 
             {/* Footer Buttons */}
-            <div className="px-6 py-4 border-t border-stone-200 flex justify-end gap-3 bg-stone-50">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-stone-200 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 bg-stone-50">
               <button 
                 onClick={() => {
                   toast.success('تم تصدير التقرير كـ PDF بنجاح');
@@ -853,7 +853,7 @@ export default function AiAssistantPage() {
       {/* ── DRAWER: History Sidebar Panel ── */}
       {showHistoryPanel && (
         <div className="fixed inset-0 z-50 flex justify-start bg-black/50 backdrop-blur-xs transition-opacity duration-300">
-          <div className="bg-white w-80 max-w-full h-full shadow-2xl flex flex-col border-l border-stone-200 animate-in slide-in-from-left duration-300">
+          <div className="bg-white w-full sm:w-80 max-w-full h-full shadow-2xl flex flex-col border-l border-stone-200 animate-in slide-in-from-left duration-300">
             
             {/* Header */}
             <div className="px-5 py-4 border-b border-stone-200 flex items-center justify-between bg-stone-50">

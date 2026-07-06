@@ -75,9 +75,9 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-[#fbf9f6] font-sans">
+    <div className="min-h-screen w-full flex bg-[#fbf9f6] font-sans overflow-x-hidden">
       {/* Right Side */}
-      <div className="hidden md:flex w-1/2 relative overflow-hidden bg-[#154b23]">
+      <div className="hidden md:flex md:w-1/2 relative overflow-hidden bg-[#154b23]">
         <div className="absolute inset-0 bg-black/20 z-10"></div>
         <img
           src="https://images.unsplash.com/photo-1500595046743-cd271d694d30?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
@@ -85,13 +85,13 @@ export default function ResetPassword() {
           className="absolute inset-0 w-full h-full object-cover"
           onError={(e) => { e.target.style.display = 'none'; }}
         />
-        <div className="absolute inset-0 z-20 flex flex-col p-12 text-white justify-between">
+        <div className="absolute inset-0 z-20 flex flex-col p-8 lg:p-12 text-white justify-between">
           <div>
-            <h2 className="text-xl font-bold">LivestockCare AI</h2>
+            <h2 className="text-lg lg:text-xl font-bold">LivestockCare AI</h2>
           </div>
-          <div className="flex flex-col mb-20 max-w-lg">
-            <h3 className="text-3xl font-bold mb-4 leading-tight text-right">تعيين كلمة مرور جديدة</h3>
-            <p className="text-lg text-white/90 leading-relaxed text-right">
+          <div className="flex flex-col mb-16 lg:mb-20 max-w-lg">
+            <h3 className="text-2xl lg:text-3xl font-bold mb-4 leading-tight text-right">تعيين كلمة مرور جديدة</h3>
+            <p className="text-base lg:text-lg text-white/90 leading-relaxed text-right">
               اختر كلمة مرور قوية تحتوي على أحرف وأرقام لحماية حسابك.
             </p>
           </div>
@@ -100,12 +100,12 @@ export default function ResetPassword() {
       </div>
 
       {/* Left Side - Form */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-8 bg-[#fbf9f6]">
+      <div className="w-full md:w-1/2 flex items-center justify-center px-4 py-8 sm:px-6 md:px-8 bg-[#fbf9f6]">
         <div className="w-full max-w-md">
-          <div className="text-right mb-8">
+          <div className="text-right mb-6 md:mb-8">
             <p className="text-sm font-bold text-gray-900 mb-2">LivestockCare AI</p>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">تعيين كلمة مرور جديدة</h1>
-            <p className="text-sm text-gray-600">يجب أن تكون 8 أحرف على الأقل وتحتوي على حرف كبير ورقم</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">تعيين كلمة مرور جديدة</h1>
+            <p className="text-sm md:text-base text-gray-600">يجب أن تكون 8 أحرف على الأقل وتحتوي على حرف كبير ورقم</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -164,7 +164,7 @@ export default function ResetPassword() {
               type="submit"
               disabled={loading}
               isLoading={loading}
-              className="w-full py-3 mt-2"
+              className="w-full py-3 mt-2 min-h-[44px]"
               icon={<ArrowLeft size={18} />}
             >
               تغيير كلمة المرور

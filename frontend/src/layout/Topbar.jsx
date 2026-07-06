@@ -20,7 +20,7 @@ export default function Topbar() {
   return (
     <header
       dir="rtl"
-      className="sticky top-0 z-30 flex items-center gap-4 px-6 py-3
+      className="hidden lg:flex sticky top-0 z-30 items-center gap-4 px-6 py-3
                  bg-white/70 backdrop-blur-md border-b border-stone-200 shadow-sm"
     >
       {/* User Info */}

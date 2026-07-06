@@ -43,9 +43,9 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-[#fbf9f6] font-sans">
+    <div className="min-h-screen w-full flex bg-[#fbf9f6] font-sans overflow-x-hidden">
       {/* Right Side - Review Card overlay */}
-      <div className="hidden md:flex w-1/2 relative overflow-hidden bg-[#154b23]">
+      <div className="hidden md:flex md:w-1/2 relative overflow-hidden bg-[#154b23]">
         <div className="absolute inset-0 bg-black/10 z-10"></div>
         <img
           src="https://images.unsplash.com/photo-1500595046743-cd271d694d30?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
@@ -54,10 +54,10 @@ const Register = () => {
         />
         
         {/* Content over image */}
-        <div className="absolute inset-0 z-20 flex flex-col justify-center items-center p-12">
+        <div className="absolute inset-0 z-20 flex flex-col justify-center items-center p-8 lg:p-12">
           
           {/* Review Card */}
-          <div className="bg-[#2c5b36]/80 backdrop-blur-md rounded-2xl p-8 max-w-md border border-white/10 text-white shadow-xl">
+          <div className="bg-[#2c5b36]/80 backdrop-blur-md rounded-2xl p-6 lg:p-8 max-w-md border border-white/10 text-white shadow-xl">
             <div className="flex gap-1 mb-4 text-yellow-400">
               {[1, 2, 3, 4, 5].map((star) => (
                 <svg key={star} className="w-5 h-5 fill-current" viewBox="0 0 20 20">
@@ -65,7 +65,7 @@ const Register = () => {
                 </svg>
               ))}
             </div>
-            <p className="text-lg leading-relaxed mb-6 font-medium">
+            <p className="text-base lg:text-lg leading-relaxed mb-6 font-medium">
               "ساعدتنا LivestockCare AI في تقليل حالات الطوارئ بنسبة 40% من خلال التنبؤ الصحي الاستباقي. إنها الأداة الأهم في مزرعتنا اليوم."
             </p>
             <div className="flex items-center gap-4">
@@ -78,19 +78,19 @@ const Register = () => {
           </div>
 
           {/* Stats */}
-          <div className="absolute bottom-12 w-full px-12">
-            <div className="flex justify-around items-center border-t border-white/20 pt-8 text-white">
+          <div className="absolute bottom-8 lg:bottom-12 w-full px-8 lg:px-12">
+            <div className="flex justify-around items-center border-t border-white/20 pt-6 lg:pt-8 text-white">
               <div className="text-center">
-                <p className="text-2xl font-bold">24/7</p>
-                <p className="text-sm text-white/70">دعم تقني</p>
+                <p className="text-xl lg:text-2xl font-bold">24/7</p>
+                <p className="text-xs lg:text-sm text-white/70">دعم تقني</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold">98%</p>
-                <p className="text-sm text-white/70">دقة التشخيص</p>
+                <p className="text-xl lg:text-2xl font-bold">98%</p>
+                <p className="text-xs lg:text-sm text-white/70">دقة التشخيص</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold">15k+</p>
-                <p className="text-sm text-white/70">رأس ماشية</p>
+                <p className="text-xl lg:text-2xl font-bold">15k+</p>
+                <p className="text-xs lg:text-sm text-white/70">رأس ماشية</p>
               </div>
             </div>
           </div>
@@ -99,13 +99,13 @@ const Register = () => {
       </div>
 
       {/* Left Side - Form */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-8 bg-[#fbf9f6] relative">
+      <div className="w-full md:w-1/2 flex items-center justify-center px-4 py-8 sm:px-6 md:px-8 bg-[#fbf9f6] relative">
 
         <div className="w-full max-w-md">
-          <div className="text-right mb-8">
+          <div className="text-right mb-6 md:mb-8">
             <p className="text-sm font-bold text-gray-900 mb-2">LivestockCare AI</p>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">أنشئ حسابك الجديد</h1>
-            <p className="text-sm text-gray-600">ابدأ رحلتك في إدارة الثروة الحيوانية بالذكاء الاصطناعي اليوم.</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">أنشئ حسابك الجديد</h1>
+            <p className="text-sm md:text-base text-gray-600">ابدأ رحلتك في إدارة الثروة الحيوانية بالذكاء الاصطناعي اليوم.</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -172,14 +172,14 @@ const Register = () => {
               })}
             />
 
-            <div className="flex items-center gap-2 mt-2 pb-2">
+            <div className="flex items-start gap-2 mt-2 pb-2">
               <input
                 id="terms"
                 type="checkbox"
-                className="h-4 w-4 rounded border-gray-300 text-[#154b23] focus:ring-[#154b23] cursor-pointer"
+                className="h-4 w-4 mt-0.5 rounded border-gray-300 text-[#154b23] focus:ring-[#154b23] cursor-pointer flex-shrink-0"
                 {...register('terms', { required: 'يجب الموافقة على الشروط' })}
               />
-              <label htmlFor="terms" className="text-sm text-gray-700 cursor-pointer select-none">
+              <label htmlFor="terms" className="text-sm text-gray-700 cursor-pointer select-none leading-relaxed">
                 أوافق على <span className="font-bold text-[#154b23]">الشروط والأحكام</span> و <span className="font-bold text-[#154b23]">سياسة الخصوصية</span>.
               </label>
             </div>
@@ -189,14 +189,14 @@ const Register = () => {
               type="submit"
               variant="primary"
               isLoading={loading}
-              className="mt-6"
+              className="w-full py-3 mt-6 min-h-[44px]"
               icon={<ArrowLeft size={18} />}
             >
               إنشاء حساب
             </Button>
           </form>
 
-          <p className="mt-8 text-center text-sm text-gray-600">
+          <p className="mt-6 md:mt-8 text-center text-sm md:text-base text-gray-600">
             لديك حساب بالفعل؟{' '}
             <Link to="/login" className="font-bold text-gray-900 hover:underline">
               تسجيل الدخول

@@ -9,7 +9,7 @@ const TestimonialCard = ({ t, index }) => {
   const [isFlipped, setIsFlipped] = useState(false)
 
   return (
-    <div 
+    <div
       className="w-full max-w-[260px] aspect-square mx-auto cursor-pointer py-4"
       style={{ perspective: '1000px' }}
       onMouseLeave={() => setIsFlipped(false)}
@@ -19,8 +19,8 @@ const TestimonialCard = ({ t, index }) => {
         style={{ transformStyle: 'preserve-3d' }}
         animate={{ rotateY: isFlipped ? 180 : 0 }}
         transition={{ duration: 0.6, ease: 'easeInOut' }}
-        whileHover={{ 
-          scale: 1.05, 
+        whileHover={{
+          scale: 1.05,
           y: -8,
         }}
       >
@@ -47,16 +47,16 @@ const TestimonialCard = ({ t, index }) => {
           {/* Rating */}
           <div className="flex justify-center gap-1 mb-4">
             {[1, 2, 3, 4, 5].map((star) => (
-              <svg 
-                key={star} 
+              <svg
+                key={star}
                 className={`w-3.5 h-3.5 transition-all duration-300 ${
-                  star <= (t.rating || 5) 
-                    ? 'text-amber-400 fill-amber-400 group-hover:text-amber-300 group-hover:fill-amber-300' 
+                  star <= (t.rating || 5)
+                    ? 'text-amber-400 fill-amber-400 group-hover:text-amber-300 group-hover:fill-amber-300'
                     : 'text-stone-200 fill-stone-200 group-hover:text-white/20 group-hover:fill-white/20'
-                }`} 
-                xmlns="http://www.w3.org/2000/svg" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor" 
+                }`}
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
                 strokeWidth="2"
               >
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -64,8 +64,8 @@ const TestimonialCard = ({ t, index }) => {
             ))}
           </div>
 
-          {/* Styled Button to Flip */}
-          <button 
+          {/* Button to Flip */}
+          <button
             onClick={(e) => {
               e.stopPropagation();
               setIsFlipped(true);
@@ -79,16 +79,16 @@ const TestimonialCard = ({ t, index }) => {
         {/* BACK SIDE */}
         <div
           className="w-full h-full absolute inset-0 rounded-full p-8 flex flex-col items-center justify-center text-center bg-white hover:bg-[#1b4d2c] group border border-gray-100/60 shadow-[0_8px_30px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_40px_rgba(27,77,44,0.16)] transition-all duration-300"
-          style={{ 
+          style={{
             backfaceVisibility: 'hidden',
             transform: 'rotateY(180deg)'
           }}
         >
           {/* Quote mark */}
           <span className="text-3xl font-serif text-[#1b4d2c] group-hover:text-white/30 h-6 block leading-none mb-1">
-            ”
+            "
           </span>
-          
+
           <p className="text-stone-600 group-hover:text-white/90 text-[12px] leading-relaxed flex-1 flex items-center justify-center px-1 line-clamp-6 transition-colors duration-300">
             "{t.comment}"
           </p>
@@ -108,7 +108,6 @@ const TestimonialSection = () => {
     dispatch(fetchAllReviews())
   }, [dispatch])
 
-  // Handle responsiveness dynamically for the carousel view
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 640) {
@@ -147,10 +146,9 @@ const TestimonialSection = () => {
   return (
     <section className="bg-[#f8f8f5] py-20 px-6 overflow-hidden" id="testimonials">
       <div className="max-w-7xl mx-auto">
-        
+
         {/* Section Navigation */}
         <div className="flex items-center justify-end mb-8" dir="rtl">
-          {/* Navigation Arrows (Only show if reviews length exceeds current view limit) */}
           {reviews.length > cardsPerView && (
             <div className="flex items-center gap-3">
               <button
@@ -186,7 +184,7 @@ const TestimonialSection = () => {
               لا توجد مراجعات حتى الآن.
             </div>
           ) : (
-            <div 
+            <div
               className="grid gap-6 transition-all duration-500"
               style={{ gridTemplateColumns: `repeat(${Math.min(cardsPerView, visibleReviews.length || 1)}, minmax(0, 1fr))` }}
             >

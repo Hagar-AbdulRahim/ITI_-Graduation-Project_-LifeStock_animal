@@ -32,7 +32,7 @@ import ReviewsPage from '../pages/Reviews/ReviewsPage'
 import ContactUsPage from '../pages/ContactUs/ContactUsPage'
 
 import ServicesPage from '../pages/ServicesPage'
-import DiagnosisPage from '../pages/DiagnosisPage'
+
 
 
 // Dashboard & Layout Pages
@@ -82,7 +82,7 @@ const AppRoutes = () => {
       <Route path="/contact" element={<ContactUsPage />} />
       <Route path="/reviews" element={<ReviewsPage />} />
       <Route path="/services" element={<ServicesPage />} />
-      <Route path="/diagnosis" element={<DiagnosisPage />} />
+     
 
       {/* Auth Routes */}
       <Route path="/login" element={<Login />} />
@@ -225,37 +225,32 @@ const AppRoutes = () => {
     </Route>
 
       <Route
-        path="/vaccine-agent"
-        element={
-          <ProtectedRoute>
-            <VaccineAgentPage />
-          </ProtectedRoute>
-        }
-      />
+  path="/vaccine-agent"
+  element={
+    <ProtectedRoute>
+      <MainLayout />
+    </ProtectedRoute>
+  }
+>
+  <Route index element={<VaccineAgentPage />} />
+  </Route>
 
-      <Route
-        path="/ai-assistant"
-        element={
-          <ProtectedRoute>
-            <AiAssistantPage />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Public: accessible without login */}
+  <Route
+    path="/ai-assistant"
+    element={
+      <ProtectedRoute>
+        <MainLayout />
+      </ProtectedRoute>
+    }
+  >
+    <Route index element={<AiAssistantPage />} />
+  </Route>
       {/* Public: accessible without login */}
       <Route path="/emergencies" element={<MainLayout />}>
         <Route index element={<EmergencyPage />} />
       </Route>
 
-      <Route
-        path="/diagnosis"
-        element={
-          <ProtectedRoute>
-            <DiagnosisPage />
-          </ProtectedRoute>
-        }
-      />
+     
       {/* Admin Portal */}
       <Route
         path="/admin"

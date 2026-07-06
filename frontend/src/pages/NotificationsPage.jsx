@@ -130,10 +130,10 @@ export default function NotificationsPage() {
     
     
 
-    <div className="max-w-4xl mx-auto px-6 sm:px-8 py-8">
+    <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
 
       {/* Toolbar */}
-      <div className="bg-gradient-to-br from-[#2d5a1b] to-[#2a5c2a] rounded-[32px] px-6 py-5 mb-8 shadow-[0_12px_40px_rgba(45,90,27,0.18)] border border-white/10">
+      <div className="bg-gradient-to-br from-[#2d5a1b] to-[#2a5c2a] rounded-[24px] sm:rounded-[32px] px-4 sm:px-6 py-4 sm:py-5 mb-6 sm:mb-8 shadow-[0_12px_40px_rgba(45,90,27,0.18)] border border-white/10">
 
         <div className="flex items-center justify-between gap-4 flex-wrap">
 
@@ -278,19 +278,19 @@ export default function NotificationsPage() {
   {/* green hover border */}
   <div className="absolute inset-0 rounded-[24px] border border-transparent group-hover:border-[#5d8a4b] transition-all duration-300 pointer-events-none" />
 
-  <div className="px-6 py-5">
+  <div className="px-4 sm:px-6 py-4 sm:py-5">
 
-    <div className="flex items-start gap-4">
+    <div className="flex items-start gap-3 sm:gap-4">
 
       {/* icon */}
       <div
-        className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+        className={`w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
           isRead
             ? 'bg-[#2d5a1b]/8 text-[#2d5a1b]'
             : 'bg-[#2d5a1b]/10 text-[#2d5a1b]'
         }`}
       >
-        <Bell className="w-7 h-7" />
+        <Bell className="w-5 h-5 sm:w-7 sm:h-7" />
       </div>
 
       {/* content */}
@@ -325,7 +325,7 @@ export default function NotificationsPage() {
 
           {/* actions */}
           <div
-            className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200"
+            className="flex items-center gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200"
             onClick={(e) => e.stopPropagation()}
           >
 
