@@ -32,11 +32,11 @@ export default function MainLayout() {
       {!hideSidebar && <Sidebar />}
 
       {/* Main content */}
-      <div className={`flex-1 ${hideSidebar ? '' : 'mr-56'} flex flex-col min-h-screen`}>
+      <div className={`flex-1 ${hideSidebar ? '' : 'lg:mr-56'} flex flex-col min-h-screen`}>
         {/* لو guest في صفحة خاصة → Navbar، غير كده → Topbar العادي (حتى لو الطوارئ) */}
         {showNavbarOnly ? <Navbar /> : <Topbar />}
 
-        <main className="flex-1 p-6 overflow-auto bg-[#f5f2eb]">
+        <main className={`flex-1 p-3 sm:p-4 lg:p-6 overflow-auto bg-[#f5f2eb] ${!hideSidebar ? 'pt-16 lg:pt-6' : ''}`}>
           {/* الصفحة الحالية تتحمل هنا */}
           <Outlet />
         </main>

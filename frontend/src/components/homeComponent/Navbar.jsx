@@ -103,7 +103,7 @@ const Navbar = () => {
         dir="rtl"
         className={`fixed top-0 right-0 left-0 z-50 transition-all duration-300 ${navbarBg}`}
       >
-        <div className="max-w-[1400px] mx-auto px-6">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             {/* ── Logo ── */}
             <button
@@ -237,7 +237,7 @@ const Navbar = () => {
 
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+                className="lg:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
                 aria-label="Toggle menu"
               >
                 {menuOpen ? <IconX /> : <IconMenu />}
@@ -289,7 +289,7 @@ const Navbar = () => {
               {isAuthenticated ? (
                 <button
                   onClick={handleLogout}
-                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+                  className="flex items-center justify-center gap-2 w-full py-3 min-h-[44px] rounded-xl text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
                 >
                   <IconLogout />
                   تسجيل الخروج
@@ -301,7 +301,7 @@ const Navbar = () => {
                       navigate('/login')
                       setMenuOpen(false)
                     }}
-                    className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-semibold text-[#1b4d2c] border border-[#2d5a1b]/20 bg-white/80 hover:bg-[#f4f8ef] transition-colors"
+                    className="flex items-center justify-center gap-2 w-full py-3 min-h-[44px] rounded-2xl text-sm font-semibold text-[#1b4d2c] border border-[#2d5a1b]/20 bg-white/80 hover:bg-[#f4f8ef] transition-colors"
                   >
                     <IconLogin />
                     تسجيل الدخول
@@ -311,7 +311,7 @@ const Navbar = () => {
                       navigate('/register')
                       setMenuOpen(false)
                     }}
-                    className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-[#2d5a1b] via-[#356b24] to-[#4a7b2d] shadow-[0_12px_30px_-16px_rgba(45,90,27,0.55)] transition-all active:scale-95"
+                    className="flex items-center justify-center gap-2 w-full py-3 min-h-[44px] rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-[#2d5a1b] via-[#356b24] to-[#4a7b2d] shadow-[0_12px_30px_-16px_rgba(45,90,27,0.55)] transition-all active:scale-95"
                   >
                     ابدأ الآن
                   </button>

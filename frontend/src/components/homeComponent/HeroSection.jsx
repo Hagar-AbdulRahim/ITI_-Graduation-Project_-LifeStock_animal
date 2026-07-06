@@ -36,7 +36,7 @@ const HeroSection = () => {
       />
       {/* Hero Content — centered on top of video */}
       <div
-        className="relative z-10 w-full max-w-4xl mx-auto px-6 sm:px-8 lg:px-12 text-center flex flex-col items-center justify-center"
+        className="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-8 lg:px-12 text-center flex flex-col items-center justify-center"
         data-aos="fade-up"
         data-aos-duration="900"
         data-aos-once="true"
@@ -70,15 +70,15 @@ const HeroSection = () => {
   <span className="block sm:inline">قبل أن تراها أنت</span>
 </h1>
         {/* Description */}
-        <p className="text-white/80 text-sm sm:text-base md:text-lg leading-relaxed mb-10 max-w-2xl drop-shadow-sm">
+        <p className="text-white/80 text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed mb-8 sm:mb-10 max-w-2xl drop-shadow-sm px-2 sm:px-0">
           منصة واحدة تجمع التشخيص الذكي، تحليل الصور، ومساعد صوتي يفهم لهجتك، لتطلع على حالة كل حيوان في قطيعك لحظة بلحظة، وتتصرف قبل أن تتحول الملاحظة الصغيرة إلى خسارة كبيرة.
         </p>
         {/* CTA Buttons */}
-        <div className="flex flex-wrap items-center gap-4 justify-center w-full">
+        <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 sm:gap-4 justify-center w-full">
           {/* Main Green Start Button */}
           <button
             onClick={() => navigate('/login')}
-            className="flex items-center gap-2.5 bg-[#1b4d2c] hover:bg-[#16a34a] text-white font-bold text-sm sm:text-base px-8 py-4 rounded-full transition-all duration-300 shadow-lg shadow-green-900/30 hover:shadow-xl hover:shadow-green-500/25 cursor-pointer group border border-white/10 hover:border-white/20 backdrop-blur-sm"
+            className="flex items-center justify-center gap-2.5 bg-[#1b4d2c] hover:bg-[#16a34a] text-white font-bold text-sm sm:text-base px-7 sm:px-8 py-3.5 sm:py-4 min-h-[44px] w-full sm:w-auto rounded-full transition-all duration-300 shadow-lg shadow-green-900/30 hover:shadow-xl hover:shadow-green-500/25 cursor-pointer group border border-white/10 hover:border-white/20 backdrop-blur-sm"
           >
             <span>ابدأ التجربة المجانية</span>
             <svg className="w-4 h-4 sm:w-5 sm:h-5 transform group-hover:-translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -94,7 +94,7 @@ const HeroSection = () => {
                 navigate('/login');
               }
             }}
-            className="flex items-center gap-2.5 font-bold text-sm sm:text-base px-8 py-4 rounded-full transition-all duration-300 text-white bg-white/10 backdrop-blur-md border border-white/25 hover:bg-white/20 hover:border-white/40 cursor-pointer shadow-lg shadow-black/10"
+            className="flex items-center justify-center gap-2.5 font-bold text-sm sm:text-base px-7 sm:px-8 py-3.5 sm:py-4 min-h-[44px] w-full sm:w-auto rounded-full transition-all duration-300 text-white bg-white/10 backdrop-blur-md border border-white/25 hover:bg-white/20 hover:border-white/40 cursor-pointer shadow-lg shadow-black/10"
           >
             <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-white">
               <svg className="w-3 h-3 fill-current mr-0.5" viewBox="0 0 24 24">

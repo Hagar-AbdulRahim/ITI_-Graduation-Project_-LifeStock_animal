@@ -70,9 +70,9 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-[#fbf9f6] font-sans">
+    <div className="min-h-screen w-full flex bg-[#fbf9f6] font-sans overflow-x-hidden">
       {/* Right Side - Image & Content */}
-      <div className="hidden md:flex w-1/2 relative overflow-hidden bg-[#154b23]">
+      <div className="hidden md:flex md:w-1/2 relative overflow-hidden bg-[#154b23]">
         <div className="absolute inset-0 bg-black/20 z-10"></div>
         <img
           src="https://images.unsplash.com/photo-1500595046743-cd271d694d30?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
@@ -81,14 +81,14 @@ const Login = () => {
           onError={(e) => { e.target.style.display = 'none'; }}
         />
 
-        <div className="absolute inset-0 z-20 flex flex-col p-12 text-white justify-between">
+        <div className="absolute inset-0 z-20 flex flex-col p-8 lg:p-12 text-white justify-between">
           <div className="flex justify-start">
-            <h2 className="text-xl font-bold">LivestockCare AI</h2>
+            <h2 className="text-lg lg:text-xl font-bold">LivestockCare AI</h2>
           </div>
           
-          <div className="flex flex-col mb-20 max-w-lg">
-            <h3 className="text-3xl font-bold mb-4 leading-tight text-right">الذكاء الاصطناعي في خدمة الثروة الحيوانية</h3>
-            <p className="text-lg text-white/90 leading-relaxed text-right">
+          <div className="flex flex-col mb-16 lg:mb-20 max-w-lg">
+            <h3 className="text-2xl lg:text-3xl font-bold mb-4 leading-tight text-right">الذكاء الاصطناعي في خدمة الثروة الحيوانية</h3>
+            <p className="text-base lg:text-lg text-white/90 leading-relaxed text-right">
               نحن نوفر لك الأدوات الذكية لمراقبة صحة قطيعك، تحسين الإنتاجية باستمرار بأحدث تقنيات التعلم الآلي.
             </p>
           </div>
@@ -99,11 +99,11 @@ const Login = () => {
         </div>
       </div>
       {/* Left Side - Form */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-8 bg-[#fbf9f6]">
+      <div className="w-full md:w-1/2 flex items-center justify-center px-4 py-8 sm:px-6 md:px-8 bg-[#fbf9f6]">
         <div className="w-full max-w-md">
-          <div className="text-right mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">تسجيل الدخول</h1>
-            <p className="text-sm text-gray-600">مرحباً بك مجدداً! يرجى إدخال بياناتك للوصول إلى لوحة التحكم.</p>
+          <div className="text-right mb-6 md:mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">تسجيل الدخول</h1>
+            <p className="text-sm md:text-base text-gray-600">مرحباً بك مجدداً! يرجى إدخال بياناتك للوصول إلى لوحة التحكم.</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -166,7 +166,7 @@ const Login = () => {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full py-3 mt-2"
+              className="w-full py-3 mt-2 min-h-[44px]"
               icon={<LogIn size={18} />}
             >
               {loading ? 'جاري الدخول...' : 'دخول'}
@@ -177,7 +177,7 @@ const Login = () => {
                 type="button"
                 onClick={handleResend}
                 disabled={resendLoading}
-                className="w-full py-2.5 border border-[#154b23] rounded-full text-[#154b23] font-bold text-sm hover:bg-[#154b23]/5 transition-colors disabled:opacity-60"
+                className="w-full py-3 min-h-[44px] border border-[#154b23] rounded-full text-[#154b23] font-bold text-sm hover:bg-[#154b23]/5 transition-colors disabled:opacity-60"
               >
                 {resendLoading ? 'جاري الإرسال...' : 'إعادة إرسال رابط التفعيل'}
               </button>
@@ -193,7 +193,7 @@ const Login = () => {
               {/* Custom design custom Google button */}
               <button
                 type="button"
-                className="w-full py-2.5 border border-gray-200 rounded-full flex items-center justify-center gap-2 bg-white text-gray-700 font-bold hover:bg-gray-50 transition-colors shadow-sm pointer-events-none"
+                className="w-full py-3 min-h-[44px] border border-gray-200 rounded-full flex items-center justify-center gap-2 bg-white text-gray-700 font-bold hover:bg-gray-50 transition-colors shadow-sm pointer-events-none"
               >
                 <FcGoogle size={20} />
                 <span>جوجل</span>
@@ -239,7 +239,7 @@ const Login = () => {
               </div>
             </div>
 
-            <p className="text-center text-sm text-gray-600 mt-6">
+            <p className="text-center text-sm md:text-base text-gray-600 mt-6">
               ليس لديك حساب؟{' '}
               <Link to="/register" className="text-[#154b23] font-bold hover:underline">
                 أنشئ حساباً جديداً

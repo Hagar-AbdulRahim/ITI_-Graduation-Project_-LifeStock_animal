@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Plus, Loader2, Search, Bell, HelpCircle, LayoutGrid, Leaf, Map, Edit3, Trash2 } from 'lucide-react';
@@ -10,7 +11,7 @@ import { updateFarm, deleteFarm } from '../../services/farmService';
 const TopNavbar = ({ searchQuery, setSearchQuery }) => {
   const navigate = useNavigate();
   return (
-    <header className="bg-white h-20 border-b border-gray-100 px-8 flex items-center justify-between sticky top-0 z-20 font-cairo">
+    <header className="bg-white h-16 sm:h-20 border-b border-gray-100 px-4 sm:px-6 lg:px-8 flex items-center justify-between sticky top-0 z-20 font-cairo">
       <div className="flex-1 max-w-xl">
         <div className="relative flex items-center w-full max-w-md">
           <Search className="w-4 h-4 text-gray-400 absolute right-4" />
@@ -18,14 +19,14 @@ const TopNavbar = ({ searchQuery, setSearchQuery }) => {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="البحث عن مزرعة بالاسم أو الموقع..."
+            placeholder="البحث عن مزرعة..."
             className="w-full bg-[#fbf9f6] border border-gray-200 rounded-full py-2.5 pr-11 pl-4 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-[#154b23]/20 focus:border-[#154b23] transition-all"
           />
         </div>
       </div>
 
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-4 text-gray-400">
+      <div className="flex items-center gap-3 sm:gap-6">
+        <div className="flex items-center gap-3 sm:gap-4 text-gray-400">
           <button
             onClick={() => navigate('/notifications')}
             className="hover:text-gray-600 transition-colors relative"
@@ -33,11 +34,11 @@ const TopNavbar = ({ searchQuery, setSearchQuery }) => {
             <Bell className="w-5 h-5" />
             <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
           </button>
-          <button className="hover:text-gray-600 transition-colors">
+          <button className="hover:text-gray-600 transition-colors hidden sm:block">
             <HelpCircle className="w-5 h-5" />
           </button>
         </div>
-        <div className="h-8 w-px bg-gray-200"></div>
+        <div className="h-8 w-px bg-gray-200 hidden sm:block"></div>
       </div>
     </header>
   );
@@ -161,9 +162,9 @@ const FarmCard = ({ farm }) => {
       </div>
 
       {/* Edit Modal using shared FarmForm */}
-      {editMode && (
+      {editMode && createPortal(
         <div
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[9999]"
           onClick={() => setEditMode(false)}
         >
           <div
@@ -179,13 +180,14 @@ const FarmCard = ({ farm }) => {
               onCancel={() => setEditMode(false)}
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Delete Confirmation */}
-      {showDeleteConfirm && (
+      {showDeleteConfirm && createPortal(
         <div
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[9999]"
           onClick={() => setShowDeleteConfirm(false)}
         >
           <div
@@ -198,7 +200,8 @@ const FarmCard = ({ farm }) => {
               <button onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded">حذف</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -229,12 +232,11 @@ const FarmsPage = () => {
 
       <main className="flex-1 flex flex-col">
         {/* Page Banner / Header */}
-        <div className="bg-[#1b4d2c] border-b border-stone-800/10 py-6 px-8 shadow-sm">
-          <div className="max-w-[1400px] mx-auto w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-[#1b4d2c] border-b border-stone-800/10 py-6 sm:py-8 lg:py-10 px-4 sm:px-6 lg:px-8 shadow-sm">
+          <div className="max-w-[1400px] mx-auto w-full flex flex-col sm:flex-row sm:items-center justify-between gap-6">
             <div className="text-right">
-
-              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">المزارع الخاصة بي</h1>
-              <p className="text-[13px] sm:text-[14px] text-stone-200 font-medium mt-1">
+              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-3">المزارع الخاصة بي</h1>
+              <p className="text-[13px] sm:text-[14px] text-stone-200 font-medium">
                 إدارة منشآتك الزراعية، متابعة الإنتاج، والتحكم في القطاعات بصورة احترافية.
               </p>
             </div>
@@ -250,7 +252,7 @@ const FarmsPage = () => {
         </div>
 
         {/* Content Container */}
-        <div className="max-w-[1400px] mx-auto w-full px-8 py-10 flex-1 flex flex-col">
+        <div className="max-w-[1400px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 flex-1 flex flex-col">
           {/* Alerts / Loading */}
           {loading.farms && displayFarms.length === 0 && (
             <div className="flex-1 flex items-center justify-center">
@@ -287,16 +289,16 @@ const FarmsPage = () => {
         </div>
       </main>
 
-      <footer className="px-8 py-5 bg-white border-t border-gray-200 flex items-center justify-between text-[12px] font-semibold text-gray-500 mt-4">
-        <div className="flex items-center gap-6">
+      <footer className="px-4 sm:px-8 py-5 bg-white border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between text-[12px] font-semibold text-gray-500 mt-4 gap-3">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-6 justify-center sm:justify-start">
           <button className="hover:text-gray-800 transition-colors">دعمي</button>
-          <button className="hover:text-gray-800 transition-colors">توثيق API</button>
+          <button className="hover:text-gray-800 transition-colors hidden sm:inline">توثيق API</button>
           <button className="hover:text-gray-800 transition-colors">شروط الخدمة</button>
-          <button className="hover:text-gray-800 transition-colors">سياسة الخصوصية</button>
+          <button className="hover:text-gray-800 transition-colors hidden sm:inline">سياسة الخصوصية</button>
         </div>
-        <div className="flex flex-col items-end gap-0.5 text-right">
+        <div className="flex flex-col items-center sm:items-end gap-0.5 text-center sm:text-right">
           <span className="text-gray-900 font-bold">رعاية الماشية AI</span>
-          <span>© 2024 رعاية الماشية AI، ذكاء بيطري لزراعة مستدامة.</span>
+          <span className="hidden sm:inline">© 2024 رعاية الماشية AI، ذكاء بيطري لزراعة مستدامة.</span>
         </div>
       </footer>
     </div>

@@ -339,12 +339,12 @@ useEffect(() => {
     <div className="min-h-screen bg-[#f5f7f5] flex flex-col font-cairo" dir="rtl">
       <TopNavbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
-      <main className="max-w-[1400px] w-full mx-auto px-8 py-8 flex-1 flex flex-col">
+      <main className="max-w-[1400px] w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 flex-1 flex flex-col">
 
         {/* Page header removed; controls moved into filter bar */}
 
         {/* ── Filter Bar ────────────────────────────────────────────── */}
-        <div className="bg-white rounded-[20px] px-6 py-4 border border-gray-200 shadow-sm flex items-center justify-between gap-4 mb-7">
+        <div className="bg-white rounded-[20px] px-4 sm:px-6 py-4 border border-gray-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-7">
           {/* Left: Add / Import buttons */}
           <div className="flex items-center gap-3">
             <button
@@ -358,7 +358,7 @@ useEffect(() => {
           </div>
 
           {/* Center: Search bar */}
-          <div className="flex-1 max-w-xl mx-6">
+          <div className="flex-1 sm:max-w-xl sm:mx-6">
             <div className="relative">
               <Search className="w-4 h-4 text-gray-400 absolute right-4 top-3" />
               <input
@@ -372,7 +372,7 @@ useEffect(() => {
           </div>
 
           {/* Right: Filter dropdowns + clear */}
-         <div className="flex items-center gap-3">
+         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             {hasFilters && (
               <button
                 onClick={() => { setFilterSpecies('all'); setFilterStatus('all'); setFilterAge('all'); setSearchTerm(''); }}
@@ -450,7 +450,7 @@ useEffect(() => {
             <p className="text-gray-400 text-sm mt-1">جرب تغيير معايير البحث</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 flex-1 items-start content-start">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 flex-1 items-start content-start">
   {paginatedAnimals.map((animal) => (
     <AnimalCard
       key={animal._id}

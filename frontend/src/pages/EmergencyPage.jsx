@@ -151,14 +151,14 @@ export default function EmergencyPage() {
   return (
   <div
     dir="rtl"
-    className="w-full px-6 py-6 font-cairo"
+    className="w-full px-4 sm:px-6 py-4 sm:py-6 font-cairo"
   >
 
     {/* Layout */}
-    <div className="flex gap-6 items-start">
+    <div className="flex flex-col lg:flex-row gap-6 items-start">
 
       {/* ───────────── Sidebar ───────────── */}
-      <div className="w-[320px] flex-shrink-0">
+      <div className="w-full lg:w-[320px] flex-shrink-0">
 
         {/* Title */}
         <div className="text-right">
@@ -282,7 +282,7 @@ export default function EmergencyPage() {
       </div>
 
       {/* ───────────── Chat ───────────── */}
-      <div className="flex flex-col bg-white rounded-[32px] border border-[#2d5a1b] shadow-md overflow-hidden flex-1 h-[600px]">
+      <div className="flex flex-col bg-white rounded-[32px] border border-[#2d5a1b] shadow-md overflow-hidden flex-1 min-h-[500px] h-[600px] w-full">
 
         {/* Header */}
         <div className="flex items-center gap-4 px-6 py-4 border-b border-[#cfe0c9] bg-white flex-shrink-0">
@@ -309,7 +309,7 @@ export default function EmergencyPage() {
             const isAi = msg.sender === 'ai'
             return (
               <div key={msg.id} className={`flex ${isAi ? 'justify-start' : 'justify-end'}`}>
-                <div className={`flex gap-2 max-w-[60%] ${isAi ? 'flex-row' : 'flex-row-reverse'}`}>
+                   <div className={`flex gap-2 max-w-[85%] sm:max-w-[70%] md:max-w-[60%] ${isAi ? 'flex-row' : 'flex-row-reverse'}`}>
 
                   {/* Avatar */}
                   <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 self-end ${
