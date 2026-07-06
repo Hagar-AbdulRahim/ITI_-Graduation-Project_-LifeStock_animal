@@ -80,7 +80,7 @@ const ContactUsPage = () => {
         <div className="bg-white rounded-[1.5rem] md:rounded-[2rem] shadow-2xl shadow-stone-200 overflow-hidden flex flex-col lg:flex-row border border-stone-100">
           
           {/* ─── Right Panel: Contact Info (Dark Green) ─── */}
-          <div className="lg:w-[40%] bg-[#12361e] p-8 md:p-10 lg:p-12 text-white relative overflow-hidden flex flex-col justify-between">
+          <div className="lg:w-[40%] bg-[#12361e] p-6 sm:p-8 lg:p-12 text-white relative overflow-hidden flex flex-col justify-between">
             {/* Geometric Accent Pattern */}
             <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
             

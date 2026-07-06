@@ -74,7 +74,7 @@ const ReviewsPage = () => {
         <div className="bg-white rounded-[1.5rem] md:rounded-[2rem] shadow-2xl shadow-stone-200 overflow-hidden flex flex-col lg:flex-row border border-stone-100 min-h-[500px]">
           
           {/* ─── Right Panel: Info & Stats (Dark Green) ─── */}
-          <div className="lg:w-[40%] bg-[#12361e] p-8 md:p-10 lg:p-12 text-white relative overflow-hidden flex flex-col justify-center">
+          <div className="lg:w-[40%] bg-[#12361e] p-6 sm:p-8 lg:p-12 text-white relative overflow-hidden flex flex-col justify-center">
             {/* Geometric Accent Pattern */}
             <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
             
@@ -106,7 +106,7 @@ const ReviewsPage = () => {
           </div>
 
           {/* ─── Left Panel: Form / States (White) ─── */}
-          <div className="lg:w-[60%] p-8 md:p-10 lg:p-14 bg-white relative flex flex-col justify-center">
+          <div className="lg:w-[60%] p-6 sm:p-8 md:p-10 lg:p-14 bg-white relative flex flex-col justify-center">
             
             {!user ? (
               /* Not Logged In State */
@@ -162,8 +162,8 @@ const ReviewsPage = () => {
                 {/* Star Rating */}
                 <div className="mb-8">
                   <label className="block text-[13.5px] font-bold text-stone-700 mb-3">التقييم العام <span className="text-red-500">*</span></label>
-                  <div className="flex items-center gap-4">
-                    <div className="flex flex-row-reverse justify-end gap-1" dir="ltr">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                    <div className="flex flex-row-reverse justify-end gap-1 sm:gap-1.5" dir="ltr">
                       {[1, 2, 3, 4, 5].map((star) => {
                         const isFilled = star <= (hovered || rating);
                         return (
@@ -176,7 +176,7 @@ const ReviewsPage = () => {
                             className="focus:outline-none transition-transform hover:scale-110 active:scale-95 p-1"
                           >
                             <Star
-                              className={`w-10 h-10 transition-colors duration-200 ${
+                              className={`w-8 h-8 sm:w-10 sm:h-10 transition-colors duration-200 ${
                                 isFilled ? 'text-amber-400 fill-amber-400 drop-shadow-sm' : 'text-stone-200 fill-stone-100'
                               }`}
                             />

@@ -29,7 +29,7 @@ import VaccineAgentPage from '../pages/VaccineAgentPage'
 import AnimalHealthCasesPage from '../pages/Animals/AnimalHealthCasesPage'
 import HealthCaseDetailPage from '../pages/Animals/HealthCaseDetailPage'
 import ReviewsPage from '../pages/Reviews/ReviewsPage'
-
+import ContactUsPage from '../pages/ContactUs/ContactUsPage'
 import ServicesPage from '../pages/ServicesPage'
 import DiagnosisPage from '../pages/DiagnosisPage'
 
@@ -80,6 +80,9 @@ const AppRoutes = () => {
       {/* Root route renders LandingPage */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/contact" element={<ContactUsPage />} />
+      <Route path="/reviews" element={<ReviewsPage />} />
+      <Route path="/services" element={<ServicesPage />} />
+      <Route path="/diagnosis" element={<DiagnosisPage />} />
 
       {/* Auth Routes */}
       <Route path="/login" element={<Login />} />

@@ -232,7 +232,7 @@ const FarmsPage = () => {
         <div className="bg-white border-b border-stone-200/60 py-10 px-8 shadow-sm">
           <div className="max-w-[1400px] mx-auto w-full flex flex-col sm:flex-row sm:items-center justify-between gap-6">
             <div className="text-right">
-            <h1 className="text-3xl font-black text-stone-900 tracking-tight mb-1.5">المزارع الخاصة بي</h1>
+            <h1 className="text-3xl font-black text-stone-900 tracking-tight mb-4">المزارع الخاصة بي</h1>
             <p className="text-[14px] text-stone-500 font-medium">
               إدارة منشآتك الزراعية، متابعة الإنتاج، والتحكم في القطاعات بصورة احترافية.
             </p>
