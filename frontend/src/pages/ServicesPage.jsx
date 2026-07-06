@@ -1,6 +1,8 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
+import Navbar from '../components/homeComponent/Navbar'
+import Footer from '../components/homeComponent/Footer'
 import cowFieldBg from '../assets/images/cows-field-bg.jpg'
 import {
   LayoutGrid,
@@ -11,6 +13,8 @@ import {
   BellRing,
   MapPin,
   ChevronDown,
+  CheckCircle,
+  HelpCircle,
 } from 'lucide-react'
 
 /*
@@ -18,184 +22,231 @@ import {
   --green:   #2A5C2A  (primary)
   --bg:      #F1F0EA  (light background)
   --neutral: #C3BFB4  (neutral)
-  كل قيمة تانية في الكود ده متولدة من التلات ألوان دول بس
-  عن طريق color-mix() أو rgba أو تدرجات — من غير أي لون جديد.
 */
 
-const SERVICES = [
+const FEATURES = [
   {
-    title: 'إدارة المزارع',
-    description:
-      'تسجيل مزرعتك ومتابعة كل بياناتها وإحصائياتها من مكان واحد بكل سهولة ويسر.',
+    number: '01',
+    title: 'إدارة المزارع والقطعان',
+    description: 'تسجيل مزرعتك وإدارتها بالكامل من مكان واحد لمتابعة أعداد وإحصائيات الثروة الحيوانية.',
+    benefits: [
+      'تنظيم بيانات المزارع المتعددة والوصول إليها بسرعة وسهولة.',
+      'توفير لوحة تحكم ذكية تعرض إحصائيات فورية عن حالة القطيع الصحية والعدد الإجمالي.',
+      'تقليل العمل الإداري الورقي وضمان حفظ البيانات التاريخية للمزرعة بأمان.'
+    ],
+    steps: [
+      'قم بتسجيل الدخول إلى حسابك، ثم توجه إلى صفحة "المزارع" من شريط التنقل.',
+      'اضغط على زر "إضافة مزرعة جديدة" وقم بتعبئة البيانات الأساسية (الاسم، الموقع، المساحة).',
+      'بعد الإضافة، ستظهر لك لوحة التحكم الخاصة بالمزرعة لتتابع كل شيء بشكل فوري.'
+    ],
     icon: LayoutGrid,
-    tint: 'green',
+    badgeColor: '#2A5C2A',
   },
   {
-    title: 'الملفات الطبية للحيوانات',
-    description:
-      'سجل رقمي كامل لكل حيوان يشمل بياناته، سلالته، وتاريخه الصحي بالتفصيل.',
+    number: '02',
+    title: 'السجل الطبي الرقمي للحيوانات',
+    description: 'ملف صحي شامل لكل حيوان يسهل عليك مراجعة تاريخه المرضي وسلالته وإنتاجيته في أي وقت.',
+    benefits: [
+      'ملف كامل يحتوي على السلالة، العمر، الوزن، والوضع الصحي لكل حيوان بشكل منفصل.',
+      'إمكانية مراجعة الفحوصات والتشخيصات السابقة بسرعة لتشخيص أدق.',
+      'متابعة شاملة لتطور الحالة الصحية للحيوان مما يسهل اتخاذ قرارات الإنتاج.'
+    ],
+    steps: [
+      'من لوحة تحكم المزرعة الخاصة بك، انتقل إلى قسم "الحيوانات".',
+      'اضغط على زر "إضافة حيوان جديد" وأدخل رقمه التعريفي وسلالته وعمره الحالي.',
+      'يمكنك الآن استعراض الملف الطبي للحيوان في أي وقت وتعديله أو إضافة سجلات صحية جديدة له.'
+    ],
     icon: ClipboardPlus,
-    tint: 'neutral',
+    badgeColor: '#C3BFB4',
   },
   {
-    title: 'متابعة التطعيمات',
-    description:
-      'جدولة التطعيمات الدورية وتنبيهات المواعيد أولاً بأول لحماية قطيعك من الأوبئة.',
+    number: '03',
+    title: 'مستشار اللقاحات وتتبع التطعيمات',
+    description: 'نظام ذكي لجدولة اللقاحات الدورية للحيوانات وحمايتها من الأوبئة الموسمية والعدوى.',
+    benefits: [
+      'حماية القطيع من الأوبئة مثل الحمى القلاعية والجدري بفضل الجدولة المنظمة.',
+      'تحديد البرامج التحصينية الدقيقة لكل نوع من أنواع الحيوانات.',
+      'تلقي تنبيهات استباقية بالجرعات المستحقة لمنع إغفال أي تطعيم.'
+    ],
+    steps: [
+      'ادخل إلى قسم "مستشار اللقاحات" من القائمة الرئيسية.',
+      'اختر نوع الحيوان (أبقار، أغنام، إلخ) والبرنامج التحصيني المطلوب.',
+      'قم بجدولة المواعيد وتوزيع الجرعات على قطيعك لتسجيلها وتلقي إشعارات بها عند الاستحقاق.'
+    ],
     icon: Syringe,
-    tint: 'green',
+    badgeColor: '#2A5C2A',
   },
   {
-    title: 'التشخيص الذكي بالـ AI',
-    description:
-      'وصف الأعراض لنموذج الذكاء الاصطناعي واحصل على تشخيص أولي فوري مربوط بملف الحيوان.',
+    number: '04',
+    title: 'التشخيص الذكي بالذكاء الاصطناعي (AI)',
+    description: 'تحليل فوري للأعراض بالذكاء الاصطناعي للحصول على تشخيص مبكر وإرشادات علاجية أولية.',
+    benefits: [
+      'تشخيص أولي فوري يوفر الوقت والجهد في الحالات غير الحرجة.',
+      'دعم اتخاذ القرار البيطري وتقديم إرشادات إسعافية للحيوان.',
+      'الربط التلقائي للتشخيص بملف الحيوان الطبي للرجوع إليه مستقبلاً.'
+    ],
+    steps: [
+      'توجه إلى صفحة "التشخيص الذكي بالـ AI" من لوحة التحكم.',
+      'اختر الحيوان الذي تظهر عليه الأعراض، ثم اكتب تفاصيل الأعراض التي تلاحظها بدقة.',
+      'يمكنك أيضاً رفع صورة للأعراض الظاهرة (كالأمراض الجلدية)، ثم اضغط "تحليل" لتلقي التقرير الطبي فوراً.'
+    ],
     icon: Brain,
-    tint: 'neutral',
+    badgeColor: '#C3BFB4',
   },
   {
-    title: 'مساعد الأونبوردنج الذكي',
-    description:
-      'شات بوت ذكي يسألك عن تاريخ حيوانك الطبي ويسجل البيانات ويفهرسها نيابة عنك.',
+    number: '05',
+    title: 'مساعد الأونبوردنج والشات بوت التفاعلي',
+    description: 'مساعد رقمي بيطري تفاعلي يسهل إدخال البيانات ويجيب على تساؤلاتك بشكل فوري.',
+    benefits: [
+      'تسهيل إدخال وتحديث البيانات الطبية للحيوانات دون الحاجة لملء استمارات طويلة.',
+      'الحصول على إجابات سريعة حول كيفية استخدام المنصة أو النصائح البيطرية العامة.',
+      'تحسين تجربة الاستخدام من خلال التوجيه الصوتي أو الكتابي التفاعلي.'
+    ],
+    steps: [
+      'اضغط على أيقونة المساعد الذكي (الدردشة) الموجودة في أسفل الشاشة أو في القائمة.',
+      'اكتب استفسارك أو أخبره بالبيانات التي تود إضافتها (مثال: "سجل بقرة جديدة رقمها 105").',
+      'سيقوم المساعد بفهم طلبك، وتنفيذ الإجراء تلقائياً أو إرشادك للخطوات المطلوبة.'
+    ],
     icon: Bot,
-    tint: 'green',
+    badgeColor: '#2A5C2A',
   },
   {
-    title: 'إشعارات فورية',
-    description:
-      'تنبيهات لحظية على هاتفك أو حاسوبك بأي حالة صحية طارئة أو موعد تطعيم أو نتيجة تشخيص.',
+    number: '06',
+    title: 'نظام الإشعارات والإنذار المبكر',
+    description: 'تنبيهات فورية ومباشرة تصلك لحمايتك من الأوبئة والتنبيه بمواعيد التطعيمات والحالات الحرجة.',
+    benefits: [
+      'عدم تفويت أي موعد تطعيم أو زيارة بيطرية مجدولة.',
+      'إنذار مبكر عند تسجيل بؤر وبائية في منطقتك الجغرافي لحماية مزرعتك.',
+      'إشراك الفريق الطبي في المزرعة لحظة بلحظة بأي تطورات صحية.'
+    ],
+    steps: [
+      'تأكد من تفعيل إذن الإشعارات في المتصفح أو على هاتفك عند طلب المنصة.',
+      'ستتلقى تنبيهات في شريط التنقل العلوي وعند حدوث أي حالة طارئة أو اقتراب موعد تطعيم.',
+      'يمكنك زيارة صفحة "الإشعارات" لاستعراض سجل التنبيهات السابقة وإدارتها بالكامل.'
+    ],
     icon: BellRing,
-    tint: 'neutral',
+    badgeColor: '#C3BFB4',
   },
   {
-    title: 'أقرب عيادة بيطرية',
-    description:
-      'البحث عن أقرب العيادات البيطرية والأطباء المتاحين لموقعك الجغرافي في ثوانٍ معدودة.',
+    number: '07',
+    title: 'البحث عن عيادات وأطباء بيطريين',
+    description: 'العثور على أقرب الأطباء والخدمات البيطرية المتاحة حولك لتوفير التدخل الطبي السريع.',
+    benefits: [
+      'الاستجابة السريعة في حالات الطوارئ التي تتطلب حضور الطبيب للمزرعة.',
+      'توفير معلومات الاتصال الكاملة والموقع الجغرافي للعيادات القريبة.',
+      'ضمان جودة الرعاية بفضل الأطباء المرخصين المسجلين في المنصة.'
+    ],
+    steps: [
+      'توجه إلى صفحة "البحث عن عيادة بيطرية" من القائمة الرئيسية.',
+      'اسمح للمنصة بالوصول إلى موقعك الجغرافي لتحديد محيطك بدقة.',
+      'ستظهر لك خريطة وقائمة بالعيادات والأطباء القريبين مع إمكانية الاتصال المباشر بهم.'
+    ],
     icon: MapPin,
-    tint: 'green',
+    badgeColor: '#2A5C2A',
   },
 ]
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.09 } },
-}
-const cardVariants = {
-  hidden: { opacity: 0, y: 26 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+// Animations
+const sectionVariants = {
+  hidden: { opacity: 0, y: 40 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
 }
 
-const greenBackgroundVariants = {
-  hidden: { opacity: 1 },
-  visible: {
-    opacity: 0,
-    transition: { duration: 2, ease: 'easeInOut', delay: 0.3 },
-  },
-}
-
-const textRevealVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.8, ease: 'easeOut', delay: 0.5 + i * 0.15 },
-  }),
+const headerTextVariants = {
+  hidden: { opacity: 0, y: -20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: 'easeOut' } },
 }
 
 export default function ServicesPage() {
-  const reduceMotion = useReducedMotion()
-
   return (
     <div
       className="min-h-screen font-cairo text-[#20301f]"
       style={{ backgroundColor: '#F1F0EA' }}
       dir="rtl"
     >
-      {/* الهيرو: مثلثين متشابكين — أخضر فيه الكلام، وصورة البقرة */}
-      <section className="relative overflow-hidden min-h-[520px] md:min-h-[580px]">
-        <motion.div
-          variants={greenBackgroundVariants}
-          initial="hidden"
-          animate="visible"
-          className="absolute inset-0 z-[2] flex items-center max-md:static max-md:block max-md:pt-14 max-md:pb-7 max-md:px-5"
-          style={{
-            clipPath: 'polygon(60% 0, 100% 0, 100% 100%, 60% 100%, 40% 50%)',
-            background:
-              'linear-gradient(160deg, color-mix(in srgb, #2A5C2A 60%, black 40%) 0%, #2A5C2A 100%)',
-          }}
-        >
-          <div className="relative z-[3] w-full md:w-[44%] md:mr-0 md:ms-auto md:pe-[6%] md:ps-[4%] text-center md:text-right">
-            <motion.span
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="inline-block text-[11px] sm:text-xs font-bold tracking-wide rounded-full px-4 py-1.5"
-              style={{
-                color: 'color-mix(in srgb, #F1F0EA 90%, #2A5C2A 10%)',
-                background: 'rgba(241,240,234,0.12)',
-                border: '1px solid rgba(241,240,234,0.2)',
-              }}
-            >
-              خدماتنا
-            </motion.span>
+      <Navbar />
 
-            <motion.h1
-              custom={0}
-              variants={textRevealVariants}
-              initial="hidden"
-              animate="visible"
-              className="text-2xl sm:text-3xl md:text-[34px] font-black tracking-tight text-white leading-[1.2] mt-4 mb-3"
-            >
-              كل اللي محتاجه لرعاية قطيعك <br />
-              <span style={{ color: '#F1F0EA' }}>في مكان واحد</span>
-            </motion.h1>
-
-            <motion.p
-              custom={1}
-              variants={textRevealVariants}
-              initial="hidden"
-              animate="visible"
-              className="text-sm leading-relaxed font-medium"
-              style={{ color: '#F1F0EA' }}
-            >
-              منصتك الذكية للسيطرة الكاملة على صحة قطيعك — تشخيص فوري بالذكاء
-              الاصطناعي، متابعة تطعيمات أول بأول، وقرارات أسرع تقلل خسائرك قبل
-              ما تحصل.
-            </motion.p>
-
-            <motion.div
-              animate={reduceMotion ? {} : { y: [0, 8, 0] }}
-              transition={{
-                duration: 1.8,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-              className="pt-5 flex justify-center md:justify-end"
-              style={{ color: 'rgba(241,240,234,0.55)' }}
-            >
-              <ChevronDown className="w-5 h-5" />
-            </motion.div>
-          </div>
-        </motion.div>
-
+      {/* الهيرو: دليل الاستخدام الشامل */}
+      <section className="relative overflow-hidden min-h-[500px] md:min-h-[580px] bg-[#F1F0EA]">
+        {/* الخلفية الخضراء المقصوصة - للديسك توب فقط */}
         <div
-          className="absolute inset-0 z-[1] max-md:static max-md:h-[200px]"
-          style={{ clipPath: 'polygon(0 0, 60% 0, 40% 50%, 60% 100%, 0 100%)' }}
+          className="hidden md:block absolute inset-0 z-[1]"
+          style={{
+            clipPath: 'polygon(60% 0, 100% 0, 100% 100%, 60% 100%, 50% 50%)',
+            background:
+              'linear-gradient(165deg, #1e3f1e 0%, #2A5C2A 50%, #3d7c3d 100%)',
+          }}
+        />
+
+        {/* خلفية الصورة المقصوصة - للديسك توب فقط */}
+        <div
+          className="hidden md:block absolute inset-0 z-[0]"
+          style={{
+            clipPath: 'polygon(0 0, 60% 0, 50% 50%, 60% 100%, 0 100%)',
+          }}
         >
           <img
             src={cowFieldBg}
             alt="مزرعة أبقار"
-            className="w-full h-full object-cover block"
+            className="w-full h-full object-cover"
           />
           <div
-            className="absolute inset-0"
-            style={{
-              background:
-                'linear-gradient(135deg, color-mix(in srgb, #2A5C2A 30%, transparent) 0%, transparent 55%)',
-            }}
+            className="absolute inset-0 bg-gradient-to-r from-[#2A5C2A]/30 to-transparent"
           />
         </div>
 
+        {/* محتوى الهيرو المتجاوب */}
+        <div className="relative z-[10] max-w-7xl mx-auto px-6 h-full min-h-[500px] md:min-h-[580px] grid grid-cols-1 md:grid-cols-12 items-center gap-8">
+          
+          {/* الجانب الأيمن: نصوص العرض والتقديم */}
+          <div className="md:col-start-2 md:col-span-4 flex flex-col justify-center text-center md:text-right text-white max-md:bg-[#2A5C2A] max-md:p-8 max-md:rounded-[32px] max-md:shadow-xl max-md:mt-8">
+            <motion.div
+              variants={headerTextVariants}
+              initial="hidden"
+              animate="visible"
+              className="space-y-7"
+            >
+              <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-xs font-bold text-stone-100 self-center md:self-start w-fit mx-auto md:mx-0">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                دليل الاستخدام التفاعلي
+              </div>
+
+              <h1 className="text-2xl sm:text-3xl md:text-[38px] font-black leading-[1.5] text-white">
+                كيف تستخدم منصة <br />
+                <span className="text-[#d8f3d8] drop-shadow-sm">رعاية الماشية الذكية؟</span>
+              </h1>
+
+              <p className="text-sm md:text-base leading-relaxed text-stone-200 font-medium">
+                مرحباً بك في دليل المنصة الشامل. تم تصميم هذا القسم خصيصاً لمساعدتك في التعرف على كيفية تفعيل كافة المميزات والأدوات الطبية والذكية للمشروع خطوة بخطوة لتحقيق الاستفادة القصوى لقطيعك.
+              </p>
+
+              <div className="pt-4 flex flex-wrap justify-center md:justify-start gap-4">
+                <a
+                  href="#features-guide"
+                  className="px-6 py-3 bg-white text-[#2A5C2A] font-bold rounded-2xl shadow-lg hover:bg-[#F1F0EA] hover:scale-105 active:scale-95 transition-all text-sm flex items-center gap-2"
+                >
+                  تصفح الدليل الآن
+                  <ChevronDown className="w-4 h-4" />
+                </a>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* الجانب الأيسر: الصورة (يظهر فقط في الموبايل تحت النص كعنصر مستقل) */}
+          <div className="md:hidden w-full h-[250px] rounded-[32px] overflow-hidden shadow-lg relative mb-8">
+            <img
+              src={cowFieldBg}
+              alt="مزرعة أبقار"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+          </div>
+
+        </div>
+
+        {/* فاصل متموج سفلي */}
         <svg
-          className="absolute bottom-0 left-0 w-full h-16 sm:h-20 md:h-24 z-[4] max-md:-mt-1"
+          className="absolute bottom-0 left-0 w-full h-12 sm:h-16 md:h-20 z-[5]"
           viewBox="0 0 1440 120"
           preserveAspectRatio="none"
         >
@@ -206,84 +257,113 @@ export default function ServicesPage() {
         </svg>
       </section>
 
-      {/* شبكة الخدمات */}
-      <section className="relative max-w-6xl mx-auto px-4 sm:px-6 py-16 md:py-20">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.05]"
-          style={{
-            backgroundImage:
-              'repeating-linear-gradient(135deg, #2A5C2A 0, #2A5C2A 1px, transparent 1px, transparent 22px)',
-          }}
-        />
+      {/* قسم الإرشاد والتوضيح */}
+      <section id="features-guide" className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
+        <div className="text-center max-w-2xl mx-auto mb-20">
+          <span className="text-[#2A5C2A] font-bold text-xs uppercase tracking-wider bg-stone-200/60 px-4 py-1.5 rounded-full border border-stone-300/40">
+            خطوة بخطوة نحو الرعاية الذكية
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-black text-[#20301f] mt-4 mb-3">
+            دليل تشغيل الميزات والخدمات
+          </h2>
+          <p className="text-stone-600 text-sm leading-relaxed">
+            استعرض الميزات الأساسية للمنصة أدناه للتعرف على الغرض من كل ميزة وكيفية تفعيلها للبدء الفوري في إدارة شؤون مزرعتك.
+          </p>
+        </div>
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-80px' }}
-          className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6"
-        >
-          {SERVICES.map((service, index) => {
-            const IconComponent = service.icon
-            const isGreen = service.tint === 'green'
-            const iconBg = isGreen
-              ? 'color-mix(in srgb, #2A5C2A 10%, transparent)'
-              : 'color-mix(in srgb, #C3BFB4 45%, transparent)'
-            const iconColor = isGreen
-              ? '#2A5C2A'
-              : 'color-mix(in srgb, #2A5C2A 65%, #C3BFB4 35%)'
-
+        {/* قائمة الميزات - كل ميزة سيكشن مستقل ثنائي الأعمدة */}
+        <div className="space-y-24">
+          {FEATURES.map((feature, index) => {
+            const Icon = feature.icon
             return (
-              <motion.div
+              <motion.section
                 key={index}
-                variants={cardVariants}
-                whileHover={reduceMotion ? {} : { y: -6, scale: 1.015 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
-                style={{
-                  '--accent-soft':
-                    'color-mix(in srgb, #2A5C2A 12%, transparent)',
-                  '--accent-border':
-                    'color-mix(in srgb, #2A5C2A 30%, transparent)',
-                  '--accent-line': '#2A5C2A',
-                  backgroundColor: 'color-mix(in srgb, #F1F0EA 40%, white 60%)',
-                  borderColor: 'color-mix(in srgb, #C3BFB4 45%, transparent)',
-                  backdropFilter: 'blur(6px)',
-                }}
-                className="group relative overflow-hidden rounded-[26px] border p-6 sm:p-7 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.08)] transition-all duration-300 hover:shadow-[0_24px_44px_-18px_rgba(0,0,0,0.18)] hover:border-[var(--accent-border)] before:content-[''] before:absolute before:inset-x-0 before:bottom-0 before:h-0 before:bg-[var(--accent-soft)] before:transition-[height] before:duration-500 before:ease-out group-hover:before:h-full after:content-[''] after:absolute after:top-0 after:right-1/2 after:left-1/2 after:h-[3px] after:bg-[var(--accent-line)] after:transition-all after:duration-500 after:ease-out group-hover:after:right-0 group-hover:after:left-0"
+                variants={sectionVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: '-100px' }}
+                className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-stretch border-b border-stone-300/40 pb-16 last:border-0"
               >
-                <div className="relative z-10 flex flex-col items-start gap-4">
-                  <div
-                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3"
-                    style={{ backgroundColor: iconBg, color: iconColor }}
-                  >
-                    <IconComponent className="w-6 h-6 sm:w-7 sm:h-7" />
-                  </div>
-                  <div className="space-y-2">
-                    <h3
-                      className="font-black text-base sm:text-lg"
-                      style={{ color: '#20301f' }}
+                {/* العمود الأيمن: اسم الفيتشر */}
+                <div className="lg:col-span-5 flex flex-col justify-center space-y-4">
+                  <div className="flex items-center gap-4">
+                    <span className="text-4xl sm:text-5xl font-black text-[#2A5C2A]/20 font-mono">
+                      {feature.number}
+                    </span>
+                    <div
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md text-white"
+                      style={{ backgroundColor: '#2A5C2A' }}
                     >
-                      {service.title}
-                    </h3>
-                    <p
-                      className="text-sm leading-relaxed font-medium"
+                      <Icon className="w-6 h-6" />
+                    </div>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-black text-[#20301f]">
+                    {feature.title}
+                  </h3>
+                  <p className="text-stone-600 text-sm leading-relaxed font-medium">
+                    {feature.description}
+                  </p>
+
+                  <div className="pt-2">
+                    <span
+                      className="inline-block text-[11px] font-bold px-3 py-1 rounded-full border"
                       style={{
-                        color: 'color-mix(in srgb, #20301f 70%, #C3BFB4 30%)',
+                        borderColor: '#2A5C2A',
+                        color: '#2A5C2A',
+                        backgroundColor: 'rgba(42, 92, 42, 0.05)',
                       }}
                     >
-                      {service.description}
-                    </p>
+                      ميزة أساسية
+                    </span>
                   </div>
                 </div>
-              </motion.div>
+
+                {/* العمود الأيسر: الفائدة وكيفية الاستخدام */}
+                <div className="lg:col-span-7 bg-white/60 backdrop-blur-sm rounded-[32px] border border-stone-200/50 p-6 sm:p-8 flex flex-col justify-between shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_35px_-15px_rgba(0,0,0,0.08)] transition-all duration-300">
+                  <div className="space-y-6">
+                    {/* الفوائد */}
+                    <div>
+                      <h4 className="text-sm font-black text-[#20301f] flex items-center gap-2 mb-3">
+                        <CheckCircle className="w-4 h-4 text-[#2A5C2A]" />
+                        الفوائد والمميزات:
+                      </h4>
+                      <ul className="space-y-2 text-stone-600 text-xs sm:text-sm leading-relaxed pr-6 list-disc list-outside marker:text-[#2A5C2A]">
+                        {feature.benefits.map((benefit, i) => (
+                          <li key={i}>{benefit}</li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* كيفية الاستخدام */}
+                    <div>
+                      <h4 className="text-sm font-black text-[#20301f] flex items-center gap-2 mb-3">
+                        <HelpCircle className="w-4 h-4 text-[#2A5C2A]" />
+                        طريقة الاستخدام وتفعيل الميزة:
+                      </h4>
+                      <div className="space-y-3">
+                        {feature.steps.map((step, i) => (
+                          <div key={i} className="flex gap-3 items-start">
+                            <span className="w-5 h-5 rounded-full bg-stone-200 text-[#20301f] text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
+                              {i + 1}
+                            </span>
+                            <p className="text-stone-600 text-xs sm:text-sm leading-relaxed">
+                              {step}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.section>
             )
           })}
-        </motion.div>
+        </div>
       </section>
 
       {/* الـ CTA الختامي */}
       <section
-        className="relative mt-4 mx-4 sm:mx-6 mb-16 md:mb-24 rounded-[28px] sm:rounded-[36px] overflow-hidden"
+        className="relative mt-12 mx-4 sm:mx-6 mb-16 md:mb-24 rounded-[28px] sm:rounded-[36px] overflow-hidden"
         style={{
           background:
             'linear-gradient(135deg, color-mix(in srgb, #2A5C2A 55%, black 45%), #2A5C2A)',
@@ -301,14 +381,13 @@ export default function ServicesPage() {
           className="relative z-10 max-w-xl mx-auto text-center text-white px-6 py-14 sm:py-16 space-y-5"
         >
           <h2 className="text-xl sm:text-2xl md:text-3xl font-black">
-            ابدأ في إدارة وتأمين قطيعك اليوم
+            جاهز لإدارة قطيعك باحترافية؟
           </h2>
           <p
             className="text-sm md:text-base leading-relaxed"
             style={{ color: 'rgba(241,240,234,0.75)' }}
           >
-            سجل الآن وانضم لمئات المزارعين الذين يستخدمون الذكاء الاصطناعي
-            لتأمين وحماية ثرواتهم الحيوانية.
+            سجل الآن وابدأ في تفعيل هذه المميزات لحماية ثروتك الحيوانية وزيادة إنتاجيتك بالذكاء الاصطناعي.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-3">
             <Link
@@ -316,10 +395,10 @@ export default function ServicesPage() {
               className="w-full sm:w-auto px-8 py-3.5 font-bold rounded-2xl shadow-md transition-all active:scale-95 text-center text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
               style={{ backgroundColor: '#F1F0EA', color: '#2A5C2A' }}
             >
-              سجل الآن
+              ابدأ الآن مجاناً
             </Link>
             <Link
-              to="/contact"
+              to="/"
               className="w-full sm:w-auto px-8 py-3.5 font-bold rounded-2xl transition-all active:scale-95 text-center text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
               style={{
                 backgroundColor: 'rgba(241,240,234,0.1)',
@@ -327,11 +406,12 @@ export default function ServicesPage() {
                 color: '#fff',
               }}
             >
-              تواصل معنا
+              الرئيسية
             </Link>
           </div>
         </motion.div>
       </section>
+      <Footer />
     </div>
   )
 }

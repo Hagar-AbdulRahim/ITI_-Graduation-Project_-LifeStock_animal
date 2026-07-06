@@ -235,7 +235,7 @@ const NAV_LINKS = [
   },
   {
     id: 'services',
-    label: 'خدماتنا',
+    label: 'كيفية الاستخدام',
     icon: <IconBriefcase />,
     path: '/services',
   },
