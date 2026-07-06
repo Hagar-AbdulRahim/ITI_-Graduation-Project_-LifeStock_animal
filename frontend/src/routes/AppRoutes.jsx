@@ -29,6 +29,7 @@ import VaccineAgentPage from '../pages/VaccineAgentPage'
 import AnimalHealthCasesPage from '../pages/Animals/AnimalHealthCasesPage'
 import HealthCaseDetailPage from '../pages/Animals/HealthCaseDetailPage'
 import ReviewsPage from '../pages/Reviews/ReviewsPage'
+import ContactUsPage from '../pages/ContactUs/ContactUsPage'
 
 import ServicesPage from '../pages/ServicesPage'
 import DiagnosisPage from '../pages/DiagnosisPage'
@@ -126,8 +127,7 @@ const AppRoutes = () => {
         <Route path="ai-assistant" element={<AiAssistantPage />} />
         <Route path="emergencies" element={<EmergencyPage />} />
 
-        <Route path="library" element={<ComingSoon title="المكتبة" />} />
-        <Route path="reports" element={<ComingSoon title="التقارير" />} />
+        
       </Route>
 
       {/* Standalone Animal subpages (with their own custom headers & back buttons) */}
@@ -212,13 +212,15 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/notifications"
-        element={
-          <ProtectedRoute>
-            <NotificationsPage />
-          </ProtectedRoute>
-        }
-      />
+      path="/notifications"
+      element={
+        <ProtectedRoute>
+          <MainLayout />
+        </ProtectedRoute>
+      }
+    >
+      <Route index element={<NotificationsPage />} />
+    </Route>
       <Route
         path="/vaccine-agent"
         element={
@@ -284,7 +286,6 @@ const AppRoutes = () => {
 
       <Route path="/reviews" element={<ReviewsPage />} />
       <Route path="/services" element={<ServicesPage />} />
-      <Route path="/contact" element={<ComingSoon title="تواصل معنا" />} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/farms" replace />} />
