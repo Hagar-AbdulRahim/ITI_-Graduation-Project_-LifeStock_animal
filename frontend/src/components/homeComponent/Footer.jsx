@@ -36,9 +36,9 @@ const Footer = () => {
   ]
 
   return (
-    <footer className="pt-10 pb-6 px-6 bg-[#11331d]" dir="rtl" id="contact">
+    <footer className="pt-8 pb-4 px-6 bg-[#11331d]" dir="rtl" id="contact">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
 
           {/* Column 1: Logo and Description */}
           <div
@@ -65,8 +65,8 @@ const Footer = () => {
             data-aos-delay="100"
             data-aos-once="true"
           >
-            <h3 className="font-bold text-white text-base mb-4">روابط هامة</h3>
-            <ul className="space-y-2.5">
+            <h3 className="font-bold text-white text-base mb-3">روابط هامة</h3>
+            <ul className="space-y-2">
               <li>
                 <button
                   onClick={() => navigate('/')}
@@ -126,8 +126,8 @@ const Footer = () => {
             data-aos-delay="200"
             data-aos-once="true"
           >
-            <h3 className="font-bold text-white text-base mb-4">وسائل التواصل</h3>
-            <ul className="space-y-3 text-sm text-emerald-200/60">
+            <h3 className="font-bold text-white text-base mb-3">وسائل التواصل</h3>
+            <ul className="space-y-2.5 text-sm text-emerald-200/60">
               <li className="flex items-center gap-3">
                 <svg className="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -145,7 +145,7 @@ const Footer = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span>القرية الذكية، مبنى ITI<br/>القاهرة، مصر</span>
+                <span> ITI , جامعة أسيوط </span>
               </li>
             </ul>
           </div>
@@ -158,30 +158,28 @@ const Footer = () => {
             data-aos-delay="300"
             data-aos-once="true"
           >
-            <h3 className="font-bold text-white text-base mb-4">تواصل معنا</h3>
-            <p className="text-sm text-emerald-200/60 leading-relaxed mb-4">
+            <h3 className="font-bold text-white text-base mb-3">تواصل معنا</h3>
+            <p className="text-sm text-emerald-200/60 leading-relaxed mb-3">
               هل لديك سؤال أو تريد معرفة المزيد؟ فريقنا جاهز لمساعدتك في أي وقت.
             </p>
 
             <a
               href="#contact"
-              className="inline-block text-sm font-semibold text-white bg-[#1b4d2c] hover:bg-[#1b4d2c]/80 transition-colors px-4 py-2 rounded-lg mb-4"
+              className="inline-block text-sm font-semibold text-white bg-[#1b4d2c] hover:bg-[#1b4d2c]/80 transition-colors px-4 py-2 rounded-lg mb-6"
             >
               تواصل معنا الآن
             </a>
 
-            {/* Social links with labels */}
-            <div className="space-y-2.5">
+            {/* Social icons in a horizontal row, icons only */}
+            <div className="flex items-center gap-3">
               {socialIcons.map((social) => (
                 <a
                   key={social.name}
                   href={social.href}
-                  className="flex items-center gap-3 text-emerald-200/60 hover:text-white transition-colors group"
+                  aria-label={social.name}
+                  className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/5 border border-white/10 hover:bg-[#1b4d2c] hover:border-[#1b4d2c] transition-all duration-300"
                 >
-                  <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 border border-white/10 group-hover:bg-[#1b4d2c] group-hover:border-[#1b4d2c] transition-all duration-300">
-                    {social.icon}
-                  </span>
-                  <span className="text-sm capitalize">{social.name}</span>
+                  {social.icon}
                 </a>
               ))}
             </div>
@@ -190,7 +188,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-6 border-t flex flex-col md:flex-row items-center justify-between gap-4 border-white/5">
+        <div className="pt-4 border-t flex flex-col md:flex-row items-center justify-between gap-3 border-white/5">
           <p className="text-xs text-center text-emerald-200/40">
             تصميم وتطوير فريق <span className="text-emerald-200/80 font-bold">رعاية</span>
           </p>

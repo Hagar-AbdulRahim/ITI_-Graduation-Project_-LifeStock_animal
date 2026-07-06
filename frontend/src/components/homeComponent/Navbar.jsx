@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { logout } from '../../redux/authSlice'
 import { fetchMyFarms } from '../../redux/farmSlice'
 import toast from 'react-hot-toast'
-
+import logoImg from '../../assets/images/logo.jpg'
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IconGrid        = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>;
 const IconActivity    = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>;
@@ -103,34 +103,20 @@ const Navbar = () => {
         dir="rtl"
         className={`fixed top-0 right-0 left-0 z-50 transition-all duration-300 ${navbarBg}`}
       >
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
+        <div className="max-w-[1400px] mx-auto px-6">
           <div className="flex items-center justify-between h-16">
-            {/* ── Logo ── */}
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2.5 flex-shrink-0 group"
-            >
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1b4d2c] to-[#1b4d2c] flex items-center justify-center shadow-md shadow-green-900/20 group-hover:scale-105 transition-transform">
-                <svg viewBox="0 0 24 24" fill="white" className="w-5 h-5">
-                  <circle cx="8" cy="6" r="1" fill="white" />
-                  <circle cx="16" cy="6" r="1" fill="white" />
-                  <circle
-                    cx="12"
-                    cy="14"
-                    r="7"
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="1.5"
-                  />
-                  <circle cx="9" cy="13" r="1.2" fill="white" />
-                  <circle cx="15" cy="13" r="1.2" fill="white" />
-                </svg>
-              </div>
-              <div className="leading-tight">
-                <p className="text-sm font-bold text-gray-900">رعاية</p>
-              </div>
-            </button>
-
+          {/* ── Logo ── */}
+                                             <button
+                                               onClick={() => navigate('/')}
+                                               className="flex items-center gap-2.5 flex-shrink-0 group"
+                                             >
+                                               <div className="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center shadow-md group-hover:scale-105 transition-transform bg-white/15">
+                                                 <img src={logoImg} alt="رعاية" className="w-full h-full object-cover" />
+                                               </div>
+                                               <div className="leading-tight">
+                                                 <p className="text-sm font-bold text-black">رعاية </p>
+                                               </div>
+                                             </button>
             {/* ── Desktop Nav Links ── */}
             <div className="hidden lg:flex items-center gap-1 overflow-x-auto">
               {NAV_LINKS.map((link) => (
@@ -237,7 +223,7 @@ const Navbar = () => {
 
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="lg:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+                className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
                 aria-label="Toggle menu"
               >
                 {menuOpen ? <IconX /> : <IconMenu />}
@@ -289,7 +275,7 @@ const Navbar = () => {
               {isAuthenticated ? (
                 <button
                   onClick={handleLogout}
-                  className="flex items-center justify-center gap-2 w-full py-3 min-h-[44px] rounded-xl text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
                 >
                   <IconLogout />
                   تسجيل الخروج
@@ -301,7 +287,7 @@ const Navbar = () => {
                       navigate('/login')
                       setMenuOpen(false)
                     }}
-                    className="flex items-center justify-center gap-2 w-full py-3 min-h-[44px] rounded-2xl text-sm font-semibold text-[#1b4d2c] border border-[#2d5a1b]/20 bg-white/80 hover:bg-[#f4f8ef] transition-colors"
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-semibold text-[#1b4d2c] border border-[#2d5a1b]/20 bg-white/80 hover:bg-[#f4f8ef] transition-colors"
                   >
                     <IconLogin />
                     تسجيل الدخول
@@ -311,7 +297,7 @@ const Navbar = () => {
                       navigate('/register')
                       setMenuOpen(false)
                     }}
-                    className="flex items-center justify-center gap-2 w-full py-3 min-h-[44px] rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-[#2d5a1b] via-[#356b24] to-[#4a7b2d] shadow-[0_12px_30px_-16px_rgba(45,90,27,0.55)] transition-all active:scale-95"
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-[#2d5a1b] via-[#356b24] to-[#4a7b2d] shadow-[0_12px_30px_-16px_rgba(45,90,27,0.55)] transition-all active:scale-95"
                   >
                     ابدأ الآن
                   </button>
