@@ -36,7 +36,6 @@ import DiagnosisPage from '../pages/DiagnosisPage'
 
 
 // Dashboard & Layout Pages
-import DashboardPage from '../pages/dashboard/DashboardPage'
 import MainLayout from '../layout/MainLayout'
 import LandingPage from '../pages/Home/LandingPage'
 import AiAssistantPage from '../pages/AiAssistantPage'
@@ -120,8 +119,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
-        {/* Farm overview dashboard */}
-        <Route index element={<DashboardPage />} />
+        {/* Farm overview dashboard removed; redirect to animals list */}
+        <Route index element={<Navigate to="animals" replace />} />
 
         {/* Animals list within the farm dashboard */}
         <Route path="animals" element={<AnimalsListPage />} />
