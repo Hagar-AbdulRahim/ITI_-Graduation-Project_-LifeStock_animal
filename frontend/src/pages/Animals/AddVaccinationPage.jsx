@@ -143,15 +143,11 @@ const AddVaccinationPage = () => {
             <div>
               <h1 className="text-[17px] font-bold text-stone-900">تسجيل تطعيم جديد</h1>
               <p className="text-[11px] text-stone-400 font-medium">
-<<<<<<< Updated upstream
-                إضافة تطعيم للحيوان: <span className="font-semibold text-[#2a5c2a]">#{animal?.tag_number || '...'}</span>
-=======
-                إضافة تطعيم للحيوان:{' '}
-                <span className="font-semibold text-[#2a5c2a]">
-                  {animal?.name || animal?.tag_number || '...'}
-                </span>
->>>>>>> Stashed changes
-              </p>
+              إضافة تطعيم للحيوان:{' '}
+              <span className="font-semibold text-[#2a5c2a]">
+                #{animal?.tag_number || '...'}
+              </span>
+            </p>
             </div>
           </div>
           <span className="text-[12px] text-emerald-700 font-bold bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full flex items-center gap-1.5">
