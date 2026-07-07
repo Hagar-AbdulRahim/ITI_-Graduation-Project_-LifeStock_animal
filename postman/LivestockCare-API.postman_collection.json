@@ -538,6 +538,10 @@
           }
         },
         {
+          "name": "Toggle User Status",
+          "request": { "method": "PUT", "url": "{{baseUrl}}/api/admin/users/{{userId}}/toggle" }
+        },
+        {
           "name": "Delete User",
           "request": { "method": "DELETE", "url": "{{baseUrl}}/api/admin/users/{{userId}}" }
         },
@@ -573,6 +577,27 @@
         {
           "name": "List Consultations",
           "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/consultations?page=1&limit=15" }
+        },
+        {
+          "name": "List Clinics",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/clinics?page=1&limit=50" }
+        },
+        {
+          "name": "Create Clinic",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"عيادة تجريبية\",\n  \"governorate\": \"القاهرة\",\n  \"address\": \"شارع التجربة\",\n  \"phone\": \"01000000000\",\n  \"opening_hours\": \"09:00-17:00\"\n}" },
+            "url": "{{baseUrl}}/api/admin/clinics"
+          }
+        },
+        {
+          "name": "Get Knowledge Stats",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/knowledge/stats" }
+        },
+        {
+          "name": "Rebuild Knowledge Base",
+          "request": { "method": "POST", "url": "{{baseUrl}}/api/admin/knowledge/rebuild" }
         },
         {
           "name": "List Outbreaks",

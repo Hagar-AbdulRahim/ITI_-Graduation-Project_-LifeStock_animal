@@ -50,6 +50,8 @@ import AdminFarmsPage from '../pages/admin/AdminFarmsPage'
 import AdminAnimalsPage from '../pages/admin/AdminAnimalsPage'
 import AdminHealthCasesPage from '../pages/admin/AdminHealthCasesPage'
 import AdminConsultationsPage from '../pages/admin/AdminConsultationsPage'
+import AdminClinicsPage from '../pages/admin/AdminClinicsPage'
+import AdminKnowledgePage from '../pages/admin/AdminKnowledgePage'
 import AdminOutbreaksPage from '../pages/admin/AdminOutbreaksPage'
 import AdminNotificationsPage from '../pages/admin/AdminNotificationsPage'
 
@@ -285,6 +287,8 @@ const AppRoutes = () => {
         <Route path="animals" element={<AdminAnimalsPage />} />
         <Route path="health-cases" element={<AdminHealthCasesPage />} />
         <Route path="consultations" element={<AdminConsultationsPage />} />
+        <Route path="clinics" element={<AdminClinicsPage />} />
+        <Route path="knowledge" element={<AdminKnowledgePage />} />
         <Route path="outbreaks" element={<AdminOutbreaksPage />} />
         <Route path="notifications" element={<AdminNotificationsPage />} />
       </Route>

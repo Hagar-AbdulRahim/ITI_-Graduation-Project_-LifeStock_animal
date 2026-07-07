@@ -5,9 +5,13 @@ const HealthCase    = require("../models/healthCase");
 const Consultation  = require("../models/Consultation");
 const Notification  = require("../models/notification");
 const Vaccination   = require("../models/vaccination");
+const VeterinaryClinic = require("../models/veterinaryClinic");
+const KnowledgeBase = require("../models/knowledgeBase");
 const mongoose      = require("mongoose");
 const { sendNotification } = require("../services/notificationService");
 const { parsePagination, paginatedResponse } = require("../utils/accessControl");
+const { embeddingModel } = require("../config/gemini");
+const { extractKnowledgeBaseChunks } = require("../scripts/ExtractJsonText");
 
 // OutbreakReport — لأن ملف Outbreakreport.js الأساسي نسي المطور يعرّف فيه الـ Schema
 let OutbreakModel;
@@ -116,14 +120,16 @@ const getUserById = async (req, res) => {
     const user = await User.findById(req.params.id).select("-password -email_verification_token -password_reset_otp");
     if (!user) return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
 
-    const [farmsCount, animalsCount] = await Promise.all([
+    const userFarmIds = await Farm.find({ user_id: user._id }).distinct("_id");
+
+    const [farmsCount, animalsCount, consultationsCount, vaccinationsCount] = await Promise.all([
       Farm.countDocuments({ user_id: user._id, is_active: true }),
-      Animal.countDocuments({ is_active: true }).where("farm_id").in(
-        await Farm.find({ user_id: user._id }).distinct("_id")
-      ),
+      Animal.countDocuments({ is_active: true, farm_id: { $in: userFarmIds } }),
+      Consultation.countDocuments({ user_id: user._id }),
+      Vaccination.countDocuments({ animal_id: { $in: await Animal.find({ farm_id: { $in: userFarmIds } }).distinct("_id") } }),
     ]);
 
-    res.json({ success: true, data: { user, farms_count: farmsCount, animals_count: animalsCount } });
+    res.json({ success: true, data: { user, farms_count: farmsCount, animals_count: animalsCount, consultations_count: consultationsCount, vaccinations_count: vaccinationsCount } });
   } catch (err) {
     console.error("getUserById error:", err);
     res.status(500).json({ success: false, message: "خطأ في الخادم" });
@@ -185,6 +191,22 @@ const updateUser = async (req, res) => {
     res.json({ success: true, message: "تم تحديث المستخدم", data: user });
   } catch (err) {
     console.error("updateUser error:", err);
+    res.status(500).json({ success: false, message: "خطأ في الخادم" });
+  }
+};
+
+const toggleUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
+
+    user.is_active = !user.is_active;
+    await user.save();
+
+    console.log(`[AUDIT] Admin ${req.user._id} toggled user ${user._id} to ${user.is_active ? "active" : "inactive"}`);
+    res.json({ success: true, message: user.is_active ? "تم تفعيل المستخدم" : "تم تعطيل المستخدم", data: { is_active: user.is_active } });
+  } catch (err) {
+    console.error("toggleUser error:", err);
     res.status(500).json({ success: false, message: "خطأ في الخادم" });
   }
 };
@@ -434,6 +456,119 @@ const resolveOutbreak = async (req, res) => {
 };
 
 // ════════════════════════════════════════════════════════════════════════════
+// Clinics management
+// ════════════════════════════════════════════════════════════════════════════
+const getClinics = async (req, res) => {
+  try {
+    const { page, limit, skip } = parsePagination(req.query);
+    const filter = { is_active: true };
+    if (req.query.governorate) filter.governorate = req.query.governorate;
+
+    const [clinics, total] = await Promise.all([
+      VeterinaryClinic.find(filter).sort({ governorate: 1, name: 1 }).skip(skip).limit(limit),
+      VeterinaryClinic.countDocuments(filter),
+    ]);
+
+    paginatedResponse(res, clinics, total, page, limit);
+  } catch (err) {
+    console.error("getClinics error:", err);
+    res.status(500).json({ success: false, message: "خطأ في الخادم" });
+  }
+};
+
+const createClinic = async (req, res) => {
+  try {
+    const { name, governorate, address, phone, opening_hours, latitude, longitude } = req.body;
+
+    if (!name || !governorate) {
+      return res.status(400).json({ success: false, message: "اسم العيادة والمحافظة مطلوبان" });
+    }
+
+    const clinic = await VeterinaryClinic.create({
+      name,
+      governorate,
+      address: address || null,
+      phone: phone || null,
+      opening_hours: opening_hours || null,
+      latitude: latitude ? Number(latitude) : null,
+      longitude: longitude ? Number(longitude) : null,
+    });
+
+    res.status(201).json({ success: true, message: "تم إضافة العيادة", data: clinic });
+  } catch (err) {
+    console.error("createClinic error:", err);
+    res.status(500).json({ success: false, message: "خطأ في الخادم" });
+  }
+};
+
+const updateClinic = async (req, res) => {
+  try {
+    const allowed = ["name", "governorate", "address", "phone", "opening_hours", "latitude", "longitude", "is_active"];
+    const updates = {};
+    allowed.forEach((field) => {
+      if (req.body[field] !== undefined) updates[field] = req.body[field];
+    });
+
+    const clinic = await VeterinaryClinic.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true });
+    if (!clinic) return res.status(404).json({ success: false, message: "العيادة غير موجودة" });
+
+    res.json({ success: true, message: "تم تحديث العيادة", data: clinic });
+  } catch (err) {
+    console.error("updateClinic error:", err);
+    res.status(500).json({ success: false, message: "خطأ في الخادم" });
+  }
+};
+
+const deleteClinic = async (req, res) => {
+  try {
+    const clinic = await VeterinaryClinic.findByIdAndUpdate(req.params.id, { is_active: false }, { new: true });
+    if (!clinic) return res.status(404).json({ success: false, message: "العيادة غير موجودة" });
+
+    res.json({ success: true, message: "تم حذف العيادة" });
+  } catch (err) {
+    console.error("deleteClinic error:", err);
+    res.status(500).json({ success: false, message: "خطأ في الخادم" });
+  }
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// Knowledge base management
+// ════════════════════════════════════════════════════════════════════════════
+const rebuildKnowledgeBase = async (req, res) => {
+  try {
+    const chunks = await extractKnowledgeBaseChunks();
+    if (!chunks?.length) {
+      return res.status(400).json({ success: false, message: "لا توجد بيانات جاهزة لإعادة البناء" });
+    }
+
+    await KnowledgeBase.deleteMany({});
+
+    const docs = [];
+    for (const chunk of chunks) {
+      const embedding = await embeddingModel.embedQuery(chunk.text.trim());
+      docs.push({ text: chunk.text, embedding, metadata: { type: chunk.type, source: chunk.source } });
+    }
+
+    await KnowledgeBase.insertMany(docs);
+
+    res.json({ success: true, message: "تم إعادة بناء قاعدة المعرفة", data: { chunks_count: docs.length } });
+  } catch (err) {
+    console.error("rebuildKnowledgeBase error:", err);
+    res.status(500).json({ success: false, message: "خطأ في إعادة البناء", error: err.message });
+  }
+};
+
+const getKnowledgeBaseStats = async (req, res) => {
+  try {
+    const count = await KnowledgeBase.countDocuments({});
+    res.json({ success: true, data: { chunks_count: count } });
+  } catch (err) {
+    console.error("getKnowledgeBaseStats error:", err);
+    res.status(500).json({ success: false, message: "خطأ في الخادم" });
+  }
+};
+
+// ════════════════════════════════════════════════════════════════════════════
 // Notifications
 // ════════════════════════════════════════════════════════════════════════════
 const getNotifications = async (req, res) => {
@@ -550,6 +685,7 @@ module.exports = {
   getUserById,
   createUser,
   updateUser,
+  toggleUser,
   deleteUser,
   getFarms,
   getFarmById,
@@ -561,6 +697,12 @@ module.exports = {
   getOutbreaks,
   createOutbreak,
   resolveOutbreak,
+  getClinics,
+  createClinic,
+  updateClinic,
+  deleteClinic,
+  getKnowledgeBaseStats,
+  rebuildKnowledgeBase,
   getNotifications,
   broadcastNotification,
   getUsersGrowth,

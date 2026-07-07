@@ -56,6 +56,18 @@ export const ADMIN_SIDEBAR_LINKS = [
     icon: 'ai',
   },
   {
+    id: 'clinics',
+    label: 'العيادات',
+    path: '/admin/clinics',
+    icon: 'diagnosis',
+  },
+  {
+    id: 'knowledge',
+    label: 'قاعدة المعرفة',
+    path: '/admin/knowledge',
+    icon: 'ai',
+  },
+  {
     id: 'outbreaks',
     label: 'الفاشيات',
     path: '/admin/outbreaks',

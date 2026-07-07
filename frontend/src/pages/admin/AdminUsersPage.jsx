@@ -57,13 +57,13 @@ export default function AdminUsersPage() {
   };
 
   const handleDeactivate = async (id) => {
-    if (!window.confirm('تعطيل هذا المستخدم؟')) return;
+    if (!window.confirm('تغيير حالة هذا المستخدم؟')) return;
     try {
-      await adminService.deleteUser(id);
-      toast.success('تم التعطيل');
+      await adminService.toggleUser(id);
+      toast.success('تم تحديث حالة المستخدم');
       fetchUsers();
     } catch {
-      toast.error('فشل التعطيل');
+      toast.error('فشل تحديث الحالة');
     }
   };
 
