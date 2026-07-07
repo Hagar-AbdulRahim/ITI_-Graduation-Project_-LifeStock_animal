@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import {
   Bell,
   BellOff,
@@ -9,6 +10,7 @@ import {
   Trash2,
   CheckCircle2,
   Search,
+  ArrowRight,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import {
@@ -61,6 +63,7 @@ const stripEmoji = (str) =>
 /* ─── main ───────────────────────────────────────────────────────────────────── */
 export default function NotificationsPage() {
   const dispatch = useDispatch()
+  const navigate = useNavigate()
   const { items: notifications, loading, error, unread_count } = useSelector(
     (s) => s.notifications
   )
@@ -134,6 +137,16 @@ export default function NotificationsPage() {
 
       {/* Toolbar */}
       <div className="bg-gradient-to-br from-[#2d5a1b] to-[#2a5c2a] rounded-[24px] sm:rounded-[32px] px-4 sm:px-6 py-4 sm:py-5 mb-6 sm:mb-8 shadow-[0_12px_40px_rgba(45,90,27,0.18)] border border-white/10">
+
+        <div className="w-full flex justify-start mb-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-white/90 hover:text-white bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full transition-all text-sm font-bold group border border-white/10"
+          >
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            رجوع
+          </button>
+        </div>
 
         <div className="flex items-center justify-between gap-4 flex-wrap">
 

@@ -12,7 +12,14 @@ const TopNavbar = ({ searchQuery, setSearchQuery }) => {
   const navigate = useNavigate();
   return (
     <header className="bg-white h-16 sm:h-20 border-b border-gray-100 px-4 sm:px-6 lg:px-8 flex items-center justify-between sticky top-0 z-20 font-cairo">
-      <div className="flex-1 max-w-xl">
+      <div className="flex-1 max-w-xl flex items-center gap-3">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-1.5 text-stone-600 hover:text-[#1b4d2c] font-bold text-sm transition-colors group border border-stone-200 px-3 py-2 rounded-full hover:bg-stone-50"
+          title="رجوع"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </button>
         <div className="relative flex items-center w-full max-w-md">
           <Search className="w-4 h-4 text-gray-400 absolute right-4" />
           <input

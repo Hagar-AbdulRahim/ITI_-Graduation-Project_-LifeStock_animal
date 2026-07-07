@@ -23,9 +23,10 @@ import {
   FileSpreadsheet,
   Play,
   Image as ImageIcon,
+  ArrowRight
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-
+import { motion, AnimatePresence } from 'framer-motion';
 // ── Mock Sessions Data ──────────────────────────────────────
 const MOCK_SESSIONS = [];
 
@@ -418,60 +419,89 @@ export default function AiAssistantPage() {
   };
 
   return (
-    <div dir="rtl" className="flex flex-col w-full max-w-4xl mx-auto px-2 sm:px-4 md:px-6 h-[calc(100dvh-64px)] sm:h-[calc(100dvh-120px)] md:h-[calc(100dvh-130px)] min-h-[480px] overflow-hidden font-cairo">
+    <div dir="rtl" className="min-h-screen bg-[#f8f9fa] font-cairo flex flex-col">
       
-      {/* Chat Interface — full width */}
-      <div className="flex-1 flex flex-col h-full bg-white rounded-xl sm:rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+      {/* ─── Hero Section (Contact Us Style) ─── */}
+      <div className="bg-[#1b4d2c] pt-8 pb-32 px-4 md:px-6 relative overflow-hidden shrink-0">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-white opacity-5 rounded-full blur-3xl translate-y-1/4 -translate-x-1/4"></div>
         
-        {/* Chat Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 bg-white border-b border-stone-200 shrink-0">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <span className="relative flex h-3 w-3 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-            </span>
-            <h2 className="text-sm sm:text-base font-bold text-stone-800 truncate">جلسة المساعد الذكي</h2>
+        <div className="max-w-5xl mx-auto relative z-10 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="relative flex h-3.5 w-3.5 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-400 border-2 border-transparent"></span>
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                المساعد البيطري الذكي
+              </h1>
+              <p className="text-green-50/80 text-xs sm:text-sm font-medium mt-0.5">رعاية</p>
+            </div>
           </div>
-          <div className="flex gap-2 text-xs shrink-0">
+
+          <div className="flex gap-2 text-sm shrink-0">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-1.5 text-white/90 hover:text-white bg-white/10 hover:bg-white/20 px-3 sm:px-4 py-2 rounded-full backdrop-blur-sm transition-all font-bold border border-white/5 shadow-sm"
+              title="رجوع"
+            >
+              <ArrowRight className="w-4 h-4" />
+              <span className="hidden sm:inline">رجوع</span>
+            </button>
             <button
               onClick={() => setShowHistoryPanel(true)}
-              className="flex items-center justify-center p-1.5 rounded-lg border border-stone-200 text-stone-600 bg-white hover:bg-stone-50 transition-colors"
+              className="flex items-center gap-1.5 text-white/90 hover:text-white bg-white/10 hover:bg-white/20 px-3 sm:px-4 py-2 rounded-full backdrop-blur-sm transition-all font-bold border border-white/5 shadow-sm"
               title="سجل التشخيصات"
             >
               <History className="w-4 h-4" />
+              <span className="hidden sm:inline">السجل</span>
             </button>
             <button 
               onClick={() => navigate(farmId ? `/farms/${farmId}` : '/farms')}
-              className="flex items-center justify-center p-1.5 rounded-lg border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
-              title="رجوع"
+              className="flex items-center justify-center w-9 h-9 sm:w-auto sm:px-4 py-2 text-white/90 hover:text-white bg-rose-500/80 hover:bg-rose-500 rounded-full transition-all font-bold border border-white/5 shadow-sm"
+              title="إغلاق المساعد"
             >
               <X className="w-4 h-4" />
+              <span className="hidden sm:inline sm:mr-1.5">إغلاق</span>
             </button>
           </div>
         </div>
+      </div>
+
+      {/* ─── Main Chat Container (Overlapping Card) ─── */}
+      <div className="max-w-5xl w-full mx-auto px-3 sm:px-4 md:px-6 -mt-24 pb-8 relative z-20 flex-1 flex flex-col min-h-[500px]">
+        <div className="flex-1 flex flex-col bg-white rounded-[1.5rem] md:rounded-[2rem] shadow-2xl shadow-stone-200 overflow-hidden border border-stone-100">
 
         {/* Message List */}
-        <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 bg-stone-50/50">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8 bg-white">
+          <AnimatePresence>
           {messages.map((msg, index) => {
             const isAi = msg.sender === 'ai';
             return (
-              <div key={msg.id} className="flex flex-col">
-                <div className={`flex gap-2 sm:gap-3 w-full max-w-[90%] md:max-w-[75%] lg:max-w-[70%] ${isAi ? 'self-start' : 'self-end flex-row-reverse'}`}>
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: 'easeOut' }}
+                key={msg.id} 
+                className="flex flex-col"
+              >
+                <div className={`flex gap-3 sm:gap-4 w-full max-w-[92%] md:max-w-[80%] lg:max-w-[75%] ${isAi ? 'self-start' : 'self-end flex-row-reverse'}`}>
                   
                   {/* Icon Block */}
-                  <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ${
-                    isAi ? 'bg-emerald-50 text-[#2d5a1b] border border-emerald-100' : 'bg-blue-100 text-blue-700'
+                  <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm mt-1 ${
+                    isAi ? 'bg-white border border-stone-200 text-[#1b4d2c]' : 'bg-[#1b4d2c] text-white'
                   }`}>
-                    {isAi ? <Bot className="w-4 h-4 sm:w-5 sm:h-5" /> : <User className="w-4 h-4 sm:w-5 sm:h-5" />}
+                    {isAi ? <Bot className="w-5 h-5" /> : <User className="w-5 h-5" />}
                   </div>
 
                   {/* Message Bubble */}
-                  <div className={`p-3 sm:p-4 rounded-2xl shadow-sm leading-relaxed text-xs sm:text-sm min-w-0 ${
+                  <div className={`p-4 sm:p-5 rounded-[24px] shadow-sm leading-relaxed text-sm min-w-0 ${
                     isAi 
-                      ? 'bg-white border border-stone-200 text-stone-800 rounded-tr-none' 
-                      : 'bg-[#2d5a1b] text-white rounded-tl-none font-medium'
+                      ? 'bg-[#f8f9fa] border border-stone-200 text-stone-900 rounded-tr-md shadow-sm' 
+                      : 'bg-[#1b4d2c] text-white rounded-tl-md font-medium shadow-md'
                   }`}>
-                    <p className="whitespace-pre-line">{msg.text}</p>
+                    <p className="whitespace-pre-line leading-loose text-[15px]">{msg.text}</p>
 
                     {isAi && msg.isClarificationQuestion && (
                       <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-bold text-amber-700">
@@ -491,13 +521,13 @@ export default function AiAssistantPage() {
                         <button
                           type="button"
                           onClick={() => toggleMsgMedia(msg.id)}
-                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-colors ${
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all shadow-sm ${
                             isAi
-                              ? 'bg-stone-100 hover:bg-stone-200 text-stone-700'
-                              : 'bg-white/15 hover:bg-white/25 text-white'
+                              ? 'bg-white hover:bg-stone-50 text-stone-700 border border-stone-200'
+                              : 'bg-[#12361e] hover:bg-[#143920] text-white border border-[#1b4d2c]'
                           }`}
                         >
-                          {msg.audioUrl ? <Play className="w-3.5 h-3.5" /> : <ImageIcon className="w-3.5 h-3.5" />}
+                          {msg.audioUrl ? <Play className="w-4 h-4" /> : <ImageIcon className="w-4 h-4" />}
                           <span>
                             {expandedMsgId === msg.id
                               ? 'إخفاء المرفقات'
@@ -510,7 +540,7 @@ export default function AiAssistantPage() {
                         </button>
 
                         {expandedMsgId === msg.id && (
-                          <div className={`space-y-2 p-2 rounded-xl ${isAi ? 'bg-stone-50 border border-stone-200' : 'bg-black/10'}`}>
+                          <div className={`space-y-3 p-3 rounded-2xl border ${isAi ? 'bg-white border-stone-200' : 'bg-[#12361e] border-[#1b4d2c]'}`}>
                             {msg.audioUrl && (
                               <audio controls src={msg.audioUrl} className="w-full h-9 rounded-lg" />
                             )}
@@ -521,7 +551,7 @@ export default function AiAssistantPage() {
                                     <img
                                       src={url}
                                       alt={`صورة ${idx + 1}`}
-                                      className="rounded-lg w-20 h-20 sm:w-24 sm:h-24 object-cover border border-white/20"
+                                      className="rounded-xl w-20 h-20 sm:w-24 sm:h-24 object-cover border border-stone-200 shadow-sm transition-transform hover:scale-105"
                                     />
                                   </a>
                                 ))}
@@ -534,8 +564,8 @@ export default function AiAssistantPage() {
 
                     {/* File attachment label */}
                     {msg.attachment && !msg.audioUrl && !msg.imageUrls?.length && (
-                      <div className="mt-2 flex items-center gap-2 p-2 rounded-lg bg-black/10 text-xs text-white">
-                        <FileSpreadsheet className="w-4 h-4 text-green-200" />
+                      <div className={`mt-2 flex items-center gap-2 p-2 rounded-lg text-xs ${isAi ? 'bg-white border border-stone-200 text-stone-700' : 'bg-[#12361e] text-green-100'}`}>
+                        <FileSpreadsheet className="w-4 h-4" />
                         <span className="truncate">{msg.attachment}</span>
                       </div>
                     )}
@@ -553,32 +583,33 @@ export default function AiAssistantPage() {
                   <div className="flex flex-wrap gap-2 mt-3 mr-8 sm:mr-12">
                     <button
                       onClick={() => handleChipClick('كيف يجب أن أعالج بقرة تعاني من الانتفاخ؟')}
-                      className="text-xs px-3.5 py-2 rounded-full border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 hover:border-[#2d5a1b]/50 transition-colors shadow-sm"
+                      className="text-xs px-4 py-2.5 rounded-full border border-stone-200 bg-white text-stone-700 hover:bg-[#f8f9fa] hover:border-[#1b4d2c]/50 hover:text-[#1b4d2c] transition-all shadow-sm font-bold"
                     >
                       "كيف يجب أن أعالج بقرة تعاني من الانتفاخ؟"
                     </button>
                     <button
                       onClick={() => handleChipClick('تحديث جدول التطعيمات للقطيع (ب).')}
-                      className="text-xs px-3.5 py-2 rounded-full border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 hover:border-[#2d5a1b]/50 transition-colors shadow-sm"
+                      className="text-xs px-4 py-2.5 rounded-full border border-stone-200 bg-white text-stone-700 hover:bg-[#f8f9fa] hover:border-[#1b4d2c]/50 hover:text-[#1b4d2c] transition-all shadow-sm font-bold"
                     >
                       "تحديث جدول التطعيمات للقطيع (ب)."
                     </button>
                   </div>
                 )}
-              </div>
+              </motion.div>
             );
           })}
+          </AnimatePresence>
 
           {/* Typing Indicator */}
           {isTyping && (
-            <div className="flex gap-3 max-w-[90%] md:max-w-[75%] self-start">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-50 text-[#2d5a1b] border border-emerald-100 shadow-sm flex-shrink-0">
+            <div className="flex gap-3 sm:gap-4 max-w-[92%] md:max-w-[80%] self-start">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center bg-white border border-stone-200 text-[#1b4d2c] shadow-sm flex-shrink-0 mt-1">
                 <Bot className="w-5 h-5 animate-pulse" />
               </div>
-              <div className="p-4 rounded-2xl bg-white border border-stone-200 rounded-tr-none shadow-sm flex items-center gap-1.5">
-                <span className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                <span className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                <span className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+              <div className="p-4 sm:p-5 rounded-[20px] bg-[#f8f9fa] border border-stone-200 rounded-tr-md shadow-sm flex items-center gap-1.5 h-[52px]">
+                <span className="w-2 h-2 bg-[#1b4d2c]/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                <span className="w-2 h-2 bg-[#1b4d2c]/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                <span className="w-2 h-2 bg-[#1b4d2c]/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
               </div>
             </div>
           )}
@@ -586,18 +617,19 @@ export default function AiAssistantPage() {
         </div>
 
         {/* Input Bar */}
-        <div className="p-2 sm:p-3 md:p-4 border-t border-stone-200 bg-white shrink-0">
+        <div className="p-4 sm:p-6 bg-white shrink-0 border-t border-stone-100 relative z-10">
+          
           {/* Image attachment badge */}
           {attachedFiles.length > 0 && (
-            <div className="mb-2 flex flex-wrap items-center gap-2 px-3 py-2 rounded-xl bg-stone-100 text-stone-600 text-xs border border-stone-200">
-              <Paperclip className="w-3 h-3 text-stone-500 shrink-0" />
-              <span className="shrink-0">{attachedFiles.length} صورة{attachedFiles.length > 1 ? 'ً' : ''} مرفقة</span>
-              <div className="flex flex-wrap items-center gap-1">
+            <div className="mb-3 flex flex-wrap items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#f8f9fa] text-stone-700 text-sm border border-stone-200 shadow-sm">
+              <Paperclip className="w-4 h-4 text-[#1b4d2c] shrink-0" />
+              <span className="font-bold shrink-0">{attachedFiles.length} صورة{attachedFiles.length > 1 ? 'ً' : ''} مرفقة</span>
+              <div className="flex flex-wrap items-center gap-1.5">
                 {attachedFiles.map((file, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white text-stone-700 border border-stone-200 max-w-[140px] sm:max-w-none">
-                    <span className="truncate">{file.name}</span>
-                    <button onClick={() => setAttachedFiles((prev) => prev.filter((_, i) => i !== idx))} className="text-stone-400 hover:text-stone-600 shrink-0">
-                      <X className="w-3 h-3" />
+                  <span key={idx} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-white text-stone-700 border border-stone-200 shadow-sm max-w-[140px] sm:max-w-none">
+                    <span className="truncate text-xs font-bold">{file.name}</span>
+                    <button onClick={() => setAttachedFiles((prev) => prev.filter((_, i) => i !== idx))} className="text-stone-400 hover:text-red-500 shrink-0 transition-colors">
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </span>
                 ))}
@@ -607,45 +639,45 @@ export default function AiAssistantPage() {
 
           {/* Audio recording badge */}
           {attachedAudio && !isRecording && (
-            <div className="mb-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 text-red-600 text-xs border border-red-200">
-              <Mic className="w-3 h-3" />
-              <span>تسجيل صوتي جاهز للإرسال</span>
-              <button onClick={() => setAttachedAudio(null)} className="text-red-400 hover:text-red-600">
-                <X className="w-3.5 h-3.5" />
+            <div className="mb-3 inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-rose-50 text-rose-700 text-sm border border-rose-200 shadow-sm font-medium">
+              <Mic className="w-4 h-4" />
+              <span>التسجيل الصوتي جاهز للإرسال</span>
+              <button onClick={() => setAttachedAudio(null)} className="text-rose-400 hover:text-rose-600 transition-colors">
+                <X className="w-4 h-4" />
               </button>
             </div>
           )}
 
-          <div className="relative flex items-center bg-stone-50 border border-stone-200 rounded-xl p-1 sm:p-1.5 focus-within:ring-2 focus-within:ring-[#2d5a1b]/20 focus-within:border-[#2d5a1b] transition-all min-h-[44px]">
+          <div className="relative flex items-center bg-[#f8f9fa] border border-stone-200 rounded-2xl p-1.5 sm:p-2 focus-within:ring-4 focus-within:ring-[#1b4d2c]/10 focus-within:border-[#1b4d2c] transition-all min-h-[60px]">
             <input 
               type="text" 
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder="صف الأعراض أو اطلب تقريراً صحياً..."
-              className="flex-1 pr-2 sm:pr-3 pl-[88px] sm:pl-24 py-2 text-xs sm:text-sm bg-transparent outline-none text-stone-800 placeholder:text-stone-400 min-w-0"
+              placeholder="اكتب رسالتك للمساعد الذكي..."
+              className="flex-1 pr-4 sm:pr-6 pl-[110px] sm:pl-32 py-3 text-sm sm:text-base font-bold bg-transparent outline-none text-stone-900 placeholder:text-stone-400 min-w-0"
             />
             
             {/* Action Bar (Left Side) */}
-            <div className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 sm:gap-1.5">
+            <div className="absolute left-1.5 sm:left-2 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2">
               <button 
                 onClick={toggleRecording}
-                className={`p-2 min-w-[36px] min-h-[36px] rounded-lg transition-colors ${
+                className={`p-2 min-w-[44px] min-h-[44px] rounded-xl transition-all flex items-center justify-center ${
                   isRecording 
-                    ? 'bg-red-100 text-red-600 animate-pulse' 
-                    : 'text-stone-400 hover:bg-stone-100 hover:text-stone-600'
+                    ? 'bg-red-50 text-red-500 animate-pulse border border-red-200' 
+                    : 'bg-white text-stone-400 hover:bg-stone-100 hover:text-[#1b4d2c] border border-stone-200 shadow-sm'
                 }`}
                 title="تسجيل صوتي"
               >
-                <Mic className="w-4 h-4" />
+                <Mic className="w-5 h-5" />
               </button>
               
               <button 
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 min-w-[36px] min-h-[36px] rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors"
+                className="p-2 min-w-[44px] min-h-[44px] rounded-xl bg-white text-stone-400 hover:bg-stone-100 hover:text-[#1b4d2c] border border-stone-200 shadow-sm transition-all flex items-center justify-center"
                 title="إرفاق ملف"
               >
-                <Paperclip className="w-4 h-4" />
+                <Paperclip className="w-5 h-5" />
               </button>
               <input 
                 type="file" 
@@ -658,17 +690,18 @@ export default function AiAssistantPage() {
 
               <button 
                 onClick={() => handleSendMessage()}
-                className="p-2 min-w-[36px] min-h-[36px] bg-[#2d5a1b] hover:bg-[#3d6b47] text-white rounded-lg transition-colors flex items-center justify-center shadow-sm active:scale-95"
+                className="p-2 min-w-[48px] min-h-[48px] bg-[#1b4d2c] hover:bg-[#143920] text-white rounded-xl transition-all flex items-center justify-center shadow-md active:scale-95 ml-1"
                 title="إرسال"
               >
-                <Send className="w-4 h-4 transform rotate-180" />
+                <Send className="w-5 h-5 transform rotate-180" />
               </button>
             </div>
           </div>
 
-          <p className="mt-2 text-[10px] sm:text-[11px] text-stone-400 text-center px-2">
-            يمكن لـ LivestockCare AI ارتكاب أخطاء، تحقق دائماً من القرارات الطبية من خلال الملاحظة السريرية.
+          <p className="mt-4 text-[11px] sm:text-xs text-stone-500 font-bold text-center px-2">
+            يمكن لـ رعاية ارتكاب أخطاء، تحقق دائماً من القرارات الطبية من خلال الملاحظة السريرية.
           </p>
+        </div>
         </div>
       </div>
 

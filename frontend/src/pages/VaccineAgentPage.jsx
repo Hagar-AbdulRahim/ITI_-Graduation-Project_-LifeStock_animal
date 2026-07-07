@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
   ArrowRight, Sparkles, Syringe, Clipboard, HelpCircle, 
-  CheckCircle, ArrowLeft, Loader2 
+  CheckCircle, Loader2, Calendar, Shield, Pill
 } from 'lucide-react';
 
 const VaccineAgentPage = () => {
@@ -15,7 +15,6 @@ const VaccineAgentPage = () => {
   const handleGenerate = () => {
     setLoading(true);
     setTimeout(() => {
-      // Logic mapping based on real Egyptian veterinary calendar guidelines
       let list = [];
       if (species === 'cattle') {
         list = [
@@ -65,7 +64,7 @@ const VaccineAgentPage = () => {
             dose: '2 مل تحت الجلد'
           }
         ];
-      } else { // goat
+      } else {
         list = [
           {
             name: 'لقاح طاعون المجترات الصغيرة (PPR)',
@@ -101,147 +100,222 @@ const VaccineAgentPage = () => {
     }, 800);
   };
 
+  const speciesLabel = species === 'cattle' ? 'الأبقار' : species === 'sheep' ? 'الأغنام' : 'الماعز';
+
+  const priorityColor = (priority) => {
+    if (priority.includes('عالية جداً')) return 'bg-red-50 text-red-700 border-red-200';
+    if (priority.includes('عالية')) return 'bg-amber-50 text-amber-700 border-amber-200';
+    return 'bg-blue-50 text-blue-700 border-blue-200';
+  };
+
   return (
-    <div className="min-h-screen bg-[#f5f7f5] font-cairo" dir="rtl">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-20 shadow-sm">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
+    <div className="min-h-screen bg-[#f8f9fa] font-cairo" dir="rtl">
+
+      {/* ─── Hero Section (Contact Us Style) ─── */}
+      <div className="bg-[#1b4d2c] pt-16 pb-36 px-4 md:px-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-white opacity-5 rounded-full blur-3xl translate-y-1/4 -translate-x-1/4"></div>
+
+        <div className="max-w-6xl mx-auto relative z-10 flex flex-col items-center text-center">
+          {/* Back Button */}
+          <div className="w-full flex justify-start mb-8">
+            <Link
+              to="/"
               onClick={() => navigate(-1)}
-              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 transition-colors"
+              className="flex items-center gap-2 text-white/90 hover:text-white bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full backdrop-blur-sm transition-all text-sm font-bold group border border-white/10"
             >
-              <ArrowRight className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="text-[17px] font-bold text-gray-900">مستشار اللقاحات الذكي (Vaccine Agent)</h1>
-              <p className="text-[11px] text-gray-400 font-medium">اقتراحات وجداول اللقاحات المخصصة بواسطة الذكاء الاصطناعي</p>
-            </div>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              رجوع
+            </Link>
           </div>
-          <span className="text-[12px] text-green-700 font-medium bg-green-50 border border-green-100 px-3 py-1 rounded-full flex items-center gap-1.5 animate-pulse">
-            <Sparkles className="w-3.5 h-3.5 text-yellow-500" />
-            مساعد اللقاحات
-          </span>
+
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-4 tracking-tight leading-tight">
+            مستشار اللقاحات الذكي
+          </h1>
+          <p className="text-green-50/80 text-base md:text-lg max-w-2xl mx-auto font-medium leading-relaxed opacity-90 px-2">
+            اقتراحات وجداول لقاحات مخصصة بناءً على نوع الحيوان وعمره بواسطة الذكاء الاصطناعي.
+          </p>
         </div>
       </div>
 
-      <main className="max-w-4xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left Inputs (5 cols) */}
-          <div className="lg:col-span-5 bg-white border border-gray-200 rounded-[24px] p-6 shadow-sm space-y-6">
-            <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
-              <Clipboard className="w-5 h-5 text-[#2a5c2a]" />
-              <h2 className="font-bold text-gray-900 text-sm">تحديد مواصفات الحيوان</h2>
-            </div>
+      {/* ─── Main Content (Overlapping Card) ─── */}
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 -mt-20 pb-16 relative z-20">
+        <div className="bg-white rounded-[1.5rem] md:rounded-[2rem] shadow-2xl shadow-stone-200 overflow-hidden border border-stone-100">
 
-            {/* Species Selector */}
-            <div>
-              <label className="block text-[12px] font-bold text-gray-700 mb-2">نوع الفصيلة</label>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { id: 'cattle', label: '🐄 أبقار' },
-                  { id: 'sheep', label: '🐑 أغنام' },
-                  { id: 'goat', label: '🐐 ماعز' }
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setSpecies(item.id)}
-                    className={`py-3 rounded-xl border text-xs font-bold transition-all text-center ${
-                      species === item.id 
-                        ? 'border-[#2a5c2a] bg-[#2a5c2a]/5 text-[#2a5c2a]' 
-                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+          <div className="flex flex-col lg:flex-row">
 
-            {/* Age Input */}
-            <div>
-              <label className="block text-[12px] font-bold text-gray-700 mb-2">العمر الحالي (بالأشهر)</label>
-              <input
-                type="number"
-                min="1"
-                max="120"
-                value={ageMonths}
-                onChange={(e) => setAgeMonths(Number(e.target.value))}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#2a5c2a]/20 focus:border-[#2a5c2a] transition-all text-center font-bold"
-              />
-            </div>
+            {/* ─── Left Panel: Input (Dark Green) ─── */}
+            <div className="lg:w-[38%] bg-[#12361e] p-6 sm:p-8 lg:p-12 text-white relative overflow-hidden flex flex-col gap-8">
+              {/* Dot Pattern */}
+              <div
+                className="absolute inset-0 opacity-10 pointer-events-none"
+                style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }}
+              ></div>
 
-            <button
-              onClick={handleGenerate}
-              disabled={loading}
-              className="w-full py-3 bg-[#2a5c2a] text-white hover:bg-[#1e4520] rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-75"
-            >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Sparkles className="w-4 h-4 text-yellow-400" />
-              )}
-              استخراج التوصيات الذكية
-            </button>
-          </div>
-
-          {/* Right Output (7 cols) */}
-          <div className="lg:col-span-7 space-y-6">
-            {!recommendations && !loading ? (
-              <div className="bg-white rounded-[24px] border border-gray-200 p-12 text-center text-gray-400 h-full flex flex-col items-center justify-center">
-                <HelpCircle className="w-12 h-12 text-gray-300 mb-3" />
-                <h3 className="font-bold text-gray-700 text-sm">في انتظار إدخال البيانات</h3>
-                <p className="text-xs text-gray-400 mt-1">حدد نوع الحيوان وعمره في الجانب المقابل للحصول على التوصيات واللقاحات المطلوبة.</p>
-              </div>
-            ) : loading ? (
-              <div className="bg-white rounded-[24px] border border-gray-200 p-12 text-center text-gray-400 h-full flex flex-col items-center justify-center">
-                <Loader2 className="w-12 h-12 text-[#2a5c2a] animate-spin mb-3" />
-                <h3 className="font-bold text-gray-700 text-sm">يقوم الوكيل (Agent) بتحليل جدول اللقاحات...</h3>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {/* AI Summary */}
-                <div className="bg-gradient-to-br from-[#2a5c2a] to-[#3d6b47] rounded-[24px] p-6 text-white shadow-sm relative overflow-hidden">
-                  <div className="absolute left-0 top-0 opacity-10">
-                    <Sparkles className="w-32 h-32 text-white" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/10">
+                    <Clipboard className="w-5 h-5 text-green-300" />
                   </div>
-                  <h3 className="font-extrabold text-base mb-2 flex items-center gap-1.5">
-                    <Sparkles className="w-5 h-5 text-yellow-400" />
-                    تحليل الوكيل الذكي
-                  </h3>
-                  <p className="text-xs text-white/95 leading-relaxed font-medium">
-                    {recommendations.aiSummary}
-                  </p>
+                  <h3 className="text-xl font-black text-white">مواصفات الحيوان</h3>
                 </div>
+                <p className="text-green-200/70 text-[14px] leading-relaxed pr-1">
+                  حدد نوع وعمر الحيوان للحصول على جدول التحصينات الأمثل.
+                </p>
+              </div>
 
-                {/* Recommendations list */}
-                <div className="space-y-3">
-                  <h4 className="text-xs font-bold text-gray-500 mr-1">اللقاحات المقترحة والموصى بها:</h4>
-                  {recommendations.list.map((rec, index) => (
-                    <div key={index} className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-3">
-                      <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-gray-100">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4 text-green-600" />
-                          <h4 className="font-extrabold text-gray-900 text-sm">{rec.name}</h4>
-                        </div>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-                          {rec.timing}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-600 leading-relaxed">{rec.notes}</p>
-                      <div className="flex items-center justify-between text-[11px] font-bold text-gray-500 pt-1">
-                        <span>الجرعة الموصى بها: <strong className="text-gray-800">{rec.dose}</strong></span>
-                        <span>أولوية التطعيم: <strong className="text-green-700">{rec.priority}</strong></span>
-                      </div>
-                    </div>
+              {/* Species Selector */}
+              <div className="relative z-10 space-y-3">
+                <label className="text-[13px] font-bold text-green-200/80 block">نوع الفصيلة</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: 'cattle', label: '🐄 أبقار' },
+                    { id: 'sheep',  label: '🐑 أغنام' },
+                    { id: 'goat',   label: '🐐 ماعز'  },
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => { setSpecies(item.id); setRecommendations(null); }}
+                      className={`py-3 rounded-xl border text-xs font-bold transition-all text-center ${
+                        species === item.id
+                          ? 'border-white bg-white/20 text-white shadow-sm'
+                          : 'border-white/20 text-white/70 hover:bg-white/10 hover:text-white'
+                      }`}
+                    >
+                      {item.label}
+                    </button>
                   ))}
                 </div>
               </div>
-            )}
+
+              {/* Age Input */}
+              <div className="relative z-10 space-y-3">
+                <label className="text-[13px] font-bold text-green-200/80 block">العمر الحالي (بالأشهر)</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="120"
+                  value={ageMonths}
+                  onChange={(e) => setAgeMonths(Number(e.target.value))}
+                  className="w-full px-4 py-3.5 bg-white/10 border border-white/20 rounded-xl text-sm text-white font-bold outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all text-center placeholder:text-white/40"
+                />
+              </div>
+
+              {/* Generate Button */}
+              <div className="relative z-10 mt-auto pt-4 border-t border-white/10">
+                <button
+                  onClick={handleGenerate}
+                  disabled={loading}
+                  className="w-full py-4 bg-white text-[#1b4d2c] hover:bg-green-50 rounded-xl text-[15px] font-black transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-75"
+                >
+                  {loading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-5 h-5 text-amber-500" />
+                  )}
+                  {loading ? 'جاري التحليل...' : 'استخراج التوصيات الذكية'}
+                </button>
+              </div>
+            </div>
+
+            {/* ─── Right Panel: Output (White) ─── */}
+            <div className="lg:w-[62%] p-6 sm:p-8 md:p-10 lg:p-12 bg-white">
+
+              {!recommendations && !loading && (
+                <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
+                  <div className="w-20 h-20 bg-stone-50 rounded-full flex items-center justify-center mb-6 border border-stone-200">
+                    <HelpCircle className="w-9 h-9 text-stone-400" />
+                  </div>
+                  <h3 className="text-xl font-black text-stone-900 mb-3">في انتظار إدخال البيانات</h3>
+                  <p className="text-stone-500 text-[15px] max-w-sm leading-relaxed">
+                    حدد نوع الحيوان وعمره في الجانب المقابل للحصول على التوصيات واللقاحات المطلوبة.
+                  </p>
+                </div>
+              )}
+
+              {loading && (
+                <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
+                  <div className="w-20 h-20 bg-stone-50 rounded-full flex items-center justify-center mb-6 border border-stone-200">
+                    <Loader2 className="w-9 h-9 text-[#1b4d2c] animate-spin" />
+                  </div>
+                  <h3 className="text-xl font-black text-stone-900 mb-3">يحلل الذكاء الاصطناعي...</h3>
+                  <p className="text-stone-500 text-[15px]">يقوم بتحليل جدول اللقاحات المناسب لحيوانك</p>
+                </div>
+              )}
+
+              {recommendations && !loading && (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-2xl lg:text-3xl font-black text-stone-900 mb-1">
+                      نتائج التوصيات
+                    </h2>
+                    <p className="text-stone-500 text-[15px]">
+                      جدول تحصينات مخصص لـ <strong className="text-[#1b4d2c]">{speciesLabel}</strong> — عمر {ageMonths} أشهر
+                    </p>
+                  </div>
+
+                  {/* AI Summary */}
+                  <div className="p-5 rounded-[1.25rem] bg-[#1b4d2c] text-white relative overflow-hidden">
+                    <div className="absolute left-0 top-0 opacity-10 pointer-events-none"
+                      style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }}
+                    ></div>
+                    <div className="relative z-10 flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
+                        <Sparkles className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-extrabold text-sm mb-1.5">تحليل الوكيل الذكي</h4>
+                        <p className="text-xs text-white/90 leading-relaxed font-medium">{recommendations.aiSummary}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Vaccine Cards */}
+                  <div className="space-y-3">
+                    <h4 className="text-[13.5px] font-bold text-stone-700">اللقاحات المقترحة والموصى بها:</h4>
+                    {recommendations.list.map((rec, index) => (
+                      <div key={index} className="bg-[#f8f9fa] border border-stone-200 rounded-[1.25rem] p-5 space-y-3 hover:border-[#1b4d2c]/30 hover:shadow-sm transition-all">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="w-8 h-8 rounded-xl bg-white border border-stone-200 flex items-center justify-center shrink-0 shadow-sm">
+                              <CheckCircle className="w-4 h-4 text-[#1b4d2c]" />
+                            </div>
+                            <h4 className="font-extrabold text-stone-900 text-[14px] leading-snug">{rec.name}</h4>
+                          </div>
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border shrink-0 ${priorityColor(rec.priority)}`}>
+                            {rec.priority}
+                          </span>
+                        </div>
+
+                        <p className="text-[13px] text-stone-600 leading-relaxed pr-10">{rec.notes}</p>
+
+                        <div className="flex flex-wrap items-center gap-3 pr-10 pt-1 border-t border-stone-200">
+                          <span className="flex items-center gap-1.5 text-[12px] font-bold text-stone-500">
+                            <Pill className="w-3.5 h-3.5 text-[#1b4d2c]" />
+                            الجرعة: <strong className="text-stone-800">{rec.dose}</strong>
+                          </span>
+                          <span className="flex items-center gap-1.5 text-[12px] font-bold text-stone-500">
+                            <Calendar className="w-3.5 h-3.5 text-[#1b4d2c]" />
+                            التوقيت: <strong className="text-stone-800">{rec.timing}</strong>
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Footer note */}
+                  <div className="pt-2 border-t border-stone-100 flex items-center gap-2 text-[12px] text-stone-400 font-bold">
+                    <Shield className="w-3.5 h-3.5 text-[#1b4d2c]" />
+                    هذه التوصيات تستند إلى إرشادات التحصين البيطرية المصرية الرسمية.
+                  </div>
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };

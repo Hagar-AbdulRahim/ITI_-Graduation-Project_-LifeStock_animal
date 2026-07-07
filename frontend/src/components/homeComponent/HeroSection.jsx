@@ -77,7 +77,13 @@ const HeroSection = () => {
         <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 sm:gap-4 justify-center w-full">
           {/* Main Green Start Button */}
           <button
-            onClick={() => navigate('/login')}
+            onClick={() => {
+              if (isAuthenticated) {
+                navigate(firstFarmId ? `/farms/${firstFarmId}` : '/farms');
+              } else {
+                navigate('/login');
+              }
+            }}
             className="flex items-center justify-center gap-2.5 bg-[#1b4d2c] hover:bg-[#16a34a] text-white font-bold text-sm sm:text-base px-7 sm:px-8 py-3.5 sm:py-4 min-h-[44px] w-full sm:w-auto rounded-full transition-all duration-300 shadow-lg shadow-green-900/30 hover:shadow-xl hover:shadow-green-500/25 cursor-pointer group border border-white/10 hover:border-white/20 backdrop-blur-sm"
           >
             <span>ابدأ التجربة المجانية</span>
@@ -87,13 +93,7 @@ const HeroSection = () => {
           </button>
           {/* Play / Watch Button */}
           <button
-            onClick={() => {
-              if (isAuthenticated) {
-                navigate(firstFarmId ? `/farms/${firstFarmId}/ai-assistant` : '/farms');
-              } else {
-                navigate('/login');
-              }
-            }}
+            onClick={() => navigate('/services')}
             className="flex items-center justify-center gap-2.5 font-bold text-sm sm:text-base px-7 sm:px-8 py-3.5 sm:py-4 min-h-[44px] w-full sm:w-auto rounded-full transition-all duration-300 text-white bg-white/10 backdrop-blur-md border border-white/25 hover:bg-white/20 hover:border-white/40 cursor-pointer shadow-lg shadow-black/10"
           >
             <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-white">

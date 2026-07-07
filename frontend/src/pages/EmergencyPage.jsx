@@ -1,6 +1,7 @@
 // pages/EmergencyPage.jsx
 // صفحة الطوارئ البيطرية — تجيب العيادات القريبة عبر GPS أو المحافظة
 import React, { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   AlertTriangle,
   MapPin,
@@ -13,6 +14,7 @@ import {
   Loader2,
   ChevronDown,
   Check,
+  ArrowRight,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { emergencyChat } from '../services/clinicsService'
@@ -46,6 +48,7 @@ function renderFormattedText(text) {
 }
 
 export default function EmergencyPage() {
+  const navigate = useNavigate()
   // ── الموقع ────────────────────────────────────────────────
   const [location, setLocation]         = useState(null)       // { lat, lng }
   const [locStatus, setLocStatus]       = useState('idle')     // idle | loading | granted | denied
@@ -162,6 +165,13 @@ export default function EmergencyPage() {
 
         {/* Title */}
         <div className="text-right">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-stone-600 hover:text-[#1b4d2c] font-bold text-sm transition-colors mb-4 group"
+          >
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            رجوع
+          </button>
           <h1 className="text-4xl font-black text-[#1e4520] leading-tight">
             طوارئ بيطرية
           </h1>

@@ -77,7 +77,7 @@ const Footer = () => {
               </li>
               <li>
                 <button
-                  onClick={() => navigate('/login')}
+                  onClick={() => navigate('/ai-assistant')}
                   className="text-sm transition-colors text-emerald-200/60 hover:text-white cursor-pointer"
                 >
                   المساعد الذكي
@@ -85,7 +85,7 @@ const Footer = () => {
               </li>
               <li>
                 <button
-                  onClick={() => navigate('/login')}
+                  onClick={() => navigate('/diagnosis')}
                   className="text-sm transition-colors text-emerald-200/60 hover:text-white cursor-pointer"
                 >
                   اكتشاف الأمراض

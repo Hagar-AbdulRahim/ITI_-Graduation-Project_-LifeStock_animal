@@ -3,7 +3,7 @@
 // صفحة التشخيص البيطري بالذكاء الاصطناعي — LivestockCare AI
 // ────────────────────────────────────────────────────────────
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { 
   AlertTriangle, 
   Activity, 
@@ -17,13 +17,15 @@ import {
   Calendar,
   Layers,
   ChevronDown,
-  BookOpen
+  BookOpen,
+  ArrowRight,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import diagnosisAgent from '../services/AiServices/diagnosisِAgent';
 
 export default function DiagnosisPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const animalId = searchParams.get('animalId');
   
   const [species, setSpecies] = useState('cattle');
@@ -92,6 +94,15 @@ export default function DiagnosisPage() {
   return (
     <div dir="rtl" className="max-w-7xl mx-auto font-cairo space-y-6 pb-12">
       
+      {/* ── BACK BUTTON ── */}
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-2 text-stone-600 hover:text-[#1b4d2c] font-bold text-sm transition-colors mb-2 group"
+      >
+        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+        رجوع
+      </button>
+
       {/* ── PAGE HEADER ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
         <div>

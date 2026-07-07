@@ -59,7 +59,7 @@ export default function AiDiagnosisCard({ diagnosisData }) {
   const currentSeverity = severityConfig[severity] || severityConfig.yellow;
 
   return (
-    <div className="flex flex-col gap-4 mt-3 w-full font-cairo" dir="rtl">
+    <div className="flex flex-col gap-4 mt-4 w-full font-cairo" dir="rtl">
       
       {/* Transcribed Text (if audio) */}
       {diagnosisData.transcribed_text && (
@@ -70,7 +70,7 @@ export default function AiDiagnosisCard({ diagnosisData }) {
       )}
 
       {/* Main Diagnosis Header */}
-      <div className={`p-4 rounded-2xl border ${currentSeverity.bg} ${currentSeverity.border} shadow-sm relative overflow-hidden transition-all hover:shadow-md`}>
+      <div className={`p-5 rounded-[20px] border ${currentSeverity.bg} ${currentSeverity.border} shadow-sm relative overflow-hidden transition-all hover:shadow-md`}>
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-2">
             <div className={`p-1.5 rounded-lg bg-white/60 shadow-sm ${currentSeverity.border} border`}>
@@ -95,7 +95,7 @@ export default function AiDiagnosisCard({ diagnosisData }) {
 
       {/* Matched Symptoms */}
       {matched_symptoms && matched_symptoms.length > 0 && (
-        <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm transition-all hover:shadow-md">
+        <div className="bg-white p-5 rounded-[20px] border border-stone-200 shadow-sm transition-all hover:shadow-md">
           <div className="flex items-center gap-2 mb-3 text-stone-800 font-bold text-sm">
             <div className="p-1.5 bg-rose-50 rounded-lg">
               <Thermometer className="w-4 h-4 text-rose-500" />
@@ -114,7 +114,7 @@ export default function AiDiagnosisCard({ diagnosisData }) {
 
       {/* Reasoning */}
       {(reasoning || disease_info) && (
-        <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200 shadow-sm">
+        <div className="bg-[#F9FAF8] p-5 rounded-[20px] border border-stone-200 shadow-sm">
           <h4 className="text-sm font-bold text-stone-800 mb-2">{reasoning ? 'لماذا وصلنا لهذا التشخيص؟' : 'معلومات عن المرض'}</h4>
           <p className="text-xs text-stone-700 leading-relaxed">{reasoning || disease_info}</p>
         </div>
@@ -122,7 +122,7 @@ export default function AiDiagnosisCard({ diagnosisData }) {
 
       {/* Immediate Actions */}
       {immediate_actions && immediate_actions.length > 0 && (
-        <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm transition-all hover:shadow-md">
+        <div className="bg-white p-5 rounded-[20px] border border-stone-200 shadow-sm transition-all hover:shadow-md">
           <div className="flex items-center gap-2 mb-3 text-stone-800 font-bold text-sm">
             <div className="p-1.5 bg-blue-50 rounded-lg">
               <Activity className="w-4 h-4 text-blue-500" />
@@ -144,7 +144,7 @@ export default function AiDiagnosisCard({ diagnosisData }) {
 
       {/* Treatment Summary */}
       {treatmentSummary && (
-        <div className="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100 shadow-sm transition-all hover:shadow-md">
+        <div className="bg-[#e8f3e8] p-5 rounded-[20px] border border-emerald-200 shadow-sm transition-all hover:shadow-md">
           <div className="flex items-center gap-2 mb-3 text-[#2d5a1b] font-bold text-sm">
             <div className="p-1.5 bg-white/60 rounded-lg border border-emerald-100">
                <Stethoscope className="w-4 h-4 text-[#2d5a1b]" />

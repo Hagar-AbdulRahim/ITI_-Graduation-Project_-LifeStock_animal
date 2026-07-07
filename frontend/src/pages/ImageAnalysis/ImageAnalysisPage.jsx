@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   UploadCloud, Camera, X, Zap, AlertTriangle, ShieldAlert, Pill, FileText, 
-  ChevronDown, Search, Check, Loader2, Target, History, Calendar, Activity, Info
+  ChevronDown, Search, Check, Loader2, Target, History, Calendar, Activity, Info, ArrowRight
 } from 'lucide-react';
 import api from '../../services/api';
 
 const ImageAnalysisPage = () => {
+  const navigate = useNavigate();
   // State for form and data
   const [animals, setAnimals] = useState([]);
   const [selectedAnimal, setSelectedAnimal] = useState('');
@@ -141,6 +143,13 @@ const ImageAnalysisPage = () => {
         
         {/* Page Header */}
         <div className="mb-8 text-right">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-stone-600 hover:text-[#1b4d2c] font-bold text-sm transition-colors mb-4 group"
+          >
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            رجوع
+          </button>
           <h1 className="text-[28px] font-bold text-gray-900 leading-tight">تحليل الصور البيطرية بالذكاء الاصطناعي</h1>
           <p className="text-[14px] text-gray-500 font-medium mt-2">
             قم برفع صورة للعلامات السريرية أو الإصابات للحيوان ليقوم محرك الذكاء الاصطناعي بتحليلها وتقديم التوصيات.

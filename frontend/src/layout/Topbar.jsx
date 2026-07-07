@@ -21,7 +21,7 @@ export default function Topbar() {
     <header
       dir="rtl"
       className="hidden lg:flex sticky top-0 z-30 items-center gap-4 px-6 py-3
-                 bg-white/70 backdrop-blur-md border-b border-stone-200 shadow-sm"
+                 bg-[#1b4d2c] border-b border-[#154022] shadow-md"
     >
       {/* User Info */}
       <div className="flex items-center gap-3">
@@ -29,18 +29,16 @@ export default function Topbar() {
           <img
             src={user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000${user.avatar}`}
             alt={user.name}
-            className="w-9 h-9 rounded-lg object-cover shadow-sm"
+            className="w-9 h-9 rounded-lg object-cover shadow-sm border-2 border-white/20"
           />
         ) : (
-          <div className="w-9 h-9 rounded-lg bg-[#2d5a1b] text-white flex items-center justify-center text-sm font-bold shadow-sm">
+          <div className="w-9 h-9 rounded-lg bg-white/20 text-white flex items-center justify-center text-sm font-bold shadow-sm">
             {user?.name?.charAt(0) || 'م'}
           </div>
         )}
         <div className="leading-tight">
-          <p className="text-sm font-semibold text-stone-800">
+          <p className="text-sm font-bold text-white">
             {user?.name || 'المستخدم'}
-
-
           </p>
         </div>
       </div>
@@ -51,11 +49,11 @@ export default function Topbar() {
       {/* Notification Bell */}
       <button
         onClick={() => navigate('/notifications')}
-        className="relative p-2 rounded-lg hover:bg-stone-100 transition-colors"
+        className="relative p-2 rounded-lg hover:bg-white/10 transition-colors"
         title="الإشعارات"
       >
         <svg
-          className="w-5 h-5 text-stone-600"
+          className="w-5 h-5 text-white"
           fill="none"
           stroke="currentColor"
           strokeWidth={2}
@@ -72,17 +70,20 @@ export default function Topbar() {
         )}
       </button>
 
-      {/* Help */}
-      <button className="p-2 rounded-lg hover:bg-stone-100 transition-colors">
+      {/* Home */}
+      <button
+        onClick={() => navigate('/')}
+        className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+        title="الصفحة الرئيسية"
+      >
         <svg
-          className="w-5 h-5 text-stone-600"
+          className="w-5 h-5 text-white"
           fill="none"
           stroke="currentColor"
           strokeWidth={2}
           viewBox="0 0 24 24"
         >
-          <circle cx="12" cy="12" r="10" />
-          <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
         </svg>
       </button>
     </header >

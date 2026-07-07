@@ -1,5 +1,6 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import { motion } from 'framer-motion'
 import Navbar from '../components/homeComponent/Navbar'
 import Footer from '../components/homeComponent/Footer'
@@ -15,6 +16,7 @@ import {
   ChevronDown,
   CheckCircle,
   HelpCircle,
+  ArrowRight,
 } from 'lucide-react'
 
 /*
@@ -158,6 +160,9 @@ const headerTextVariants = {
 }
 
 export default function ServicesPage() {
+  const navigate = useNavigate()
+  const { isAuthenticated } = useSelector((state) => state.auth || {})
+  const [activeFAQ, setActiveFAQ] = React.useState(null)
   return (
     <div
       className="min-h-screen font-cairo text-[#20301f]"
@@ -200,6 +205,15 @@ export default function ServicesPage() {
           
           {/* الجانب الأيمن: نصوص العرض والتقديم */}
           <div className="md:col-start-2 md:col-span-4 flex flex-col justify-center text-center md:text-right text-white max-md:bg-[#2A5C2A] max-md:p-8 max-md:rounded-[32px] max-md:shadow-xl max-md:mt-8">
+            <div className="w-full flex justify-start mb-4">
+              <button
+                onClick={() => navigate(-1)}
+                className="flex items-center gap-2 text-white/90 hover:text-white bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full transition-all text-sm font-bold group border border-white/10"
+              >
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                رجوع
+              </button>
+            </div>
             <motion.div
               variants={headerTextVariants}
               initial="hidden"
@@ -211,12 +225,12 @@ export default function ServicesPage() {
                 دليل الاستخدام التفاعلي
               </div>
 
-              <h1 className="text-2xl sm:text-3xl md:text-[38px] font-black leading-[1.5] text-white">
-                كيف تستخدم منصة <br />
+              <h1 className="text-2xl sm:text-3xl md:text-[38px] font-black text-white flex flex-col gap-3 md:gap-5">
+                <span>كيف تستخدم منصة</span>
                 <span className="text-[#d8f3d8] drop-shadow-sm">رعاية الماشية الذكية؟</span>
               </h1>
 
-              <p className="text-sm md:text-base leading-relaxed text-stone-200 font-medium">
+              <p className="text-sm md:text-base leading-loose text-stone-200 font-medium">
                 مرحباً بك في دليل المنصة الشامل. تم تصميم هذا القسم خصيصاً لمساعدتك في التعرف على كيفية تفعيل كافة المميزات والأدوات الطبية والذكية للمشروع خطوة بخطوة لتحقيق الاستفادة القصوى لقطيعك.
               </p>
 
@@ -266,7 +280,7 @@ export default function ServicesPage() {
           <h2 className="text-2xl sm:text-3xl font-black text-[#20301f] mt-4 mb-3">
             دليل تشغيل الميزات والخدمات
           </h2>
-          <p className="text-stone-600 text-sm leading-relaxed">
+          <p className="text-stone-600 text-sm leading-loose">
             استعرض الميزات الأساسية للمنصة أدناه للتعرف على الغرض من كل ميزة وكيفية تفعيلها للبدء الفوري في إدارة شؤون مزرعتك.
           </p>
         </div>
@@ -300,7 +314,7 @@ export default function ServicesPage() {
                   <h3 className="text-xl sm:text-2xl font-black text-[#20301f]">
                     {feature.title}
                   </h3>
-                  <p className="text-stone-600 text-sm leading-relaxed font-medium">
+                  <p className="text-stone-600 text-sm leading-loose font-medium">
                     {feature.description}
                   </p>
 
@@ -327,7 +341,7 @@ export default function ServicesPage() {
                         <CheckCircle className="w-4 h-4 text-[#2A5C2A]" />
                         الفوائد والمميزات:
                       </h4>
-                      <ul className="space-y-2 text-stone-600 text-xs sm:text-sm leading-relaxed pr-6 list-disc list-outside marker:text-[#2A5C2A]">
+                      <ul className="space-y-2 text-stone-600 text-xs sm:text-sm leading-loose pr-6 list-disc list-outside marker:text-[#2A5C2A]">
                         {feature.benefits.map((benefit, i) => (
                           <li key={i}>{benefit}</li>
                         ))}
@@ -346,7 +360,7 @@ export default function ServicesPage() {
                             <span className="w-5 h-5 rounded-full bg-stone-200 text-[#20301f] text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
                               {i + 1}
                             </span>
-                            <p className="text-stone-600 text-xs sm:text-sm leading-relaxed">
+                            <p className="text-stone-600 text-xs sm:text-sm leading-loose">
                               {step}
                             </p>
                           </div>
@@ -384,14 +398,14 @@ export default function ServicesPage() {
             جاهز لإدارة قطيعك باحترافية؟
           </h2>
           <p
-            className="text-sm md:text-base leading-relaxed"
+            className="text-sm md:text-base leading-loose"
             style={{ color: 'rgba(241,240,234,0.75)' }}
           >
             سجل الآن وابدأ في تفعيل هذه المميزات لحماية ثروتك الحيوانية وزيادة إنتاجيتك بالذكاء الاصطناعي.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-3">
             <Link
-              to="/login"
+              to={isAuthenticated ? '/farms' : '/login'}
               className="w-full sm:w-auto px-8 py-3.5 font-bold rounded-2xl shadow-md transition-all active:scale-95 text-center text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
               style={{ backgroundColor: '#F1F0EA', color: '#2A5C2A' }}
             >

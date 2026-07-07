@@ -23,6 +23,7 @@ import {
   Home,
   StickyNote,
   Bot,
+  ArrowRight,
 } from 'lucide-react'
 import {
   fetchAnimalById,
@@ -190,6 +191,15 @@ export default function AnimalProfilePage() {
       dir="rtl"
       className="max-w-5xl mx-auto px-4 py-6 font-cairo pb-20 space-y-6"
     >
+      {/* ── BACK BUTTON ── */}
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-2 text-stone-600 hover:text-[#1b4d2c] font-bold text-sm transition-colors mb-2 group"
+      >
+        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+        رجوع
+      </button>
+
       {/* ── BREADCRUMB ── */}
       <nav className="flex items-center gap-1.5 text-xs text-gray-400">
         <Link

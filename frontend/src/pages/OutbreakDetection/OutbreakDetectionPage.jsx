@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Share2, Filter, ZoomIn, ZoomOut, Layers, ChevronLeft, 
-  Bell, History, Gavel, Network, Mail, ArrowUpRight
+  Bell, History, Gavel, Network, Mail, ArrowUpRight, ArrowRight
 } from 'lucide-react';
 import { BarChart, Bar, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
 import api from '../../services/api';
 
 const OutbreakDetectionPage = () => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [outbreaks, setOutbreaks] = useState([]);
 
@@ -47,6 +49,13 @@ const OutbreakDetectionPage = () => {
         {/* Page Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div className="text-right">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2 text-stone-600 hover:text-[#1b4d2c] font-bold text-sm transition-colors mb-4 group"
+            >
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              رجوع
+            </button>
             <h1 className="text-[28px] font-black text-gray-900 leading-tight">استخبارات الفاشيات</h1>
             <p className="text-[14px] text-gray-500 font-bold mt-1">
               مراقبة في الوقت الفعلي وتحليل تنبئي للأمن الحيوي.

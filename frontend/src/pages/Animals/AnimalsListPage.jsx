@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  Search, Plus, Upload, Filter,
+  Search, Plus, Upload, Filter, ArrowRight,
   ChevronRight, ChevronLeft, ChevronDown, Loader2, MoreVertical,
   PawPrint, Syringe, HeartPulse, AlertTriangle, CheckCircle,
   CalendarDays, Weight, Dna, Thermometer, X
@@ -341,7 +341,14 @@ useEffect(() => {
 
       <main className="max-w-[1400px] w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 flex-1 flex flex-col">
 
-        {/* Page header removed; controls moved into filter bar */}
+        {/* ── Back Button ───────────────────────────────────────────── */}
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-stone-600 hover:text-[#1b4d2c] font-bold text-sm transition-colors mb-4 group"
+        >
+          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          رجوع
+        </button>
 
         {/* ── Filter Bar ────────────────────────────────────────────── */}
         <div className="bg-white rounded-[20px] px-4 sm:px-6 py-4 border border-gray-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-7">
