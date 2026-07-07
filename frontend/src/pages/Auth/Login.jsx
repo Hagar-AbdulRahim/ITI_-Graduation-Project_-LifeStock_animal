@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Mail, Lock, Eye, EyeOff, X, ArrowLeft, LogIn } from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';
@@ -19,7 +19,12 @@ const Login = () => {
   const [resendLoading, setResendLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { loading } = useSelector((state) => state.auth);
+
+  // لو المستخدم كان جاي من صفحة محمية (زي /ai-assistant أو /vaccine-agent)
+  // رجّعه لنفس الصفحة دي بدل المسار الافتراضي بتاع الـ role
+  const getRedirectPath = (role) => location.state?.from?.pathname || getRoleHomePath(role);
 
   const {
     register,
@@ -32,7 +37,7 @@ const Login = () => {
 
     if (loginUser.fulfilled.match(action)) {
       toast.success('تم تسجيل الدخول بنجاح');
-      navigate(getRoleHomePath(action.payload.user?.role), { replace: true });
+      navigate(getRedirectPath(action.payload.user?.role), { replace: true });
       return;
     }
 
@@ -224,7 +229,7 @@ const Login = () => {
 
                       dispatch(setCredentials(res.data));
                       toast.success("تم تسجيل الدخول بنجاح");
-                      navigate(getRoleHomePath(res.data.user?.role), { replace: true });
+                      navigate(getRedirectPath(res.data.user?.role), { replace: true });
                     } catch (err) {
                       toast.error(
                         err.response?.data?.message ||
