@@ -1,9 +1,11 @@
 /**
  * خدمة البحث عن عيادات/مستشفيات بيطرية قريبة
  * - Geoapify Places API → بيانات أماكن حقيقية (اسم، عنوان، تليفون، ساعات)
- * - Nominatim           → تحويل اسم المحافظة لـ lat/lng (fallback)
+ * - Nominatim           → تحويل اسم المحافظة لـ lat/lng (fallback موقع)
+ * - localVetFallback    → قاعدة بيانات محلية (fallback نتايج) لو Geoapify رجّع فاضي
  */
 const axios = require("axios");
+const { findNearbyFromLocalDB } = require("./localVetFallback");
 
 const USER_AGENT        = "LifeStock-App/1.0 (mariamelwheshiy@gmail.com)";
 const NOMINATIM_URL     = "https://nominatim.openstreetmap.org/search";
@@ -48,8 +50,8 @@ const calculateDistanceKm = (lat1, lng1, lat2, lng2) => {
   return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) * 10) / 10;
 };
 
-// ── Geoapify: البحث عن عيادات بيطرية قريبة ──────────────
-const findNearbyClinics = async ({ lat, lng, radius = DEFAULT_RADIUS }) => {
+// ── Geoapify: البحث عن عيادات بيطرية قريبة (الاستدعاء الفعلي لـ API) ──
+const fetchFromGeoapify = async ({ lat, lng, radius }) => {
   const apiKey = process.env.GEOAPIFY_API_KEY;
 
   if (!apiKey) {
@@ -104,10 +106,29 @@ const findNearbyClinics = async ({ lat, lng, radius = DEFAULT_RADIUS }) => {
     if (status === 401) console.error("GEOAPIFY_API_KEY غلط أو منتهي");
     if (status === 429) console.error("Geoapify rate limit");
     return [];
-    
   }
-  
 };
 
+/**
+ * ── الدالة العامة المستخدمة في الراوتر ──
+ * نفس التوقيع القديم + باراميتر اختياري governorate.
+ * لو Geoapify رجّع فاضي، بترجع لقاعدة البيانات المحلية تلقائياً.
+ */
+const findNearbyClinics = async ({ lat, lng, radius = DEFAULT_RADIUS, governorate }) => {
+  const geoapifyResults = await fetchFromGeoapify({ lat, lng, radius });
+
+  if (geoapifyResults.length > 0) {
+    return geoapifyResults;
+  }
+
+  console.log("Geoapify رجّع فاضي، بندور في قاعدة البيانات المحلية...");
+  try {
+    const localResults = await findNearbyFromLocalDB({ lat, lng, governorate });
+    return localResults;
+  } catch (err) {
+    console.error("local fallback error:", err.message);
+    return [];
+  }
+};
 
 module.exports = { findNearbyClinics, geocodeGovernorate };
