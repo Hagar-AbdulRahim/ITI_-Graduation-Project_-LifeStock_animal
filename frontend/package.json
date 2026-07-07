@@ -14,6 +14,7 @@
     "@hookform/resolvers": "^3.9.1",
     "@react-oauth/google": "^0.13.5",
     "@reduxjs/toolkit": "^2.12.0",
+    "animate.css": "^4.1.1",
     "aos": "^2.3.4",
     "axios": "^1.17.0",
     "framer-motion": "^12.42.2",
@@ -27,8 +28,7 @@
     "react-router": "^6.30.4",
     "react-router-dom": "^6.30.4",
     "recharts": "^2.15.0",
-    "zod": "^3.24.1",
-    "animate.css": "^4.1.1"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",
