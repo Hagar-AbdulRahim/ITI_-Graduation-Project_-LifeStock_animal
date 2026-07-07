@@ -18,6 +18,7 @@ import AddFarmPage from '../pages/Farms/AddFarmPage'
 import AnimalsListPage from '../pages/Animals/AnimalsListPage'
 import AnimalProfilePage from '../pages/AnimalProfilePage'
 import AddAnimalPage from '../pages/Animals/AddAnimalPage'
+import OnboardingChatPage from '../pages/Animals/OnboardingChatPage'
 import EditAnimalPage from '../pages/Animals/EditAnimalPage'
 import AddVaccinationPage from '../pages/Animals/AddVaccinationPage'
 import AddMedicalRecordPage from '../pages/Animals/AddMedicalRecordPage'
@@ -146,6 +147,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <AddAnimalPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/animals/:animalId/onboarding"
+        element={
+          <ProtectedRoute>
+            <OnboardingChatPage />
           </ProtectedRoute>
         }
       />

@@ -66,8 +66,14 @@ const AddAnimalPage = () => {
     if (data.notes) payload.notes = data.notes.trim();
 
     try {
-      await dispatch(addNewAnimal(payload)).unwrap();
-      navigate(actualFarmId ? `/farms/${actualFarmId}/animals` : '/farms');
+      const result = await dispatch(addNewAnimal(payload)).unwrap();
+      // Navigate to onboarding chat page to register medical history
+      const newAnimalId = result?.data?._id || result?._id;
+      if (newAnimalId) {
+        navigate(`/animals/${newAnimalId}/onboarding`);
+      } else {
+        navigate(actualFarmId ? `/farms/${actualFarmId}/animals` : '/farms');
+      }
     } catch (err) {
       // Error shown via Redux state
     }

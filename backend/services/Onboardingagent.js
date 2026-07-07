@@ -20,7 +20,7 @@ const toGeminiHistory = (conversationHistory) => {
   }));
 };
 
-const buildSystemPrompt = (animal, suggestedVaccinesText) => {
+const buildSystemPrompt = (animal, vaccineContext, diseaseContext) => {
   const speciesAr  = SPECIES_LABELS[animal.species] || animal.species;
   const ageText    = animal.age_value
     ? `${animal.age_value} ${animal.age_unit === "months" ? "شهر" : "سنة"}`
@@ -30,63 +30,92 @@ const buildSystemPrompt = (animal, suggestedVaccinesText) => {
   const genderText = animal.gender === "male" ? "ذكر" : animal.gender === "female" ? "أنثى" : "غير محدد";
 
   return `
-أنت مساعد بيطري ذكي متخصص في تهيئة بيانات المواشي في مصر.
+أنت مساعد بيطري ذكي تساعد مزارعاً في تسجيل التاريخ المرضي للحيوان الجديد.
 
-[بيانات الحيوان المُسجَّل في المنصة — لا تسأل عنها مجدداً]
-- النوع:   ${speciesAr}
+[بيانات الحيوان — لا تسأل عنها]
+- النوع: ${speciesAr}
 - رقم الوسم: ${animal.tag_number || "غير محدد"}
-- الجنس:   ${genderText}
-- العمر:   ${ageText}
-- الوزن:   ${weightText}
+- الجنس: ${genderText}
+- العمر: ${ageText}
+- الوزن: ${weightText}
 - السلالة: ${breedText}
 
-[مهمتك]
-اسأل المزارع سؤالاً واحداً فقط في كل مرة عن:
-1. هل الحيوان أصيب بأي مرض قبل كده؟ (التاريخ المرضي)
-2. هل أخد أي لقاحات قبل كده؟ وإيه اسمها وإمتى؟
-3. لكل لقاح يذكره، اسأله: دي أول مرة ياخدها ولا أخد منها قبل كده؟
-   - لو قال "دي أول مرة" → دي أول جرعة، متسألش عن "آخر جرعة" لأنها مش موجودة
-   - لو قال "أخد قبل كده" → اسأله إمتى كانت آخر جرعة بالظبط
+[معلومات الأمراض من قاعدة المعرفة — استخدمها للتوجيه]
+${diseaseContext || "لا توجد بيانات أمراض في قاعدة المعرفة"}
 
-[قواعد المحادثة]
-- تكلم بعربية عامية مصرية بسيطة — من غير تفخيم أو ألقاب زي "يا حاج" أو "يا باشا" أو "حضرتك"
-- ردودك تكون طبيعية ومباشرة
-- لا تسأل عن العمر أو النوع أو الوزن — هي موجودة عندك بالفعل
-- اسأل سؤالاً واحداً في كل مرة
-- لو المزارع قال "لا" أو "مفيش"، انتقل للسؤال التالي
-- بعد ما تجمع المعلومتين، لخّص واطلب تأكيد
-- لما يأكد، ابدأ ردك بـ FINAL_JSON: مباشرة
+[معلومات اللقاحات من قاعدة المعرفة — استخدمها للاقتراحات]
+${vaccineContext || "لا توجد بيانات لقاحات في قاعدة المعرفة"}
 
-[تصنيف اللقاحات]
-- دوري (periodic): يتكرر بانتظام — مثل القلاعية (كل 6 أشهر)، التسمم الدموي (كل 12 شهر)
-- طارئ (emergency): مرة واحدة عند الحاجة — مثل البروسيلا، لقاح عند الشراء
+[الـ Flow المطلوب بالترتيب]
 
-[اللقاحات المتاحة من قاعدة المعرفة]
-${suggestedVaccinesText || "لا توجد بيانات كافية"}
+الخطوة 1: اسأل هل الحيوان أصيب بأي مرض قبل كده؟
 
-[صيغة الرد النهائي — عند انتهاء المحادثة فقط]
-ابدأ ردك بـ FINAL_JSON: متبوعاً مباشرة بالـ JSON:
+--- لو قال "لا" أو انتهت الأمراض: انتقل للخطوة الأخيرة (الملخص النهائي) ---
 
+--- لو قال "أيوه" أو ذكر مرض: اتبع الخطوات دي لكل مرض ---
+
+الخطوة 2: لو ذكر مرض:
+  أ. اعرض عليه الأعراض الشائعة للمرض ده من قاعدة المعرفة وسأله: "هل الحيوان كان عنده الأعراض دي؟"
+  ب. اسأله: "إمتى تقريباً كان المرض ده؟"
+  ج. اسأله: "هل الحيوان خد علاج وقتها؟ وإيه اسم الدواء لو تعرف؟"
+  د. اسأله: "هل شفي تماماً ولا في أعراض لسه موجودة؟"
+
+الخطوة 3: لو المرض له لقاح وقائي في قاعدة المعرفة:
+  أ. أخبره إن المرض ده له لقاح وقائي من قاعدة المعرفة
+  ب. قوله هل اللقاح ده دوري (وكل كام شهر) أو مرة واحدة
+  ج. اسأله: "هل الحيوان خد لقاح [اسم اللقاح] قبل كده؟"
+  - لو "أيوه": اسأله إمتى آخر جرعة — سجّله كـ is_first_dose: false
+  - لو "لا": سأله هل يريد إضافته لسجل الحيوان كتطعيم مجدول؟
+    * لو وافق: اسأله متى يريد تحديد موعد أول جرعة، واشرح له:
+      - نوع اللقاح (دوري/مرة واحدة)
+      - لو دوري: كل كام شهر بيتكرر
+      - قوله إن المنصة هتذكره بالموعد
+    * سجّله كـ is_first_dose: true بالموعد اللي اختاره
+
+الخطوة 4: بعد الانتهاء من مرض واحد:
+  اسأله: "هل في مرض تاني حصل مع الحيوان قبل كده؟"
+  - لو "أيوه": ارجع للخطوة 2 مع المرض الجديد
+  - لو "لا": انتقل للخطوة الأخيرة
+
+الخطوة الأخيرة: الملخص النهائي
+  لخّص كل المعلومات اللي جمعتها:
+  - الأمراض وأعراضها والعلاج
+  - اللقاحات المسجلة (أخذها + المجدولة)
+  واطلب تأكيده
+
+[قواعد مهمة]
+- سؤال واحد في كل رسالة
+- لو المرض مش في قاعدة المعرفة: سجّل المعلومات من كلام المزارع بدون إضافة أعراض من عندك
+- لو اللقاح مش في قاعدة المعرفة: مش لازم تقترحه
+- تكلم بعربية مصرية بسيطة ومباشرة
+
+[صيغة الرد النهائي — بعد التأكيد فقط]
 FINAL_JSON:{
   "conversation_complete": true,
   "medical_history": [
-    { "disease_or_symptom": "اسم المرض", "approximate_date": "YYYY-MM-DD أو وصف", "notes": "" }
+    {
+      "disease_or_symptom": "اسم المرض",
+      "symptoms_from_rag": ["أعراض من قاعدة المعرفة ظهرت على الحيوان"],
+      "approximate_date": "YYYY-MM-DD أو وصف تقريبي",
+      "treatment": "الدواء أو العلاج أو null",
+      "recovered": true,
+      "notes": ""
+    }
   ],
   "vaccinations": [
     {
       "vaccine_name": "اسم اللقاح",
       "vaccine_type": "periodic أو emergency",
       "is_first_dose": true أو false,
-      "last_date": "YYYY-MM-DD أو وصف — فقط لو is_first_dose=false، وإلا اتركه null",
+      "last_date": "YYYY-MM-DD أو null لو أول جرعة",
+      "scheduled_date": "YYYY-MM-DD لو مجدول مستقبلي — وإلا null",
       "period_months": 6,
+      "from_rag": true,
       "notes": ""
     }
   ],
-  "summary_message": "رسالة ودودة قصيرة تلخص ما تم تسجيله"
+  "summary_message": "ملخص ودود لكل اللي تم تسجيله"
 }
-
-لو مفيش تاريخ مرضي أو لقاحات، رجّع arrays فاضية [].
-لو is_first_dose=true، خلّي last_date دايماً null — متحطش تاريخ تقريبي أو تخترع تاريخ.
 `.trim();
 };
 
@@ -95,22 +124,29 @@ const continueOnboardingConversation = async (
   conversationHistory = [],
   userMessage = null
 ) => {
-  let suggestedVaccinesText = "";
+  // ── جيب الـ context من الـ RAG في أول استدعاء فقط ─────────────────────────
+  let vaccineContext  = "";
+  let diseaseContext  = "";
+
   if (conversationHistory.length === 0) {
     try {
       const speciesAr = SPECIES_LABELS[animal.species];
-      const results   = await searchKnowledgeBase(
-        `اللقاحات الموصى بها لـ ${speciesAr}`,
-        "vaccine",
-        6
-      );
-      suggestedVaccinesText = results.map((r) => r.text).join("\n\n");
+      const query     = `أمراض ${speciesAr} الشائعة وأعراضها ولقاحاتها`;
+
+      const [vaccineResults, diseaseResults] = await Promise.all([
+        searchKnowledgeBase(query, "vaccine", 8),
+        searchKnowledgeBase(query, "disease", 8),
+      ]);
+
+      vaccineContext = vaccineResults.map((r) => r.text).join("\n\n---\n\n");
+      diseaseContext = diseaseResults.map((r) => r.text).join("\n\n---\n\n");
     } catch (err) {
       console.warn("RAG search failed:", err.message);
     }
   }
 
-  const systemPrompt = buildSystemPrompt(animal, suggestedVaccinesText);
+  // ── بناء الـ system prompt ────────────────────────────────────────────────
+  const systemPrompt = buildSystemPrompt(animal, vaccineContext, diseaseContext);
 
   const model = genAI.getGenerativeModel({
     model:             CHAT_MODEL_NAME,
@@ -119,7 +155,7 @@ const continueOnboardingConversation = async (
 
   const messageToSend =
     conversationHistory.length === 0 && !userMessage
-      ? "ابدأ المحادثة واسأل المزارع أول سؤال."
+      ? "ابدأ المحادثة واسأل المزارع أول سؤال عن التاريخ المرضي للحيوان."
       : userMessage;
 
   if (!messageToSend || typeof messageToSend !== "string") {
@@ -136,6 +172,7 @@ const continueOnboardingConversation = async (
     { role: "assistant", content: assistantReply },
   ];
 
+  // ── هل المحادثة خلصت؟ ────────────────────────────────────────────────────
   if (assistantReply.includes("FINAL_JSON:")) {
     const jsonStr = stripMarkdownFences(
       assistantReply.split("FINAL_JSON:")[1]
@@ -146,7 +183,7 @@ const continueOnboardingConversation = async (
       extractedData = JSON.parse(jsonStr);
     } catch {
       return {
-        reply:         "حصل خطأ بسيط، هل يمكنك تأكيد إن المعلومات صحيحة؟",
+        reply:         "حصل خطأ بسيط في التلخيص، هل يمكنك تأكيد إن المعلومات صحيحة؟",
         isComplete:    false,
         extractedData: null,
         updatedHistory,
