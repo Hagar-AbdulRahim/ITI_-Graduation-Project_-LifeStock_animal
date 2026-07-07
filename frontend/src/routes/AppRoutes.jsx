@@ -18,6 +18,7 @@ import AddFarmPage from '../pages/Farms/AddFarmPage'
 import AnimalsListPage from '../pages/Animals/AnimalsListPage'
 import AnimalProfilePage from '../pages/AnimalProfilePage'
 import AddAnimalPage from '../pages/Animals/AddAnimalPage'
+import OnboardingChatPage from '../pages/Animals/OnboardingChatPage'
 import EditAnimalPage from '../pages/Animals/EditAnimalPage'
 import AddVaccinationPage from '../pages/Animals/AddVaccinationPage'
 import AddMedicalRecordPage from '../pages/Animals/AddMedicalRecordPage'
@@ -32,11 +33,10 @@ import ReviewsPage from '../pages/Reviews/ReviewsPage'
 import ContactUsPage from '../pages/ContactUs/ContactUsPage'
 
 import ServicesPage from '../pages/ServicesPage'
-import DiagnosisPage from '../pages/DiagnosisPage'
+
 
 
 // Dashboard & Layout Pages
-import DashboardPage from '../pages/dashboard/DashboardPage'
 import MainLayout from '../layout/MainLayout'
 import LandingPage from '../pages/Home/LandingPage'
 import AiAssistantPage from '../pages/AiAssistantPage'
@@ -83,7 +83,7 @@ const AppRoutes = () => {
       <Route path="/contact" element={<ContactUsPage />} />
       <Route path="/reviews" element={<ReviewsPage />} />
       <Route path="/services" element={<ServicesPage />} />
-      <Route path="/diagnosis" element={<DiagnosisPage />} />
+     
 
       {/* Auth Routes */}
       <Route path="/login" element={<Login />} />
@@ -120,8 +120,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
-        {/* Farm overview dashboard */}
-        <Route index element={<DashboardPage />} />
+        {/* Farm overview dashboard removed; redirect to animals list */}
+        <Route index element={<Navigate to="animals" replace />} />
 
         {/* Animals list within the farm dashboard */}
         <Route path="animals" element={<AnimalsListPage />} />
@@ -135,10 +135,26 @@ const AppRoutes = () => {
 
       {/* Standalone Animal subpages (with their own custom headers & back buttons) */}
       <Route
+        path="/farms/:farmId/animals/add"
+        element={
+          <ProtectedRoute>
+            <AddAnimalPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/animals/add"
         element={
           <ProtectedRoute>
             <AddAnimalPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/animals/:animalId/onboarding"
+        element={
+          <ProtectedRoute>
+            <OnboardingChatPage />
           </ProtectedRoute>
         }
       />
@@ -226,37 +242,32 @@ const AppRoutes = () => {
     </Route>
 
       <Route
-        path="/vaccine-agent"
-        element={
-          <ProtectedRoute>
-            <VaccineAgentPage />
-          </ProtectedRoute>
-        }
-      />
+  path="/vaccine-agent"
+  element={
+    <ProtectedRoute>
+      <MainLayout />
+    </ProtectedRoute>
+  }
+>
+  <Route index element={<VaccineAgentPage />} />
+  </Route>
 
-      <Route
-        path="/ai-assistant"
-        element={
-          <ProtectedRoute>
-            <AiAssistantPage />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Public: accessible without login */}
+  <Route
+    path="/ai-assistant"
+    element={
+      <ProtectedRoute>
+        <MainLayout />
+      </ProtectedRoute>
+    }
+  >
+    <Route index element={<AiAssistantPage />} />
+  </Route>
       {/* Public: accessible without login */}
       <Route path="/emergencies" element={<MainLayout />}>
         <Route index element={<EmergencyPage />} />
       </Route>
 
-      <Route
-        path="/diagnosis"
-        element={
-          <ProtectedRoute>
-            <DiagnosisPage />
-          </ProtectedRoute>
-        }
-      />
+     
       {/* Admin Portal */}
       <Route
         path="/admin"

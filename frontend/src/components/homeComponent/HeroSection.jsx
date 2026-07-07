@@ -8,7 +8,7 @@ const HeroSection = () => {
   const { farms } = useSelector((state) => state.farm || { farms: [] })
   const firstFarmId = farms && farms.length > 0 ? farms[0]._id : null;
   return (
-    <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden pt-24 sm:pt-28">
       {/* Background Video */}
       <video
         className="absolute inset-0 w-full h-full object-cover"
@@ -36,18 +36,18 @@ const HeroSection = () => {
       />
       {/* Hero Content — centered on top of video */}
       <div
-        className="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-8 lg:px-12 text-center flex flex-col items-center justify-center"
+        className="relative z-10 w-full max-w-4xl mx-auto px-6 sm:px-8 lg:px-12 text-center flex flex-col items-center justify-center"
         data-aos="fade-up"
         data-aos-duration="900"
         data-aos-once="true"
       >
-    {/* Heading */}
+     {/* Heading */}
 <h1 
-  className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 max-w-3xl drop-shadow-lg"
+  className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 max-w-3xl drop-shadow-lg"
   style={{ 
     letterSpacing: '0.01em',
-    wordSpacing: '0.2em',
-    lineHeight: '1.35',
+    wordSpacing: '0.15em',
+    lineHeight: '1.2',
     fontFamily: "'Tajawal', 'Cairo', sans-serif"
   }}
 >
@@ -59,9 +59,9 @@ const HeroSection = () => {
       WebkitBackgroundClip: 'text',
       WebkitTextFillColor: 'transparent',
       backgroundClip: 'text',
-      paddingBottom: '0.15em',
+      paddingBottom: '0.1em',
       paddingTop: '0.05em',
-      lineHeight: '1.35',
+      lineHeight: '1.2',
       display: 'inline-block',
     }}
   >
@@ -70,31 +70,30 @@ const HeroSection = () => {
   <span className="block sm:inline">قبل أن تراها أنت</span>
 </h1>
         {/* Description */}
-        <p className="text-white/80 text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed mb-8 sm:mb-10 max-w-2xl drop-shadow-sm px-2 sm:px-0">
+        <p className="text-white/80 text-xs sm:text-sm md:text-base leading-relaxed mb-8 max-w-2xl drop-shadow-sm">
           منصة واحدة تجمع التشخيص الذكي، تحليل الصور، ومساعد صوتي يفهم لهجتك، لتطلع على حالة كل حيوان في قطيعك لحظة بلحظة، وتتصرف قبل أن تتحول الملاحظة الصغيرة إلى خسارة كبيرة.
         </p>
         {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 sm:gap-4 justify-center w-full">
+        <div className="flex flex-wrap items-center gap-4 justify-center w-full">
           {/* Main Green Start Button */}
+
+        <button
+  onClick={() => navigate('/login')}
+  className="flex items-center gap-2.5 bg-[#1b4d2c] hover:bg-[#16a34a] text-white font-bold text-sm sm:text-base px-8 py-4 rounded-full transition-all duration-300 shadow-lg shadow-green-900/30 hover:shadow-xl hover:shadow-green-500/25 border border-white/10 hover:border-white/20 backdrop-blur-sm active:scale-95"
+>
+  <span>ابدأ التجربة المجانية</span>
+</button>
+          {/* Play / Watch Button */}
           <button
             onClick={() => {
               if (isAuthenticated) {
-                navigate(firstFarmId ? `/farms/${firstFarmId}` : '/farms');
+                navigate(firstFarmId ? `/farms/${firstFarmId}/ai-assistant` : '/farms');
               } else {
                 navigate('/login');
               }
             }}
-            className="flex items-center justify-center gap-2.5 bg-[#1b4d2c] hover:bg-[#16a34a] text-white font-bold text-sm sm:text-base px-7 sm:px-8 py-3.5 sm:py-4 min-h-[44px] w-full sm:w-auto rounded-full transition-all duration-300 shadow-lg shadow-green-900/30 hover:shadow-xl hover:shadow-green-500/25 cursor-pointer group border border-white/10 hover:border-white/20 backdrop-blur-sm"
-          >
-            <span>ابدأ التجربة المجانية</span>
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 transform group-hover:-translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-          </button>
-          {/* Play / Watch Button */}
-          <button
-            onClick={() => navigate('/services')}
-            className="flex items-center justify-center gap-2.5 font-bold text-sm sm:text-base px-7 sm:px-8 py-3.5 sm:py-4 min-h-[44px] w-full sm:w-auto rounded-full transition-all duration-300 text-white bg-white/10 backdrop-blur-md border border-white/25 hover:bg-white/20 hover:border-white/40 cursor-pointer shadow-lg shadow-black/10"
+            className="flex items-center gap-2.5 font-bold text-sm sm:text-base px-8 py-4 rounded-full transition-all duration-300 text-white bg-white/10 backdrop-blur-md border border-white/25 hover:bg-white/20 hover:border-white/40 cursor-pointer shadow-lg shadow-black/10"
+
           >
             <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-white">
               <svg className="w-3 h-3 fill-current mr-0.5" viewBox="0 0 24 24">
@@ -105,20 +104,7 @@ const HeroSection = () => {
           </button>
         </div>
         </div>
-      {/* Heartbeat SVG Line at the bottom */}
-      <div className="absolute bottom-6 left-0 right-0 h-14 flex items-center justify-center opacity-20 overflow-hidden pointer-events-none z-10">
-        <svg className="w-full h-full text-emerald-400" viewBox="0 0 1000 100" fill="none" preserveAspectRatio="none">
-          <path d="M0,50 L200,50 L220,50 L230,25 L240,75 L250,15 L260,85 L270,40 L285,60 L295,50 L305,50 L1000,50" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </div>
-      {/* Bottom gradient fade for smooth transition to next section */}
-      <div
-        className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
-        style={{
-          background: 'linear-gradient(to top, #f8f8f5 0%, transparent 100%)',
-          zIndex: 5,
-        }}
-      />
+     
     </section>
   )
 }

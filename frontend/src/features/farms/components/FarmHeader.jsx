@@ -1,11 +1,12 @@
 import { MapPin, Calendar, Edit, Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 // Farm model fields from backend:
 // name, governorate, location (GeoJSON {type, coordinates}), description, total_animals, created_at, updated_at
 
 const FarmHeader = ({ farm }) => {
   const navigate = useNavigate();
+  const { farmId } = useParams();
 
   // Backend stores location as GeoJSON — display governorate as primary location label
   const locationLabel = farm?.governorate || 'الموقع غير محدد';
@@ -53,7 +54,7 @@ const FarmHeader = ({ farm }) => {
           تعديل المزرعة
         </button>
         <button
-          onClick={() => navigate('/animals/add')}
+          onClick={() => navigate(farmId ? `/farms/${farmId}/animals/add` : '/animals/add')}
           className="flex-1 md:flex-none px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 shadow-sm shadow-indigo-200"
         >
           <Plus className="w-4 h-4" />

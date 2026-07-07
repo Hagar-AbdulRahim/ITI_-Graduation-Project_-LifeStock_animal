@@ -458,9 +458,9 @@ export default function AiAssistantPage() {
               <span className="hidden sm:inline">السجل</span>
             </button>
             <button 
-              onClick={() => navigate(farmId ? `/farms/${farmId}` : '/farms')}
-              className="flex items-center justify-center w-9 h-9 sm:w-auto sm:px-4 py-2 text-white/90 hover:text-white bg-rose-500/80 hover:bg-rose-500 rounded-full transition-all font-bold border border-white/5 shadow-sm"
-              title="إغلاق المساعد"
+              onClick={() => navigate(farmId && animalId ? `/farms/${farmId}/animals/${animalId}` : farmId ? `/farms/${farmId}` : '/farms')}
+              className="flex items-center justify-center p-1.5 rounded-lg border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+              title="رجوع"
             >
               <X className="w-4 h-4" />
               <span className="hidden sm:inline sm:mr-1.5">إغلاق</span>

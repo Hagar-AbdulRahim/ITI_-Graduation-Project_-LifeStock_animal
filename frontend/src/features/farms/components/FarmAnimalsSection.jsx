@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Search, Plus, Upload, Filter, ChevronLeft, ChevronRight, Loader2, AlertCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import AnimalCard from '../../animals/components/AnimalCard';
 
 const FarmAnimalsSection = ({ animals, loading, error }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
+  const { farmId } = useParams();
   
   if (loading) {
     return (
@@ -38,7 +39,7 @@ const FarmAnimalsSection = ({ animals, loading, error }) => {
             استيراد CSV
           </button>
           <button 
-            onClick={() => navigate('/animals/add')}
+            onClick={() => navigate(farmId ? `/farms/${farmId}/animals/add` : '/animals/add')}
             className="flex-1 md:flex-none px-4 py-2.5 bg-green-400 text-white rounded-xl text-sm font-medium hover:bg-green-500 transition-colors flex items-center justify-center gap-2 shadow-sm shadow-green-200"
           >
             <Plus className="w-4 h-4" />

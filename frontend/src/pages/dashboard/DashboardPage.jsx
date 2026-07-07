@@ -81,7 +81,7 @@ function PageHeader({ farmId }) {
         </button>
         <button
           type="button"
-          onClick={() => navigate(`/animals/add?farmId=${farmId}`)}
+          onClick={() => navigate(farmId ? `/farms/${farmId}/animals/add` : '/animals/add')}
           className="flex-1 sm:flex-none flex justify-center items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold
                      bg-[#2d5a1b] text-white hover:bg-[#3d6b47] transition-all duration-200
                      shadow-md hover:shadow-[#2d5a1b]/30 hover:scale-[1.02] active:scale-95"

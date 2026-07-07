@@ -1,18 +1,36 @@
 import { useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { fetchNotifications } from '../redux/notificationSlice'
+import { logoutUser } from '../redux/authSlice'
+import { LogOut, Home, ArrowRight, Bell, MapPin, ChevronLeft } from 'lucide-react'
 
 export default function Topbar() {
+  const { farmId } = useParams()
   const user = useSelector((state) => state.auth.user)
   const unreadCount = useSelector((state) => state.notifications.unread_count)
+  const currentFarm = useSelector((state) => state.farm?.currentFarm)
+  const farms = useSelector((state) => state.farm?.farms || [])
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
-  // جلب عدد الإشعارات غير المقروءة عند تحميل الـ Topbar
+  const displayFarmName =
+    currentFarm?.name ||
+    farms.find((farm) => farm._id === farmId)?.name ||
+    'المزرعة'
+
+  const goToFarmHome = () => {
+    navigate('/')
+  }
+
+  const handleLogout = () => {
+    dispatch(logoutUser()).then(() => {
+      navigate('/login')
+    })
+  }
+
   useEffect(() => {
     dispatch(fetchNotifications())
-    // تحديث كل دقيقة
     const interval = setInterval(() => dispatch(fetchNotifications()), 60000)
     return () => clearInterval(interval)
   }, [dispatch])
@@ -20,72 +38,105 @@ export default function Topbar() {
   return (
     <header
       dir="rtl"
-      className="hidden lg:flex sticky top-0 z-30 items-center gap-4 px-6 py-3
-                 bg-[#1b4d2c] border-b border-[#154022] shadow-md"
+
+      className="flex sticky top-0 z-30 items-center justify-between gap-4 px-6 py-3
+                 bg-white/80 backdrop-blur-xl border-b border-stone-200/60 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]"
+
     >
-      {/* User Info */}
+      {/* Right Section: Breadcrumbs & Navigation */}
       <div className="flex items-center gap-3">
-        {user?.avatar ? (
-          <img
-            src={user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000${user.avatar}`}
-            alt={user.name}
-            className="w-9 h-9 rounded-lg object-cover shadow-sm border-2 border-white/20"
-          />
-        ) : (
-          <div className="w-9 h-9 rounded-lg bg-white/20 text-white flex items-center justify-center text-sm font-bold shadow-sm">
-            {user?.name?.charAt(0) || 'م'}
-          </div>
-        )}
-        <div className="leading-tight">
-          <p className="text-sm font-bold text-white">
-            {user?.name || 'المستخدم'}
-          </p>
+        <button
+          onClick={() => navigate('/farms')}
+          className="flex items-center justify-center w-10 h-10 rounded-full border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 hover:text-[#2d5a1b] transition-all shadow-sm"
+          title="العودة إلى صفحة المزارع"
+        >
+          <ArrowRight className="w-5 h-5" />
+        </button>
+
+        <div className="hidden md:flex items-center gap-2 bg-stone-100/70 p-1.5 rounded-full border border-stone-200/50">
+          <button
+            onClick={goToFarmHome}
+            className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-stone-700 hover:text-[#2d5a1b] shadow-sm transition-colors"
+            title="الرئيسية"
+          >
+            <Home className="w-4 h-4 text-[#2d5a1b]" />
+            <span>الرئيسية</span>
+          </button>
+
+          {farmId && (
+            <>
+              <ChevronLeft className="w-4 h-4 text-stone-400" />
+              <button
+                onClick={() => navigate(`/farms/${farmId}/animals`)}
+                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-stone-600 hover:text-[#2d5a1b] transition-colors"
+                title="عرض حيوانات المزرعة"
+              >
+                <span>الحيوانات</span>
+              </button>
+            </>
+          )}
+
+          {farmId && (
+            <>
+              <ChevronLeft className="w-4 h-4 text-stone-400" />
+              <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold text-[#2d5a1b]">
+                <MapPin className="w-4 h-4" />
+                <span>{displayFarmName}</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Spacer */}
-      <div className="flex-1" />
-
-      {/* Notification Bell */}
-      <button
-        onClick={() => navigate('/notifications')}
-        className="relative p-2 rounded-lg hover:bg-white/10 transition-colors"
-        title="الإشعارات"
-      >
-        <svg
-          className="w-5 h-5 text-white"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
+      {/* Left Section: Profile, Notifications & Logout */}
+      <div className="flex items-center gap-4">
+        {/* Notifications */}
+        <button
+          onClick={() => navigate('/notifications')}
+          className="relative p-2 rounded-full border border-stone-200 bg-white hover:bg-stone-50 text-stone-600 transition-all shadow-sm"
+          title="الإشعارات"
         >
-          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
-        </svg>
+          <Bell className="w-5 h-5" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-red-500 text-white text-[11px] font-black rounded-full flex items-center justify-center shadow-sm border-2 border-white">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
+        </button>
 
-        {/* Badge — بيظهر بس لو فيه إشعارات غير مقروءة */}
-        {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center">
-            {unreadCount > 99 ? '99+' : unreadCount}
-          </span>
-        )}
-      </button>
+        {/* User Profile Info */}
+        <div className="flex items-center gap-3 pl-4 border-l border-stone-200">
+          <div className="flex items-center gap-3 bg-stone-50 border border-stone-100 rounded-full pr-1 pl-3 py-1">
+            {user?.avatar ? (
+              <img
+                src={user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000${user.avatar}`}
+                alt={user.name}
+                className="w-8 h-8 rounded-full object-cover shadow-sm border border-white"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2d5a1b] to-[#3d7a25] text-white flex items-center justify-center text-sm font-bold shadow-sm border border-white">
+                {user?.name?.charAt(0) || 'م'}
+              </div>
+            )}
+            <div className="leading-tight hidden sm:block text-right">
+              <p className="text-[11px] text-stone-500 font-medium">مرحباً بك،</p>
+              <p className="text-sm font-bold text-stone-800 truncate max-w-[120px]">
+                {user?.name?.split(' ')[0] || 'المستخدم'}
+              </p>
+            </div>
+          </div>
+        </div>
 
-      {/* Home */}
-      <button
-        onClick={() => navigate('/')}
-        className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-        title="الصفحة الرئيسية"
-      >
-        <svg
-          className="w-5 h-5 text-white"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition-all border border-red-100 shadow-sm"
+          title="تسجيل الخروج"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-        </svg>
-      </button>
-    </header >
+          <span className="text-sm font-bold hidden md:block">خروج</span>
+          <LogOut className="w-4 h-4" />
+        </button>
+      </div>
+    </header>
   )
 }

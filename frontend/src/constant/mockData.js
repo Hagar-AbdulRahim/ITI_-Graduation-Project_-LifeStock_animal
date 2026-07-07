@@ -85,13 +85,6 @@ export const RECENT_ACTIVITIES = []
 // -------- Sidebar Navigation --------
 export const SIDEBAR_LINKS = [
   {
-    id: 'dashboard',
-    label: 'نظرة عامة',
-    icon: 'grid',
-    color: 'text-stone-400',
-    path: '/',
-  },
-  {
     id: 'animals',
     label: 'الحيوانات',
     icon: 'paw',

@@ -125,7 +125,7 @@ const StatsBanner = ({ animals }) => {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-7">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-7 لال">
       {stats.map((s) => (
         <div
           key={s.label}
@@ -248,20 +248,18 @@ const FilterSelect = ({ label, value, onChange, options }) => {
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-[11px] font-bold text-gray-400 text-right px-1">
+      <label className="text-[11px] font-bold text-white/80 text-right px-1">
         {label}
       </label>
       <div className="relative">
-        
-       
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className={`appearance-none w-full min-w-[160px] pr-9 pl-8 py-2.5 rounded-xl text-sm font-bold text-right outline-none cursor-pointer transition-colors border
             ${isActive
-              ? 'bg-[#2a5c2a]/5 border-[#2a5c2a]/30 text-[#2a5c2a]'
-              : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300'
-            } focus:border-[#2a5c2a]`}
+              ? 'bg-white border-white text-[#1b4d2c]'
+              : 'bg-white/95 border-white text-gray-700 hover:bg-white'
+            }`}
         >
           {options.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -284,8 +282,8 @@ const AnimalsListPage = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterAge, setFilterAge] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-   const [currentPage, setCurrentPage] = useState(1);
-const ITEMS_PER_PAGE = 12;
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 12;
 
   useEffect(() => {
     if (farmId) {
@@ -317,14 +315,14 @@ const ITEMS_PER_PAGE = 12;
   });
 
   const hasFilters = filterSpecies !== 'all' || filterStatus !== 'all' || filterAge !== 'all' || !!searchTerm;
-const totalPages = Math.max(1, Math.ceil(displayAnimals.length / ITEMS_PER_PAGE));
-const paginatedAnimals = displayAnimals.slice(
-  (currentPage - 1) * ITEMS_PER_PAGE,
-  currentPage * ITEMS_PER_PAGE
-);  
-useEffect(() => {
-  setCurrentPage(1);
-}, [filterSpecies, filterStatus, filterAge, searchTerm]);
+  const totalPages = Math.max(1, Math.ceil(displayAnimals.length / ITEMS_PER_PAGE));
+  const paginatedAnimals = displayAnimals.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterSpecies, filterStatus, filterAge, searchTerm]);
 
 
   if (loading.animals) {
@@ -351,17 +349,17 @@ useEffect(() => {
         </button>
 
         {/* ── Filter Bar ────────────────────────────────────────────── */}
-        <div className="bg-white rounded-[20px] px-4 sm:px-6 py-4 border border-gray-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-7">
+        {/* ── Filter Bar ────────────────────────────────────────────── */}
+        <div className="bg-[#1b4d2c] rounded-[20px] px-4 sm:px-6 py-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-7">
           {/* Left: Add / Import buttons */}
           <div className="flex items-center gap-3">
             <button
-              onClick={() => navigate(`/animals/add`)}
-              className="flex items-center gap-2 px-4 py-2 bg-[#2a5c2a] text-white rounded-xl text-sm font-bold hover:bg-[#1e4520] transition-colors shadow-sm"
+              onClick={() => navigate(farmId ? `/farms/${farmId}/animals/add` : '/animals/add')}
+              className="flex items-center gap-2 px-4 py-2 bg-white text-[#1b4d2c] rounded-xl text-sm font-bold hover:bg-stone-50 transition-colors shadow-sm"
             >
               <Plus className="w-4 h-4" />
               إضافة حيوان
             </button>
-           
           </div>
 
           {/* Center: Search bar */}
@@ -373,17 +371,17 @@ useEffect(() => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 type="text"
                 placeholder="البحث برقم التعريف أو الاسم / السلالة..."
-                className="w-full bg-gray-50 border border-gray-100 rounded-full py-2.5 pr-11 pl-4 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-[#2a5c2a]/20 focus:border-[#2a5c2a] transition-all"
+                className="w-full bg-white border border-white rounded-full py-2.5 pr-11 pl-4 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-white/40 transition-all"
               />
             </div>
           </div>
 
           {/* Right: Filter dropdowns + clear */}
-         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             {hasFilters && (
               <button
                 onClick={() => { setFilterSpecies('all'); setFilterStatus('all'); setFilterAge('all'); setSearchTerm(''); }}
-                className="flex items-center gap-1.5 px-3 py-2.5 border border-red-100 rounded-xl text-sm font-bold text-red-400 hover:bg-red-50 hover:border-red-200 transition-colors bg-white self-end"
+                className="flex items-center gap-1.5 px-3 py-2.5 border border-white/30 rounded-xl text-sm font-bold text-white hover:bg-white/10 transition-colors bg-transparent self-end"
               >
                 <X className="w-3.5 h-3.5" />
                 مسح الفلاتر
@@ -391,44 +389,40 @@ useEffect(() => {
             )}
 
             <FilterSelect
-  label="الحالة الصحية"
-  value={filterStatus}
-  onChange={setFilterStatus}
-  options={[
-    { value: 'all', label: 'جميع الحالات' },
-    { value: 'healthy', label: 'سليم' },
-    { value: 'sick', label: 'مراقبة' },
-    { value: 'critical', label: 'حالة حرجة' },
-  ]}
-/>
+              value={filterStatus}
+              onChange={setFilterStatus}
+              options={[
+                { value: 'all', label: 'جميع الحالات' },
+                { value: 'healthy', label: 'سليم' },
+                { value: 'sick', label: 'مراقبة' },
+                { value: 'critical', label: 'حالة حرجة' },
+              ]}
+            />
 
-<FilterSelect
-  label="الفئة العمرية"
-  value={filterAge}
-  onChange={setFilterAge}
-  options={[
-    { value: 'all', label: 'جميع الأعمار' },
-    { value: 'young', label: 'أقل من سنة' },
-    { value: 'mid', label: '1 - 3 سنوات' },
-    { value: 'adult', label: 'أكثر من 3 سنوات' },
-  ]}
-/>
+            <FilterSelect
+              value={filterAge}
+              onChange={setFilterAge}
+              options={[
+                { value: 'all', label: 'جميع الأعمار' },
+                { value: 'young', label: 'أقل من سنة' },
+                { value: 'mid', label: '1 - 3 سنوات' },
+                { value: 'adult', label: 'أكثر من 3 سنوات' },
+              ]}
+            />
 
-<FilterSelect
-  label="نوع السلالة"
-  value={filterSpecies}
-  onChange={setFilterSpecies}
-  options={[
-    { value: 'all', label: 'جميع الأنواع' },
-    { value: 'cattle', label: 'أبقار' },
-    { value: 'sheep', label: 'أغنام' },
-    { value: 'goat', label: 'ماعز' },
-    { value: 'horse', label: 'خيل' },
-    { value: 'pig', label: 'خنازير' },
-  ]}
-/>
+            <FilterSelect
+              value={filterSpecies}
+              onChange={setFilterSpecies}
+              options={[
+                { value: 'all', label: 'جميع الأنواع' },
+                { value: 'cattle', label: 'أبقار' },
+                { value: 'sheep', label: 'أغنام' },
+                { value: 'goat', label: 'ماعز' },
+                { value: 'horse', label: 'خيل' },
+                { value: 'pig', label: 'خنازير' },
+              ]}
+            />
           </div>
-          
         </div>
 
         {/* ── Stats Banner ───────────────────────────────────────────── */}
@@ -458,56 +452,55 @@ useEffect(() => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 flex-1 items-start content-start">
-  {paginatedAnimals.map((animal) => (
-    <AnimalCard
-      key={animal._id}
-      animal={animal}
-      onClick={() => navigate(`/animals/${animal._id}`)}
-    />
-  ))}
-</div>
+            {paginatedAnimals.map((animal) => (
+              <AnimalCard
+                key={animal._id}
+                animal={animal}
+                onClick={() => navigate(`/animals/${animal._id}`)}
+              />
+            ))}
+          </div>
         )}
 
         {/* ── Pagination ────────────────────────────────────────────── */}
-{displayAnimals.length > 0 && (
-  <div className="flex items-center justify-between mt-10 pt-6">
-    <div className="flex items-center gap-2" dir="ltr">
-      <button
-        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-        disabled={currentPage === 1}
-        className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 bg-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-      >
-        <ChevronLeft className="w-4 h-4" />
-      </button>
+        {displayAnimals.length > 0 && (
+          <div className="flex items-center justify-between mt-10 pt-6">
+            <div className="flex items-center gap-2" dir="ltr">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 bg-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
 
-      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-        <button
-          key={page}
-          onClick={() => setCurrentPage(page)}
-          className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold text-sm transition-colors ${
-            page === currentPage
-              ? 'border border-[#2a5c2a] bg-[#1e4520] text-white shadow-sm'
-              : 'border border-gray-200 text-gray-700 hover:bg-gray-50 bg-white'
-          }`}
-        >
-          {page}
-        </button>
-      ))}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold text-sm transition-colors ${page === currentPage
+                    ? 'border border-[#2a5c2a] bg-[#1e4520] text-white shadow-sm'
+                    : 'border border-gray-200 text-gray-700 hover:bg-gray-50 bg-white'
+                    }`}
+                >
+                  {page}
+                </button>
+              ))}
 
-      <button
-        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-        disabled={currentPage === totalPages}
-        className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 bg-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-      >
-        <ChevronRight className="w-4 h-4" />
-      </button>
-    </div>
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 bg-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
 
-    <div className="text-[12px] text-gray-500 font-medium">
-      عرض {(currentPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, displayAnimals.length)} من أصل {displayAnimals.length} حيوان
-    </div>
-  </div>
-)}
+            <div className="text-[12px] text-gray-500 font-medium">
+              عرض {(currentPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, displayAnimals.length)} من أصل {displayAnimals.length} حيوان
+            </div>
+          </div>
+        )}
 
       </main>
 

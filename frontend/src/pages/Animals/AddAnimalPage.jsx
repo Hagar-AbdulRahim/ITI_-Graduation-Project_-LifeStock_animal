@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { ArrowRight, Save, X, Loader2 } from 'lucide-react';
 import { addNewAnimal } from '../../redux/animalSlice';
-import { fetchMyFarms } from '../../redux/farmSlice';
+import { fetchFarmById, fetchMyFarms } from '../../redux/farmSlice';
 
 // ─── Backend Animal Model (for reference) ─────────────────────────────────────
 // Required: farm_id, species (cattle|sheep|goat), gender (male|female), age_value, age_unit
@@ -14,14 +14,18 @@ import { fetchMyFarms } from '../../redux/farmSlice';
 
 const AddAnimalPage = () => {
   const [searchParams] = useSearchParams();
-  const farmId = searchParams.get('farmId'); // farm_id can come as a query parameter from dashboard links
+  const { farmId: routeFarmId } = useParams();
+  const farmId = searchParams.get('farmId') || routeFarmId;
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const { loading, error } = useSelector((state) => state.animal);
   const farms = useSelector((state) => state.farm?.farms || []);
+  const currentFarm = useSelector((state) => state.farm?.currentFarm || null);
 
-  const selectedFarm = farmId ? farms.find((farm) => farm._id === farmId) : null;
+  const selectedFarm = farmId
+    ? farms.find((farm) => farm._id === farmId) || currentFarm
+    : null;
 
   const {
     register,
@@ -36,7 +40,10 @@ const AddAnimalPage = () => {
 
   useEffect(() => {
     dispatch(fetchMyFarms());
-  }, [dispatch]);
+    if (farmId) {
+      dispatch(fetchFarmById(farmId));
+    }
+  }, [dispatch, farmId]);
 
   const onSubmit = async (data) => {
     const actualFarmId = selectedFarmId || (farms && farms.length > 0 ? farms[0]._id : null);
@@ -59,8 +66,14 @@ const AddAnimalPage = () => {
     if (data.notes) payload.notes = data.notes.trim();
 
     try {
-      await dispatch(addNewAnimal(payload)).unwrap();
-      navigate(actualFarmId ? `/farms/${actualFarmId}/animals` : '/farms');
+      const result = await dispatch(addNewAnimal(payload)).unwrap();
+      // Navigate to onboarding chat page to register medical history
+      const newAnimalId = result?.data?._id || result?._id;
+      if (newAnimalId) {
+        navigate(`/animals/${newAnimalId}/onboarding`);
+      } else {
+        navigate(actualFarmId ? `/farms/${actualFarmId}/animals` : '/farms');
+      }
     } catch (err) {
       // Error shown via Redux state
     }

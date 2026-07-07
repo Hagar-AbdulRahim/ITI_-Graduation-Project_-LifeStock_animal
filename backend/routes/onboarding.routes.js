@@ -17,7 +17,7 @@ router.post(
   "/:animalId/chat",
   [
     ...animalIdParamValidator,
-    body("message").optional().isString(),
+    body("message").optional({ nullable: true }).isString(),
     body("history").optional().isArray(),
     validate,
   ],

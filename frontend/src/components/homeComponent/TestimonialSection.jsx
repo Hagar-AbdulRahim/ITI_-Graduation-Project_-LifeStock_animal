@@ -26,14 +26,14 @@ const TestimonialCard = ({ t, index }) => {
       >
         {/* FRONT SIDE */}
         <div
-          className="w-full h-full absolute inset-0 rounded-full p-6 flex flex-col items-center justify-center text-center bg-white hover:bg-[#1b4d2c] group border border-gray-100/60 shadow-[0_8px_30px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_40px_rgba(27,77,44,0.16)] transition-all duration-300"
+          className="w-full h-full absolute inset-0 rounded-3xl p-6 flex flex-col items-center justify-center text-center bg-white hover:bg-[#1b4d2c] group border-2 border-stone-200/80 hover:border-transparent shadow-[0_8px_30px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_40px_rgba(27,77,44,0.16)] transition-all duration-300"
           style={{ backfaceVisibility: 'hidden' }}
         >
           {/* Avatar */}
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#1b4d2c] to-[#2a7543] group-hover:from-white group-hover:to-stone-100 group-hover:text-[#1b4d2c] flex items-center justify-center text-white font-black text-lg shadow-sm mb-3 transition-all duration-300 flex-shrink-0">
             {t.userName ? t.userName.charAt(0).toUpperCase() : '?'}
           </div>
-
+ 
           {/* Name & Date */}
           <div className="space-y-1 mb-2 max-w-full">
             <p className="font-bold text-stone-900 group-hover:text-white text-[15px] leading-tight truncate px-2 transition-colors duration-300">
@@ -43,7 +43,7 @@ const TestimonialCard = ({ t, index }) => {
               {t.created_at ? new Date(t.created_at).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}
             </p>
           </div>
-
+ 
           {/* Rating */}
           <div className="flex justify-center gap-1 mb-4">
             {[1, 2, 3, 4, 5].map((star) => (
@@ -63,7 +63,7 @@ const TestimonialCard = ({ t, index }) => {
               </svg>
             ))}
           </div>
-
+ 
           {/* Button to Flip */}
           <button
             onClick={(e) => {
@@ -75,10 +75,10 @@ const TestimonialCard = ({ t, index }) => {
             انقر لقراءة الرأي
           </button>
         </div>
-
+ 
         {/* BACK SIDE */}
         <div
-          className="w-full h-full absolute inset-0 rounded-full p-8 flex flex-col items-center justify-center text-center bg-white hover:bg-[#1b4d2c] group border border-gray-100/60 shadow-[0_8px_30px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_40px_rgba(27,77,44,0.16)] transition-all duration-300"
+          className="w-full h-full absolute inset-0 rounded-3xl p-8 flex flex-col items-center justify-center text-center bg-white hover:bg-[#1b4d2c] group border-2 border-stone-200/80 hover:border-transparent shadow-[0_8px_30px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_40px_rgba(27,77,44,0.16)] transition-all duration-300"
           style={{
             backfaceVisibility: 'hidden',
             transform: 'rotateY(180deg)'
@@ -88,7 +88,7 @@ const TestimonialCard = ({ t, index }) => {
           <span className="text-3xl font-serif text-[#1b4d2c] group-hover:text-white/30 h-6 block leading-none mb-1">
             "
           </span>
-
+ 
           <p className="text-stone-600 group-hover:text-white/90 text-[12px] leading-relaxed flex-1 flex items-center justify-center px-1 line-clamp-6 transition-colors duration-300">
             "{t.comment}"
           </p>

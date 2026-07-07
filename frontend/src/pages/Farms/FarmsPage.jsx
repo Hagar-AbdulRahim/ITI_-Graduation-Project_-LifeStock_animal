@@ -2,8 +2,7 @@ import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Plus, Loader2, Search, Bell, HelpCircle, LayoutGrid, Leaf, Map, Edit3, Trash2 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { MapPin, Plus, Loader2, Search, Bell, Home, LayoutGrid, Leaf, Map, Edit3, Trash2 } from 'lucide-react'; import toast from 'react-hot-toast';
 import FarmForm from '../../components/FarmForm';
 import { fetchMyFarms } from '../../redux/farmSlice';
 import { updateFarm, deleteFarm } from '../../services/farmService';
@@ -11,15 +10,8 @@ import { updateFarm, deleteFarm } from '../../services/farmService';
 const TopNavbar = ({ searchQuery, setSearchQuery }) => {
   const navigate = useNavigate();
   return (
-    <header className="bg-white h-16 sm:h-20 border-b border-gray-100 px-4 sm:px-6 lg:px-8 flex items-center justify-between sticky top-0 z-20 font-cairo">
-      <div className="flex-1 max-w-xl flex items-center gap-3">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-1.5 text-stone-600 hover:text-[#1b4d2c] font-bold text-sm transition-colors group border border-stone-200 px-3 py-2 rounded-full hover:bg-stone-50"
-          title="رجوع"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-        </button>
+    <header className="bg-[#1b4d2c] h-16 sm:h-20 px-4 sm:px-6 lg:px-8 flex items-center justify-between sticky top-0 z-20 font-cairo   mb-4 shadow-sm">
+      <div className="flex-1 max-w-xl">
         <div className="relative flex items-center w-full max-w-md">
           <Search className="w-4 h-4 text-gray-400 absolute right-4" />
           <input
@@ -27,25 +19,30 @@ const TopNavbar = ({ searchQuery, setSearchQuery }) => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="البحث عن مزرعة..."
-            className="w-full bg-[#fbf9f6] border border-gray-200 rounded-full py-2.5 pr-11 pl-4 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-[#154b23]/20 focus:border-[#154b23] transition-all"
+            className="w-full bg-white border border-white/10 rounded-full py-2.5 pr-11 pl-4 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-white/40 focus:border-white transition-all"
           />
         </div>
       </div>
 
       <div className="flex items-center gap-3 sm:gap-6">
-        <div className="flex items-center gap-3 sm:gap-4 text-gray-400">
+        <div className="flex items-center gap-3 sm:gap-4 text-white/80">
           <button
             onClick={() => navigate('/notifications')}
-            className="hover:text-gray-600 transition-colors relative"
+            className="hover:text-white transition-colors relative"
           >
             <Bell className="w-5 h-5" />
-            <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+            <span className="absolute top-0 right-0 w-2 h-2 bg-red-400 rounded-full"></span>
           </button>
-          <button className="hover:text-gray-600 transition-colors hidden sm:block">
-            <HelpCircle className="w-5 h-5" />
+          <button
+            onClick={() => navigate('/')}
+            className="hover:text-white transition-colors hidden sm:block"
+            title="الصفحة الرئيسية"
+          >
+            <Home className="w-5 h-5" />
           </button>
+
         </div>
-        <div className="h-8 w-px bg-gray-200 hidden sm:block"></div>
+        <div className="h-8 w-px bg-white/20 hidden sm:block"></div>
       </div>
     </header>
   );
@@ -239,7 +236,8 @@ const FarmsPage = () => {
 
       <main className="flex-1 flex flex-col">
         {/* Page Banner / Header */}
-        <div className="bg-[#1b4d2c] border-b border-stone-800/10 py-6 sm:py-8 lg:py-10 px-4 sm:px-6 lg:px-8 shadow-sm">
+        {/* Page Banner / Header */}
+        <div className="bg-[#1b4d2c] py-4 sm:py-5 lg:py-6 px-4 sm:px-6 lg:px-8 shadow-sm rounded-[28px] mx-4 sm:mx-6 lg:mx-8">
           <div className="max-w-[1400px] mx-auto w-full flex flex-col sm:flex-row sm:items-center justify-between gap-6">
             <div className="text-right">
               <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-3">المزارع الخاصة بي</h1>
@@ -254,7 +252,6 @@ const FarmsPage = () => {
               <Plus className="w-5 h-5" />
               إضافة مزرعة
             </button>
-
           </div>
         </div>
 
