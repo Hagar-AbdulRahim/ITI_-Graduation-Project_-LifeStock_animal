@@ -8,7 +8,7 @@ const HeroSection = () => {
   const { farms } = useSelector((state) => state.farm || { farms: [] })
   const firstFarmId = farms && farms.length > 0 ? farms[0]._id : null;
   return (
-    <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden pt-24 sm:pt-28">
       {/* Background Video */}
       <video
         className="absolute inset-0 w-full h-full object-cover"
@@ -41,13 +41,13 @@ const HeroSection = () => {
         data-aos-duration="900"
         data-aos-once="true"
       >
-    {/* Heading */}
+     {/* Heading */}
 <h1 
-  className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 max-w-3xl drop-shadow-lg"
+  className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 max-w-3xl drop-shadow-lg"
   style={{ 
     letterSpacing: '0.01em',
-    wordSpacing: '0.2em',
-    lineHeight: '1.35',
+    wordSpacing: '0.15em',
+    lineHeight: '1.2',
     fontFamily: "'Tajawal', 'Cairo', sans-serif"
   }}
 >
@@ -59,9 +59,9 @@ const HeroSection = () => {
       WebkitBackgroundClip: 'text',
       WebkitTextFillColor: 'transparent',
       backgroundClip: 'text',
-      paddingBottom: '0.15em',
+      paddingBottom: '0.1em',
       paddingTop: '0.05em',
-      lineHeight: '1.35',
+      lineHeight: '1.2',
       display: 'inline-block',
     }}
   >
@@ -70,7 +70,7 @@ const HeroSection = () => {
   <span className="block sm:inline">قبل أن تراها أنت</span>
 </h1>
         {/* Description */}
-        <p className="text-white/80 text-sm sm:text-base md:text-lg leading-relaxed mb-10 max-w-2xl drop-shadow-sm">
+        <p className="text-white/80 text-xs sm:text-sm md:text-base leading-relaxed mb-8 max-w-2xl drop-shadow-sm">
           منصة واحدة تجمع التشخيص الذكي، تحليل الصور، ومساعد صوتي يفهم لهجتك، لتطلع على حالة كل حيوان في قطيعك لحظة بلحظة، وتتصرف قبل أن تتحول الملاحظة الصغيرة إلى خسارة كبيرة.
         </p>
         {/* CTA Buttons */}

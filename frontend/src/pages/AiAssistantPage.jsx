@@ -441,7 +441,7 @@ export default function AiAssistantPage() {
               <History className="w-4 h-4" />
             </button>
             <button 
-              onClick={() => navigate(farmId ? `/farms/${farmId}` : '/farms')}
+              onClick={() => navigate(farmId && animalId ? `/farms/${farmId}/animals/${animalId}` : farmId ? `/farms/${farmId}` : '/farms')}
               className="flex items-center justify-center p-1.5 rounded-lg border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
               title="رجوع"
             >

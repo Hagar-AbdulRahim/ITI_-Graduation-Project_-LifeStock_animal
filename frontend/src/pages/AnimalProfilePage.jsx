@@ -298,7 +298,7 @@ export default function AnimalProfilePage() {
       </div>
 
       {/* ── ACTION BUTTONS ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
         {[
           {
             label: 'المساعد الذكي',
@@ -306,13 +306,6 @@ export default function AnimalProfilePage() {
             color:
               'text-violet-600 border-violet-100 hover:bg-violet-50 hover:border-violet-300',
             action: () => navigate(aiAssistantPath),
-          },
-          {
-            label: 'تشخيص ذكي',
-            icon: Zap,
-            color:
-              'text-emerald-600 border-emerald-100 hover:bg-emerald-50 hover:border-emerald-300',
-            action: () => navigate(`/diagnosis?animalId=${id}`),
           },
           {
             label: 'السجل الطبي',
@@ -329,11 +322,11 @@ export default function AnimalProfilePage() {
             action: () => navigate(`/animals/${id}/vaccinations`),
           },
           {
-            label: 'مستشار اللقاحات',
-            icon: ShieldCheck,
+            label: 'الطوارئ',
+            icon: AlertTriangle,
             color:
-              'text-[#2d5a1b] border-[#2d5a1b]/20 hover:bg-[#2d5a1b]/5 hover:border-[#2d5a1b]/40',
-            action: () => navigate('/vaccine-agent'),
+              'text-red-600 border-red-100 hover:bg-red-50 hover:border-red-300 hover:text-red-700',
+            action: () => navigate(farmIdForNavigation ? `/farms/${farmIdForNavigation}/emergencies` : '/emergencies'),
           },
           {
             label: 'تعديل البيانات',

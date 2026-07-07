@@ -128,19 +128,6 @@ const Navbar = () => {
                 >
                   {({ isActive }) => (
                     <>
-                      <span
-                        className={`flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-300 ${
-                          link.id === 'emergency'
-                            ? isActive
-                              ? 'bg-red-100 text-red-600'
-                              : 'bg-red-50 text-red-500 group-hover:bg-red-100 group-hover:text-red-600'
-                            : isActive
-                              ? 'bg-[#2d5a1b]/10 text-[#2d5a1b]'
-                              : 'bg-[#f2f5eb] text-[#4b5a44] group-hover:bg-[#e8f3df] group-hover:text-[#2d5a1b]'
-                        }`}
-                      >
-                        {link.icon}
-                      </span>
                       <span>{link.label}</span>
                       <span
                         className={`absolute bottom-1.5 left-1/2 h-[2px] -translate-x-1/2 rounded-full bg-[#2d5a1b] transition-all duration-300 ${isActive ? 'w-3/4 opacity-100' : 'w-0 opacity-0'}`}
@@ -258,15 +245,6 @@ const Navbar = () => {
                   }`
                 }
               >
-                <span
-                  className={`flex h-9 w-9 items-center justify-center rounded-xl ${
-                    link.id === 'emergency'
-                      ? 'bg-red-50 text-red-500'
-                      : 'bg-[#f2f5eb] text-[#2d5a1b]'
-                  }`}
-                >
-                  {link.icon}
-                </span>
                 {link.label}
               </NavLink>
             ))}

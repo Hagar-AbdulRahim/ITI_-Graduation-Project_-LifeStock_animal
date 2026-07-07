@@ -2,6 +2,8 @@ import { useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
 import { fetchNotifications } from '../redux/notificationSlice'
+import { logoutUser } from '../redux/authSlice'
+import { LogOut, Home, ArrowRight, Bell, MapPin, ChevronLeft } from 'lucide-react'
 
 export default function Topbar() {
   const { farmId } = useParams()
@@ -21,6 +23,12 @@ export default function Topbar() {
     navigate('/')
   }
 
+  const handleLogout = () => {
+    dispatch(logoutUser()).then(() => {
+      navigate('/login')
+    })
+  }
+
   useEffect(() => {
     dispatch(fetchNotifications())
     const interval = setInterval(() => dispatch(fetchNotifications()), 60000)
@@ -30,82 +38,102 @@ export default function Topbar() {
   return (
     <header
       dir="rtl"
-      className="hidden lg:flex sticky top-0 z-30 items-center gap-4 px-6 py-3
-                 bg-white/70 backdrop-blur-md border-b border-stone-200 shadow-sm"
+      className="flex sticky top-0 z-30 items-center justify-between gap-4 px-6 py-3
+                 bg-white/80 backdrop-blur-xl border-b border-stone-200/60 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]"
     >
-      <button
-        onClick={() => navigate('/farms')}
-        className="flex items-center justify-center w-9 h-9 rounded-full border border-[#2d5a1b]/10 bg-[#f5f8f3] text-[#2d5a1b] hover:bg-[#edf4e8] transition-colors"
-        title="العودة إلى صفحة المزارع"
-      >
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-          <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
+      {/* Right Section: Breadcrumbs & Navigation */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => navigate('/farms')}
+          className="flex items-center justify-center w-10 h-10 rounded-full border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 hover:text-[#2d5a1b] transition-all shadow-sm"
+          title="العودة إلى صفحة المزارع"
+        >
+          <ArrowRight className="w-5 h-5" />
+        </button>
 
-      <button
-        onClick={goToFarmHome}
-        className="flex items-center gap-2 rounded-full border border-[#2d5a1b]/10 bg-[#f5f8f3] px-3 py-2 text-sm font-semibold text-[#2d5a1b] hover:bg-[#edf4e8] transition-colors"
-        title="العودة إلى صفحة المزرعة"
-      >
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M3 10.5 12 3l9 7.5" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M5 9.5V21h14V9.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <span>الرئيسية</span>
-      </button>
+        <div className="hidden md:flex items-center gap-2 bg-stone-100/70 p-1.5 rounded-full border border-stone-200/50">
+          <button
+            onClick={goToFarmHome}
+            className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-stone-700 hover:text-[#2d5a1b] shadow-sm transition-colors"
+            title="الرئيسية"
+          >
+            <Home className="w-4 h-4 text-[#2d5a1b]" />
+            <span>الرئيسية</span>
+          </button>
 
-      <div className="flex items-center gap-2 rounded-full border border-stone-200 bg-white/80 px-3 py-2 shadow-sm">
-        <div className="h-2.5 w-2.5 rounded-full bg-[#2d5a1b]" />
-        <div className="leading-tight">
-          <p className="text-[11px] text-stone-500">أنت الآن في</p>
-          <p className="text-sm font-semibold text-stone-800">{displayFarmName}</p>
+          {farmId && (
+            <>
+              <ChevronLeft className="w-4 h-4 text-stone-400" />
+              <button
+                onClick={() => navigate(`/farms/${farmId}/animals`)}
+                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-stone-600 hover:text-[#2d5a1b] transition-colors"
+                title="عرض حيوانات المزرعة"
+              >
+                <span>الحيوانات</span>
+              </button>
+            </>
+          )}
+
+          {farmId && (
+            <>
+              <ChevronLeft className="w-4 h-4 text-stone-400" />
+              <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold text-[#2d5a1b]">
+                <MapPin className="w-4 h-4" />
+                <span>{displayFarmName}</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
-      <div className="flex-1" />
-
-      <div className="flex items-center gap-3">
+      {/* Left Section: Profile, Notifications & Logout */}
+      <div className="flex items-center gap-4">
+        {/* Notifications */}
         <button
           onClick={() => navigate('/notifications')}
-          className="relative p-2 rounded-lg hover:bg-stone-100 transition-colors"
+          className="relative p-2 rounded-full border border-stone-200 bg-white hover:bg-stone-50 text-stone-600 transition-all shadow-sm"
           title="الإشعارات"
         >
-          <svg
-            className="w-5 h-5 text-stone-600"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            viewBox="0 0 24 24"
-          >
-            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
-          </svg>
-
+          <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-red-500 text-white text-[11px] font-black rounded-full flex items-center justify-center shadow-sm border-2 border-white">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
         </button>
 
-        <div className="flex items-center gap-3">
-          {user?.avatar ? (
-            <img
-              src={user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000${user.avatar}`}
-              alt={user.name}
-              className="w-9 h-9 rounded-lg object-cover shadow-sm"
-            />
-          ) : (
-            <div className="w-9 h-9 rounded-lg bg-[#2d5a1b] text-white flex items-center justify-center text-sm font-bold shadow-sm">
-              {user?.name?.charAt(0) || 'م'}
+        {/* User Profile Info */}
+        <div className="flex items-center gap-3 pl-4 border-l border-stone-200">
+          <div className="flex items-center gap-3 bg-stone-50 border border-stone-100 rounded-full pr-1 pl-3 py-1">
+            {user?.avatar ? (
+              <img
+                src={user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000${user.avatar}`}
+                alt={user.name}
+                className="w-8 h-8 rounded-full object-cover shadow-sm border border-white"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2d5a1b] to-[#3d7a25] text-white flex items-center justify-center text-sm font-bold shadow-sm border border-white">
+                {user?.name?.charAt(0) || 'م'}
+              </div>
+            )}
+            <div className="leading-tight hidden sm:block text-right">
+              <p className="text-[11px] text-stone-500 font-medium">مرحباً بك،</p>
+              <p className="text-sm font-bold text-stone-800 truncate max-w-[120px]">
+                {user?.name?.split(' ')[0] || 'المستخدم'}
+              </p>
             </div>
-          )}
-          <div className="leading-tight">
-            <p className="text-sm font-semibold text-stone-800">
-              {user?.name || 'المستخدم'}
-            </p>
           </div>
         </div>
+
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition-all border border-red-100 shadow-sm"
+          title="تسجيل الخروج"
+        >
+          <span className="text-sm font-bold hidden md:block">خروج</span>
+          <LogOut className="w-4 h-4" />
+        </button>
       </div>
     </header>
   )
