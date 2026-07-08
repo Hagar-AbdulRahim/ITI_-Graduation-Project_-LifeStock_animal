@@ -31,17 +31,17 @@ const verificationEmailHTML = (name, verifyUrl) => `
 <body>
   <div class="container">
     <div class="header">
-      <h1>🐄 منصة صحة المواشي</h1>
+      <h1>🐄 منصة رعايه</h1>
       <p>مرحباً بك في منصتك البيطرية الذكية</p>
     </div>
     <div class="body">
       <p>مرحباً <strong>${name}</strong>،</p>
       <p>شكراً لتسجيلك في منصة صحة المواشي الذكية. لإتمام التسجيل وتفعيل حسابك، يرجى الضغط على الزر أدناه:</p>
       <a href="${verifyUrl}" class="btn">تفعيل الحساب</a>
-      <p class="note">هذا الرابط صالح لمدة <strong>24 ساعة</strong> فقط.<br>لو ما طلبتش التسجيل، تجاهل هذا الإيميل.</p>
+      <p class="note">هذا الرابط صالح لمدة <strong>10 دقائق</strong> فقط.<br>لو ما طلبتش التسجيل، تجاهل هذا الإيميل.</p>
     </div>
     <div class="footer">
-      منصة صحة المواشي الذكية — جميع الحقوق محفوظة
+      منصة رعايه الذكية — جميع الحقوق محفوظة
     </div>
   </div>
 </body>
@@ -70,17 +70,17 @@ const passwordResetEmailHTML = (name, otp) => `
 <body>
   <div class="container">
     <div class="header">
-      <h1>🐄 منصة صحة المواشي</h1>
+      <h1>🐄 منصة رعايه </h1>
       <p>إعادة تعيين كلمة المرور</p>
     </div>
     <div class="body">
       <p>مرحباً <strong>${name}</strong>،</p>
       <p>تلقينا طلباً لإعادة تعيين كلمة المرور الخاصة بحسابك. كود التحقق هو:</p>
       <div class="otp-box">${otp}</div>
-      <p class="note">صالح لمدة <strong>10 دقائق</strong> فقط.<br>لو ما طلبتش تغيير كلمة المرور، تجاهل هذا الإيميل.</p>
-    </div>
+      <p class="note">صالح لمدة <strong>60 دقيقه</strong> فقط.<br>لو ما طلبتش تغيير كلمة المرور، تجاهل هذا الإيميل.</p>
+    </div>  
     <div class="footer">
-      منصة صحة المواشي الذكية — جميع الحقوق محفوظة
+      منصة رعايه الذكية — جميع الحقوق محفوظة
     </div>
   </div>
 </body>
@@ -90,18 +90,21 @@ const passwordResetEmailHTML = (name, otp) => `
 const sendVerificationEmail = async (user, rawToken) => {
   const verifyUrl   = `${process.env.FRONTEND_URL}/verify-email?token=${rawToken}`;
   const transporter = createTransporter();
-  await transporter.sendMail({
-    from:    `"منصة صحة المواشي" <${process.env.EMAIL_USER}>`,
+  
+  console.log(`[Email] Attempting to send verification email to: ${user.email}`);
+  const info = await transporter.sendMail({
+    from:    `"منصة رعايه" <${process.env.EMAIL_USER}>`,
     to:      user.email,
-    subject: "تفعيل حسابك في منصة صحة المواشي 🐄",
+    subject: "تفعيل حسابك في منصة رعايه 🐄",
     html:    verificationEmailHTML(user.name, verifyUrl),
   });
+  console.log(`[Email] Success! Message ID: ${info.messageId}`);
 };
 
 const sendPasswordResetOtp = async (user, otp) => {
-  const transporter = createTransporter(); // ← ده كان ناقص
+  const transporter = createTransporter(); 
   await transporter.sendMail({
-    from:    `"منصة صحة المواشي" <${process.env.EMAIL_USER}>`,
+    from:    `"منصة رعايه" <${process.env.EMAIL_USER}>`,
     to:      user.email,
     subject: "كود إعادة تعيين كلمة المرور 🔐",
     html:    passwordResetEmailHTML(user.name, otp),
@@ -140,7 +143,7 @@ const contactUsEmailHTML = (name, email, subject, message) => `
       <div class="message-box">${message}</div>
     </div>
     <div class="footer">
-      هذا إيميل تلقائي من نظام منصة صحة المواشي
+      هذا إيميل تلقائي من نظام منصة رعايه
     </div>
   </div>
 </body>

@@ -78,12 +78,12 @@ const Navbar = () => {
   }
 
   const handleNavClick = (e, link) => {
-    if (AUTH_PROTECTED_LINKS.includes(link.id) && !isAuthenticated) {
-      e.preventDefault()
-      navigate('/login')
-      setMenuOpen(false)
-    }
+  if (AUTH_PROTECTED_LINKS.includes(link.id) && !isAuthenticated) {
+    e.preventDefault()
+    navigate('/login', { state: { from: { pathname: getDynamicPath(link) } } })
+    setMenuOpen(false)
   }
+}
 
   const navbarBg =
     scrolled || menuOpen

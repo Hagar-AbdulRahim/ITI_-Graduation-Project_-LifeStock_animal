@@ -1,16 +1,17 @@
 /**
  * خدمة البحث عن عيادات/مستشفيات بيطرية قريبة
  * - Geoapify Places API → بيانات أماكن حقيقية (اسم، عنوان، تليفون، ساعات)
- * - Nominatim           → تحويل اسم المحافظة لـ lat/lng (fallback)
+ * - Nominatim           → تحويل اسم المحافظة لـ lat/lng (fallback موقع)
+ * - localVetFallback    → قاعدة بيانات محلية (fallback نتايج) لو Geoapify رجّع فاضي
  */
 const axios = require("axios");
+const { findNearbyFromLocalDB } = require("./localVetFallback");
 
 const USER_AGENT        = "LifeStock-App/1.0 (mariamelwheshiy@gmail.com)";
 const NOMINATIM_URL     = "https://nominatim.openstreetmap.org/search";
 const GEOAPIFY_URL      = "https://api.geoapify.com/v2/places";
 const DEFAULT_RADIUS    = 10000; // 10 كم
 
-// ── Nominatim: تحويل اسم المحافظة لإحداثيات ─────────────
 const geocodeGovernorate = async (governorate) => {
   try {
     const res = await axios.get(NOMINATIM_URL, {
@@ -36,7 +37,6 @@ const geocodeGovernorate = async (governorate) => {
   }
 };
 
-// ── Haversine: حساب المسافة بالكيلومتر ──────────────────
 const calculateDistanceKm = (lat1, lng1, lat2, lng2) => {
   const toRad = (d) => (d * Math.PI) / 180;
   const R = 6371;
@@ -48,8 +48,7 @@ const calculateDistanceKm = (lat1, lng1, lat2, lng2) => {
   return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) * 10) / 10;
 };
 
-// ── Geoapify: البحث عن عيادات بيطرية قريبة ──────────────
-const findNearbyClinics = async ({ lat, lng, radius = DEFAULT_RADIUS }) => {
+const fetchFromGeoapify = async ({ lat, lng, radius }) => {
   const apiKey = process.env.GEOAPIFY_API_KEY;
 
   if (!apiKey) {
@@ -104,10 +103,27 @@ const findNearbyClinics = async ({ lat, lng, radius = DEFAULT_RADIUS }) => {
     if (status === 401) console.error("GEOAPIFY_API_KEY غلط أو منتهي");
     if (status === 429) console.error("Geoapify rate limit");
     return [];
-    
   }
-  
 };
 
+/**
+ * ── الدالة العامة المستخدمة في الراوتر ──
+ */
+const findNearbyClinics = async ({ lat, lng, radius = DEFAULT_RADIUS, governorate }) => {
+  const geoapifyResults = await fetchFromGeoapify({ lat, lng, radius });
+
+  if (geoapifyResults.length > 0) {
+    return geoapifyResults;
+  }
+
+  console.log("Geoapify رجّع فاضي، بندور في قاعدة البيانات المحلية...");
+  try {
+    const localResults = await findNearbyFromLocalDB({ lat, lng, governorate });
+    return localResults;
+  } catch (err) {
+    console.error("local fallback error:", err.message);
+    return [];
+  }
+};
 
 module.exports = { findNearbyClinics, geocodeGovernorate };

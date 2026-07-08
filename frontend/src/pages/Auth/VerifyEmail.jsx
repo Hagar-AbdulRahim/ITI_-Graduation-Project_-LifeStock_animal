@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { CheckCircle, XCircle, Loader } from 'lucide-react';
 import { useDispatch } from 'react-redux';
@@ -10,9 +10,30 @@ export default function VerifyEmail() {
   const [message, setMessage] = useState('');
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const [email, setEmail] = useState('');
+  const [resending, setResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState('');
+  
+  const handleResend = async (e) => {
+    e.preventDefault();
+    if (!email) return;
+    setResending(true);
+    setResendMessage('');
+    try {
+      const res = await api.post('/api/auth/resend-verification', { email });
+      setResendMessage(res.data.message || 'تم إرسال الرابط بنجاح');
+    } catch (err) {
+      setResendMessage(err.response?.data?.message || 'فشل إرسال الرابط');
+    } finally {
+      setResending(false);
+    }
+  };
+  const hasFetched = useRef(false);
 
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+
     const token = searchParams.get('token');
 
     if (!token) {
@@ -26,10 +47,8 @@ export default function VerifyEmail() {
         setStatus('success');
         setMessage('تم تفعيل حسابك بنجاح! يمكنك الآن تسجيل الدخول.');
         
-        // Log user in automatically by saving access_token and user to Redux
-        if (res.data?.access_token && res.data?.user) {
-          dispatch(setCredentials(res.data));
-        }
+        // Auto-redirect after 3 seconds
+        setTimeout(() => navigate('/login'), 3000);
 
         // Auto-redirect after 3 seconds
         setTimeout(() => navigate('/login'), 3000);
@@ -53,7 +72,7 @@ export default function VerifyEmail() {
         />
         <div className="absolute inset-0 z-20 flex flex-col p-8 lg:p-12 text-white justify-between">
           <div>
-            <h2 className="text-lg lg:text-xl font-bold">LivestockCare AI</h2>
+            <h2 className="text-lg lg:text-xl font-extrabold tracking-wide">رعاية</h2>
           </div>
           <div className="flex flex-col mb-16 lg:mb-20 max-w-lg">
             <h3 className="text-2xl lg:text-3xl font-bold mb-4 leading-tight text-right">تفعيل الحساب</h3>
@@ -61,7 +80,7 @@ export default function VerifyEmail() {
               نقوم بالتحقق من بريدك الإلكتروني لتفعيل حسابك وضمان الأمان.
             </p>
           </div>
-          <p className="text-xs text-white/70">© 2024 LivestockCare AI. مستدام.</p>
+          <p className="text-xs text-white/70">© 2024 رعاية. مستدام.</p>
         </div>
       </div>
 
@@ -109,16 +128,44 @@ export default function VerifyEmail() {
               </div>
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900">فشل التفعيل</h1>
               <p className="text-sm md:text-base text-gray-600">{message}</p>
-              <div className="flex flex-col gap-3 mt-2 w-full">
+              <div className="flex flex-col gap-3 mt-4 w-full">
+                <form onSubmit={handleResend} className="flex flex-col gap-2 w-full">
+                  <p className="text-sm text-gray-700 font-medium mb-1">أدخل بريدك الإلكتروني لإرسال رابط جديد:</p>
+                  <input
+                    type="email"
+                    required
+                    placeholder="example@gmail.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#154b23] focus:border-transparent text-right"
+                    dir="ltr"
+                  />
+                  <button
+                    type="submit"
+                    disabled={resending}
+                    className="w-full flex items-center justify-center rounded-lg py-3 px-4 font-bold bg-[#154b23] text-white hover:bg-[#0f3619] transition-colors disabled:opacity-70"
+                  >
+                    {resending ? 'جاري الإرسال...' : 'إرسال رابط تفعيل جديد'}
+                  </button>
+                </form>
+                
+                {resendMessage && (
+                  <p className={`text-sm mt-2 ${resendMessage.includes('فشل') ? 'text-red-500' : 'text-green-600'}`}>
+                    {resendMessage}
+                  </p>
+                )}
+
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
+                  <div className="relative flex justify-center text-sm"><span className="px-2 bg-[#fbf9f6] text-gray-500">أو</span></div>
+                </div>
+
                 <Link
                   to="/login"
-                  className="flex items-center justify-center rounded-lg py-3 px-4 font-bold bg-[#154b23] text-white hover:bg-[#0f3619] transition-colors min-h-[44px]"
+                  className="w-full flex items-center justify-center rounded-lg py-3 px-4 font-bold border-2 border-[#154b23] text-[#154b23] hover:bg-[#154b23] hover:text-white transition-colors"
                 >
                   العودة لتسجيل الدخول
                 </Link>
-                <p className="text-xs text-gray-400">
-                  لو الرابط انتهت صلاحيته، يمكنك طلب إعادة إرساله من صفحة تسجيل الدخول.
-                </p>
               </div>
             </div>
           )}

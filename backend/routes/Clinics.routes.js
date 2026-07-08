@@ -32,10 +32,9 @@ router.get(
     try {
       let { lat, lng, radius } = req.query;
       let location_source = "gps";
+      const governorate = req.query.governorate;
 
       if (!lat || !lng) {
-        const governorate = req.query.governorate;
-
         let coords = getCoordinatesByGovernorate(governorate);
         if (!coords) coords = await geocodeGovernorate(governorate);
 
@@ -58,6 +57,7 @@ router.get(
         lat,
         lng,
         radius: radius ? parseInt(radius, 10) : undefined,
+        governorate,
       });
 
       res.json({
@@ -82,7 +82,7 @@ router.get(
  */
 router.post("/emergency", async (req, res) => {
   try {
-    const { message, lat, lng } = req.body;
+    const { message, lat, lng, governorate } = req.body;
 
     if (!lat || !lng) {
       return res.status(400).json({
@@ -91,12 +91,12 @@ router.post("/emergency", async (req, res) => {
       });
     }
 
-    // 50 كم — يغطي محافظة كاملة تقريباً
     const SEARCH_RADIUS = 50000;
     const clinics = await findNearbyClinics({
       lat:    parseFloat(lat),
       lng:    parseFloat(lng),
       radius: SEARCH_RADIUS,
+      governorate,
     });
 
     const radiusKm = SEARCH_RADIUS / 1000;
@@ -134,7 +134,6 @@ ${clinicsText}
       reply = result.response.text().trim();
     } catch (geminiErr) {
       console.error("Gemini error in /emergency:", geminiErr.message);
-      // رد احتياطي لو Gemini فشل
       if (clinics.length === 0) {
         reply = `لم نجد عيادات بيطرية مسجلة في نطاق ${radiusKm} كم من موقعك. يُنصح بالتواصل مع أقرب مديرية زراعية أو طبيب بيطري تعرفه.`;
       } else {

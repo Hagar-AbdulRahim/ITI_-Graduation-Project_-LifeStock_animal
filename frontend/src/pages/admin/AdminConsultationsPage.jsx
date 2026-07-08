@@ -2,17 +2,20 @@ import { useCallback, useEffect, useState } from 'react';
 import adminService from '../../services/adminService';
 import DataTable from '../../components/admin/DataTable';
 import toast from 'react-hot-toast';
+import { EGYPTIAN_GOVERNORATES } from '../../constant/adminData';
 
 export default function AdminConsultationsPage() {
   const [items, setItems] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [governorate, setGovernorate] = useState('');
+  const [status, setStatus] = useState('');
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await adminService.getConsultations({ page, limit: 15 });
+      const res = await adminService.getConsultations({ page, limit: 15, governorate: governorate || undefined, status: status || undefined });
       setItems(res.data.data);
       setPagination(res.data.pagination);
     } catch {
@@ -20,7 +23,7 @@ export default function AdminConsultationsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page]);
+  }, [page, governorate, status]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -48,6 +51,17 @@ export default function AdminConsultationsPage() {
       </div>
 
       <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300">
+        <div className="flex flex-wrap gap-4 mb-6">
+          <select value={governorate} onChange={(e) => { setGovernorate(e.target.value); setPage(1); }} className="border-none bg-stone-50 shadow-inner rounded-xl px-4 py-2.5 text-sm font-medium text-stone-700 outline-none">
+            <option value="">كل المحافظات</option>
+            {EGYPTIAN_GOVERNORATES.map((g) => <option key={g} value={g}>{g}</option>)}
+          </select>
+          <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} className="border-none bg-stone-50 shadow-inner rounded-xl px-4 py-2.5 text-sm font-medium text-stone-700 outline-none">
+            <option value="">كل الحالات</option>
+            <option value="pending">معلق</option>
+            <option value="responded">تم الرد</option>
+          </select>
+        </div>
         <div className="overflow-x-auto custom-scrollbar rounded-2xl border border-stone-100/80 bg-white/50 mt-2 pb-2">
           <DataTable columns={columns} data={items} loading={loading} pagination={pagination} onPageChange={setPage} />
         </div>

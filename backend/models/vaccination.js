@@ -41,7 +41,7 @@ const vaccinationSchema = new mongoose.Schema(
 
     // ── compatibility مع البيانات القديمة ────────────────────────────────────
     is_first_dose: { type: Boolean, default: false },
-    last_date:     { type: Date, default: null },
+   
 
     next_due_date: {
       type: Date,

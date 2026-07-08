@@ -7,6 +7,7 @@ const {
   getUserById,
   createUser,
   updateUser,
+  toggleUser,
   deleteUser,
   getFarms,
   getFarmById,
@@ -18,6 +19,12 @@ const {
   getOutbreaks,
   createOutbreak,
   resolveOutbreak,
+  getClinics,
+  createClinic,
+  updateClinic,
+  deleteClinic,
+  getKnowledgeBaseStats,
+  rebuildKnowledgeBase,
   getNotifications,
   broadcastNotification,
   getUsersGrowth,
@@ -28,11 +35,13 @@ const {
 router.use(protect, authorize("admin"));
 
 router.get("/dashboard/stats", getDashboardStats);
+router.get("/stats", getDashboardStats);
 
 router.get("/users", getUsers);
 router.get("/users/:id", getUserById);
 router.post("/users", createUser);
 router.put("/users/:id", updateUser);
+router.put("/users/:id/toggle", toggleUser);
 router.delete("/users/:id", deleteUser);
 
 router.get("/farms", getFarms);
@@ -45,6 +54,14 @@ router.get("/health-cases", getHealthCases);
 router.put("/health-cases/:id", updateHealthCase);
 
 router.get("/consultations", getConsultations);
+
+router.get("/clinics", getClinics);
+router.post("/clinics", createClinic);
+router.put("/clinics/:id", updateClinic);
+router.delete("/clinics/:id", deleteClinic);
+
+router.get("/knowledge/stats", getKnowledgeBaseStats);
+router.post("/knowledge/rebuild", rebuildKnowledgeBase);
 
 router.get("/outbreaks", getOutbreaks);
 router.post("/outbreaks", createOutbreak);

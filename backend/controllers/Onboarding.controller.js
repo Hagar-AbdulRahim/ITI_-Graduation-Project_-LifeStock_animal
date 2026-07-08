@@ -86,47 +86,51 @@ const confirm = async (req, res) => {
     }
 
     // ── حفظ اللقاحات ─────────────────────────────────────────────────────────
-    // في confirm — حفظ اللقاحات
-if (Array.isArray(vaccinations)) {
-  for (const entry of vaccinations) {
-    if (!entry.vaccine_name) continue;
+    if (Array.isArray(vaccinations)) {
+      for (const entry of vaccinations) {
+        if (!entry.vaccine_name) continue;
 
-    const isFirstDose   = entry.is_first_dose === true;
-    const vaccineType   = entry.vaccine_type === "emergency" ? "one_time" : "recurring";
-    const scheduledDate = parseApproximateDate(entry.scheduled_date);
-    const lastDate      = parseApproximateDate(entry.last_date);
+        // الـ FINAL_JSON بيرجع vaccination_type بالعربي ("دوري"/"مرة_واحدة")
+        // الموديل بيتوقع "recurring"/"one_time" بالإنجليزي
+        const mapVaccineType = (type) => {
+          if (!type) return "recurring";
+          const t = type.toString().trim();
+          if (t === "one_time" || t.includes("مرة") || t.includes("واحدة") || t === "emergency") return "one_time";
+          return "recurring";
+        };
 
-    const vaccinationData = {
-      animal_id:    animal._id,
-      vaccine_name: entry.vaccine_name,
-      vaccine_type: vaccineType,
-      is_first_dose: isFirstDose,
-      added_by:     "onboarding_agent",
-      notes:        entry.notes || null,
-    };
+        const vaccineType   = mapVaccineType(entry.vaccination_type || entry.vaccine_type);
+        const isFirstDose   = entry.is_first_dose === true;
+        const scheduledDate = parseApproximateDate(entry.scheduled_date);
+        const lastDate      = parseApproximateDate(entry.last_date);
 
-    if (vaccineType === "one_time") {
-      // لقاح طارئ أو مرة واحدة
-      vaccinationData.scheduled_date = scheduledDate || new Date();
-      vaccinationData.status         = scheduledDate > new Date() ? "scheduled" : "completed";
-    } else if (isFirstDose && scheduledDate) {
-      // أول جرعة مجدولة مستقبلياً (المزارع وافق على الإضافة)
-      vaccinationData.scheduled_date = scheduledDate;
-      vaccinationData.status         = "scheduled";
-      // next_due_date هيتحسب تلقائياً من scheduled_date في الـ hook
-    } else if (isFirstDose) {
-      // أول جرعة بدون موعد محدد
-      vaccinationData.status = "completed";
-    } else {
-      // جرعة عادية (مش أول مرة)
-      vaccinationData.last_date = lastDate || new Date();
-      vaccinationData.status    = "completed";
+        const vaccinationData = {
+          animal_id:    animal._id,
+          vaccine_name: entry.vaccine_name,
+          vaccine_type: vaccineType,
+          added_by:     "onboarding_agent",
+          notes:        entry.notes || null,
+        };
+
+        // إضافة فترة التكرار لو موجودة (من الـ FINAL_JSON)
+        if (vaccineType === "recurring") {
+          vaccinationData.repeat_every_months = entry.revaccination_interval_months || 12;
+        }
+
+        if (vaccineType === "one_time") {
+          vaccinationData.scheduled_date = scheduledDate || new Date();
+        } else if (isFirstDose && scheduledDate) {
+          vaccinationData.administration_date = scheduledDate;
+        } else if (isFirstDose) {
+          vaccinationData.administration_date = new Date();
+        } else {
+          vaccinationData.administration_date = lastDate || new Date();
+        }
+
+        const vaccination = await Vaccination.create(vaccinationData);
+        savedVaccinations.push(vaccination);
+      }
     }
-
-    const vaccination = await Vaccination.create(vaccinationData);
-    savedVaccinations.push(vaccination);
-  }
-}
 
     return res.status(201).json({
       success: true,
