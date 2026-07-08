@@ -127,13 +127,6 @@ const AddAnimalPage = () => {
           </div>
         )}
 
-        {farmId && (
-          <div className="mb-5 rounded-[20px] border border-emerald-100 bg-emerald-50 p-5 text-sm text-emerald-800 shadow-sm">
-            <p className="font-semibold mb-1">المزرعة المختارة</p>
-            <p>{selectedFarm ? selectedFarm.name : 'المزرعة المحددة غير موجودة في القائمة'}</p>
-            {selectedFarm?.governorate && <p className="text-xs text-emerald-700 mt-1">المحافظة: {selectedFarm.governorate}</p>}
-          </div>
-        )}
 
         <div className="bg-white rounded-[2rem] shadow-xl shadow-green-900/10 border border-[#1b4d2c]/10 p-6 sm:p-10">
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8">
