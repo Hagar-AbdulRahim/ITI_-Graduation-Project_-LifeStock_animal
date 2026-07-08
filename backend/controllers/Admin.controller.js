@@ -292,6 +292,9 @@ const getAnimals = async (req, res) => {
     const farmIds = await Farm.find(farmFilter).distinct("_id");
     const filter = { is_active: true, farm_id: { $in: farmIds } };
 
+    // فلترة بمزرعة معينة (لما اليوزر يضغط "عرض الحيوانات" من صفحة مزرعة بعينها)
+    if (req.query.farm_id) filter.farm_id = req.query.farm_id;
+
     if (req.query.species) filter.species = req.query.species;
     if (req.query.health_status) filter.health_status = req.query.health_status;
 

@@ -1,10 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import adminService from '../../services/adminService';
 import DataTable from '../../components/admin/DataTable';
 import { HEALTH_STATUS_LABELS, SPECIES_LABELS } from '../../constant/adminData';
 import toast from 'react-hot-toast';
+import { X, Eye } from 'lucide-react';
 
 export default function AdminAnimalsPage() {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const farmId = searchParams.get('farm_id') || '';
+  const farmName = searchParams.get('farm_name') || '';
+
   const [animals, setAnimals] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -14,7 +21,12 @@ export default function AdminAnimalsPage() {
   const fetchAnimals = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await adminService.getAnimals({ page, limit: 15, health_status: healthStatus || undefined });
+      const res = await adminService.getAnimals({
+        page,
+        limit: 15,
+        health_status: healthStatus || undefined,
+        farm_id: farmId || undefined,
+      });
       setAnimals(res.data.data);
       setPagination(res.data.pagination);
     } catch {
@@ -22,9 +34,20 @@ export default function AdminAnimalsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, healthStatus]);
+  }, [page, healthStatus, farmId]);
 
   useEffect(() => { fetchAnimals(); }, [fetchAnimals]);
+  useEffect(() => { setPage(1); }, [farmId]);
+
+  // يمسح فلتر المزرعة ويرجع لعرض كل الحيوانات
+  const clearFarmFilter = () => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete('farm_id');
+      next.delete('farm_name');
+      return next;
+    });
+  };
 
   const columns = [
     { key: 'tag', label: 'رقم الوسم', render: (r) => <span className="font-bold text-stone-700">{r.tag_number}</span> },
@@ -41,6 +64,21 @@ export default function AdminAnimalsPage() {
         }`}>
           {HEALTH_STATUS_LABELS[r.health_status] || r.health_status}
         </span>
+      ),
+    },
+    {
+      key: 'actions',
+      label: 'إجراءات',
+      render: (r) => (
+        <button
+          type="button"
+          onClick={() => navigate(`/animals/${r._id}`)}
+          className="flex items-center gap-1.5 text-stone-500 text-xs font-bold hover:text-[#2a5c2a] transition-colors"
+          title="عرض تفاصيل الحيوان"
+        >
+          <Eye className="w-3.5 h-3.5" />
+          عرض التفاصيل
+        </button>
       ),
     },
   ];
@@ -63,6 +101,15 @@ export default function AdminAnimalsPage() {
               <option value="critical">حرج</option>
             </select>
           </div>
+
+          {farmId && (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-[#2a5c2a]/10 text-[#2a5c2a] rounded-full text-sm font-bold">
+              <span>مزرعة: {farmName || farmId}</span>
+              <button type="button" onClick={clearFarmFilter} className="hover:text-red-600 transition-colors">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-stone-100/80 bg-white/50">

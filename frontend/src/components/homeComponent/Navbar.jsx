@@ -15,6 +15,7 @@ const IconLogin       = () => <svg className="w-4 h-4" fill="none" stroke="curre
 const IconEmergency   = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v6m3-3H9m11 0a8 8 0 11-16 0 8 8 0 0116 0z" /></svg>;
 const IconShieldCheck = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>;
 const IconBriefcase   = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>;
+const IconDashboard   = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h8v8H3V3zm10 0h8v5h-8V3zm0 9h8v9h-8v-9zM3 13h8v8H3v-8z" /></svg>;
 
 // ─── Nav Links definition ──────────────────────────────────────────────────
 const NAV_LINKS = [
@@ -39,6 +40,7 @@ const Navbar = () => {
   const { user, isAuthenticated } = useSelector((state) => state.auth)
   const { farms } = useSelector((state) => state.farm || { farms: [] })
   const firstFarmId = farms && farms.length > 0 ? farms[0]._id : null
+  const isAdmin = user?.role === 'admin'
 
   useEffect(() => {
     if (isAuthenticated && (!farms || farms.length === 0)) {
@@ -141,55 +143,81 @@ const Navbar = () => {
             {/* ── Right Actions ── */}
             <div className="flex items-center gap-3">
               {isAuthenticated ? (
-                <div className="relative">
-                  <button
-                    onClick={() => setShowDropdown(!showDropdown)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#1b4d2c]/8 hover:bg-[#1b4d2c]/15 border border-[#1b4d2c]/20 transition-all duration-200"
-                  >
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#1b4d2c] to-[#1b4d2c] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                      {user?.name ? user.name[0] : 'م'}
-                    </div>
-                    <span className="text-base font-semibold text-gray-800 hidden md:block max-w-[120px] truncate">
-                      {user?.name || 'المستخدم'}
-                    </span>
-                    <svg
-                      className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                <>
+                  {isAdmin && (
+                    <button
+                      onClick={() => navigate('/admin/dashboard')}
+                      className="hidden md:flex items-center gap-1.5 px-4 py-2 text-base font-bold text-white bg-gradient-to-r from-[#1b4d2c] to-[#2d5a1b] rounded-xl shadow-[0_12px_30px_-16px_rgba(27,77,44,0.55)] hover:shadow-[0_14px_34px_-14px_rgba(27,77,44,0.65)] hover:scale-[1.02] active:scale-95 transition-all duration-200"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </button>
-
-                  {showDropdown && (
-                    <div className="absolute left-0 top-full mt-2 w-44 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                      <button
-                        onClick={() => {
-                          navigate('/farms')
-                          setShowDropdown(false)
-                        }}
-                        className="flex items-center gap-2.5 w-full px-4 py-2.5 text-base text-gray-700 hover:bg-gray-50 transition-colors"
-                      >
-                        <IconGrid />
-                        مزارعي
-                      </button>
-                      <hr className="my-1.5 border-gray-100" />
-                      <button
-                        onClick={handleLogout}
-                        className="flex items-center gap-2.5 w-full px-4 py-2.5 text-base text-red-600 hover:bg-red-50 transition-colors"
-                      >
-                        <IconLogout />
-                        تسجيل الخروج
-                      </button>
-                    </div>
+                      <IconDashboard />
+                      لوحة التحكم
+                    </button>
                   )}
-                </div>
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowDropdown(!showDropdown)}
+                      className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#1b4d2c]/8 hover:bg-[#1b4d2c]/15 border border-[#1b4d2c]/20 transition-all duration-200"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#1b4d2c] to-[#1b4d2c] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                        {user?.name ? user.name[0] : 'م'}
+                      </div>
+                      <span className="text-base font-semibold text-gray-800 hidden md:block max-w-[120px] truncate">
+                        {user?.name || 'المستخدم'}
+                      </span>
+                      <svg
+                        className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+
+                    {showDropdown && (
+                      <div className="absolute left-0 top-full mt-2 w-44 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                        {isAdmin && (
+                          <>
+                            <button
+                              onClick={() => {
+                                navigate('/admin/dashboard')
+                                setShowDropdown(false)
+                              }}
+                              className="flex items-center gap-2.5 w-full px-4 py-2.5 text-base text-[#1b4d2c] font-semibold hover:bg-gray-50 transition-colors"
+                            >
+                              <IconDashboard />
+                              لوحة التحكم
+                            </button>
+                            <hr className="my-1.5 border-gray-100" />
+                          </>
+                        )}
+                        <button
+                          onClick={() => {
+                            navigate('/farms')
+                            setShowDropdown(false)
+                          }}
+                          className="flex items-center gap-2.5 w-full px-4 py-2.5 text-base text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <IconGrid />
+                          مزارعي
+                        </button>
+                        <hr className="my-1.5 border-gray-100" />
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center gap-2.5 w-full px-4 py-2.5 text-base text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                          <IconLogout />
+                          تسجيل الخروج
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
               ) : (
                 <div className="hidden md:flex items-center gap-2">
                   <button
@@ -251,13 +279,27 @@ const Navbar = () => {
 
             <div className="pt-2 border-t border-gray-100 mt-2 space-y-2">
               {isAuthenticated ? (
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-base font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
-                >
-                  <IconLogout />
-                  تسجيل الخروج
-                </button>
+                <>
+                  {isAdmin && (
+                    <button
+                      onClick={() => {
+                        navigate('/admin/dashboard')
+                        setMenuOpen(false)
+                      }}
+                      className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-base font-bold text-white bg-gradient-to-r from-[#1b4d2c] to-[#2d5a1b] shadow-[0_12px_30px_-16px_rgba(27,77,44,0.55)] transition-all active:scale-95"
+                    >
+                      <IconDashboard />
+                      لوحة التحكم
+                    </button>
+                  )}
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-base font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+                  >
+                    <IconLogout />
+                    تسجيل الخروج
+                  </button>
+                </>
               ) : (
                 <>
                   <button

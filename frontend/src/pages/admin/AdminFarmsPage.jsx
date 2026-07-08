@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import { PawPrint, Trash2 } from 'lucide-react';
 import adminService from '../../services/adminService';
 import DataTable from '../../components/admin/DataTable';
 
 export default function AdminFarmsPage() {
+  const navigate = useNavigate();
   const [farms, setFarms] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -36,16 +39,52 @@ export default function AdminFarmsPage() {
     }
   };
 
+  // ينقل المستخدم لصفحة الحيوانات مع فلتر المزرعة في الرابط
+  const goToFarmAnimals = (farm) => {
+    navigate(`/admin/animals?farm_id=${farm._id}&farm_name=${encodeURIComponent(farm.name)}`);
+  };
+
   const columns = [
     { key: 'name', label: 'اسم المزرعة', render: (r) => <span className="font-bold text-stone-700">{r.name}</span> },
     { key: 'governorate', label: 'المحافظة', render: (r) => <span className="text-stone-600">{r.governorate}</span> },
     { key: 'owner', label: 'المالك', render: (r) => <span className="text-stone-500 font-medium">{r.user_id?.name || '—'}</span> },
-    { key: 'total_animals', label: 'عدد الحيوانات', render: (r) => <span className="px-2 py-1 bg-stone-100 rounded-md font-bold text-stone-600">{r.total_animals}</span> },
+    {
+      key: 'total_animals',
+      label: 'عدد الحيوانات',
+      render: (r) => (
+        <button
+          type="button"
+          onClick={() => goToFarmAnimals(r)}
+          className="flex items-center gap-1.5 px-2.5 py-1 bg-stone-100 hover:bg-[#2a5c2a]/10 rounded-md font-bold text-stone-600 hover:text-[#2a5c2a] transition-colors"
+          title="عرض حيوانات المزرعة"
+        >
+          {r.total_animals}
+        </button>
+      ),
+    },
     {
       key: 'actions',
       label: 'إجراءات',
       render: (r) => (
-        <button type="button" onClick={() => handleDelete(r._id)} className="text-red-500 text-xs font-bold hover:text-red-700 transition-colors">حذف</button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => goToFarmAnimals(r)}
+            className="flex items-center gap-1 text-stone-500 text-xs font-bold hover:text-[#2a5c2a] transition-colors"
+            title="عرض الحيوانات"
+          >
+            <PawPrint className="w-3.5 h-3.5" />
+            عرض الحيوانات
+          </button>
+          <button
+            type="button"
+            onClick={() => handleDelete(r._id)}
+            className="flex items-center gap-1 text-red-500 text-xs font-bold hover:text-red-700 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            حذف
+          </button>
+        </div>
       ),
     },
   ];
