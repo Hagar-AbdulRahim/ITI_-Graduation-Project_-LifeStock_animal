@@ -7,6 +7,7 @@ const {
   getVaccinationById,
   updateVaccination,
   deleteVaccination,
+  confirmVaccinationDose,
 } = require("../controllers/Vaccination.controller");
 
 const {
@@ -42,11 +43,17 @@ router.put(
   updateVaccination
 );
 
+// تأكيد إعطاء الجرعة فعلياً
+router.patch(
+  "/:id/confirm",
+  [...vaccinationIdValidator, validate],
+  confirmVaccinationDose
+);
+
 router.delete(
   "/:id",
   [...vaccinationIdValidator, validate],
   deleteVaccination
 );
-
 
 module.exports = router;

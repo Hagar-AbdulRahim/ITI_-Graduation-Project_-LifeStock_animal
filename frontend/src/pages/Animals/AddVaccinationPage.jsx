@@ -91,10 +91,18 @@ const AddVaccinationPage = () => {
       vaccine_type: data.vaccine_type,
     };
     if (data.vaccine_type === 'recurring') {
-      payload.administration_date = data.administration_date;
-      payload.repeat_every_months = Number(data.repeat_every_months);
-      if (data.dose_ml) payload.dose_ml = Number(data.dose_ml);
-    } else {
+    payload.administration_date = data.administration_date;
+    payload.repeat_every_months = Number(data.repeat_every_months);
+    if (data.dose_ml) payload.dose_ml = Number(data.dose_ml);
+
+    // ── تحديد الحالة تلقائيًا حسب التاريخ ────────────────────────────────
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const enteredDate = new Date(data.administration_date);
+    enteredDate.setHours(0, 0, 0, 0);
+
+    payload.completed = enteredDate <= today; // ماضي/النهاردة → مكتمل، مستقبل → مجدول
+  } else {
       payload.scheduled_date = data.scheduled_date;
       if (data.dose_ml) payload.dose_ml = Number(data.dose_ml);
     }
@@ -230,15 +238,12 @@ const AddVaccinationPage = () => {
                     تاريخ إعطاء الجرعة <span className="text-rose-500">*</span>
                   </label>
                   <input
-                    type="date"
-                    max={getTodayString()}
-                    {...register('administration_date', {
-                      required: 'تاريخ إعطاء الجرعة مطلوب',
-                      validate: (val) =>
-                        new Date(val) <= new Date() || 'لا يمكن اختيار تاريخ مستقبلي',
-                    })}
-                    className={inputCls(errors.administration_date)}
-                  />
+                  type="date"
+                  {...register('administration_date', {
+                    required: 'تاريخ إعطاء الجرعة مطلوب',
+                  })}
+                  className={inputCls(errors.administration_date)}
+                />
                   {errors.administration_date && (
                     <p className="text-[11px] text-rose-500 mt-1">{errors.administration_date.message}</p>
                   )}

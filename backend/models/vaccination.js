@@ -21,7 +21,7 @@ const vaccinationSchema = new mongoose.Schema(
       default: "recurring",
     },
 
-    // ── تاريخ إعطاء الجرعة الفعلي ───────────────────────────────────────────
+    // ── تاريخ الجرعة (مجدولة أو فعلية حسب الحالة) ───────────────────────────
     administration_date: {
       type: Date,
       required: function () {
@@ -41,7 +41,6 @@ const vaccinationSchema = new mongoose.Schema(
 
     // ── compatibility مع البيانات القديمة ────────────────────────────────────
     is_first_dose: { type: Boolean, default: false },
-   
 
     next_due_date: {
       type: Date,
@@ -82,7 +81,10 @@ const vaccinationSchema = new mongoose.Schema(
   }
 );
 
-// ── حساب next_due_date تلقائياً عند الإنشاء ──────────────────────────────────
+// ── حساب next_due_date عند الإنشاء فقط ───────────────────────────────────────
+// عند الإنشاء: الجرعة لسه ما اتاخدتش فعلياً، فـ next_due_date = نفس تاريخ
+// الجرعة المجدولة (administration_date) — من غير أي إضافة لفترة التكرار.
+// إضافة فترة التكرار بتحصل بس وقت "تأكيد الجرعة" (Confirm Dose).
 vaccinationSchema.pre("validate", function () {
   if (this.vaccine_type !== "recurring" || this.next_due_date) return;
 
@@ -91,12 +93,8 @@ vaccinationSchema.pre("validate", function () {
     : new Date(this.administration_date);
 
   if (!baseDate || isNaN(baseDate.getTime())) return;
-  if (!this.repeat_every_months) return;
 
-  const calculatedDate = new Date(baseDate);
-  calculatedDate.setMonth(calculatedDate.getMonth() + this.repeat_every_months);
-
-  this.next_due_date = calculatedDate;
+  this.next_due_date = baseDate;
   this.next_due_date_auto_calculated = true;
 });
 

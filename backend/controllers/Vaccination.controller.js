@@ -28,10 +28,11 @@ const calcNextDueDate = (administrationDate, repeatMonths) => {
 const createVaccination = async (req, res) => {
   try {
     const {
-      animal_id, vaccine_name, vaccine_type,
-      administration_date, repeat_every_months,
-      scheduled_date, dose_ml, administered_by, batch_number, notes,
-    } = req.body;
+    animal_id, vaccine_name, vaccine_type,
+    administration_date, repeat_every_months,
+    scheduled_date, dose_ml, administered_by, batch_number, notes,
+    completed, // ← جديد
+  } = req.body;
 
     const animal = await userOwnsAnimal(animal_id, req.user._id);
     if (!animal) return res.status(404).json({ success: false, message: "الحيوان غير موجود" });
@@ -44,10 +45,13 @@ const createVaccination = async (req, res) => {
     if (type === "recurring" && !administration_date)
       return res.status(400).json({ success: false, message: "administration_date مطلوب للقاحات المتكررة" });
 
-    const vaccination = await Vaccination.create({
+    const isCompleted = type === "recurring" && completed === true;
+    const normalizedAdminDate = normalizeDate(administration_date);
+
+    const vaccinationData = {
       animal_id, vaccine_name,
       vaccine_type: type,
-      administration_date: normalizeDate(administration_date),
+      administration_date: normalizedAdminDate,
       repeat_every_months: type === "recurring" ? repeat_every_months : null,
       scheduled_date: type === "one_time" ? normalizeDate(scheduled_date) : undefined,
       dose_ml: dose_ml || null,
@@ -55,7 +59,18 @@ const createVaccination = async (req, res) => {
       batch_number: batch_number || null,
       notes: notes || null,
       added_by: "user",
-    });
+    };
+
+    // ── لو الجرعة اتاخدت فعلاً (تاريخ ماضي) ──────────────────────────────────
+    if (isCompleted) {
+      vaccinationData.completed = true;
+      vaccinationData.completed_at = new Date();
+      // next_due_date هنا = تاريخ الجرعة + فترة التكرار (لأنها فعلاً اتاخدت)
+      vaccinationData.next_due_date = calcNextDueDate(normalizedAdminDate, repeat_every_months);
+      vaccinationData.next_due_date_auto_calculated = true;
+    }
+
+    const vaccination = await Vaccination.create(vaccinationData);
 
     const message = type === "one_time"
       ? "تم تسجيل موعد اللقاح الطارئ بنجاح — ستصلك تذكيرات قبل الموعد"
@@ -189,6 +204,51 @@ const updateVaccination = async (req, res) => {
   }
 };
 
+// ── Confirm Dose ──────────────────────────────────────────────────────────────
+// هنا بس بيتحسب next_due_date الجديد (administration_date + repeat_every_months)
+// لأن الجرعة اتاخدت فعلاً دلوقتي، فبنبدأ عد الدورة الجاية من تاريخ الأخذ الفعلي.
+const confirmVaccinationDose = async (req, res) => {
+  try {
+    const existing = await Vaccination.findById(req.params.id).populate({
+      path: "animal_id",
+      select: "farm_id",
+      populate: { path: "farm_id", select: "user_id" },
+    });
+
+    if (!existing) return res.status(404).json({ success: false, message: "سجل التطعيم غير موجود" });
+
+    if (existing.animal_id.farm_id.user_id.toString() !== req.user._id.toString())
+      return res.status(403).json({ success: false, message: "غير مصرح" });
+
+    // تاريخ الإعطاء الفعلي = اللي بعته المستخدم، أو النهاردة لو مبعتش حاجة
+    const doseDate = normalizeDate(req.body.administration_date) || new Date();
+
+    existing.administration_date = doseDate;
+    existing.completed = true;
+    existing.completed_at = new Date();
+
+    if (existing.vaccine_type === "recurring" && existing.repeat_every_months) {
+      existing.next_due_date = calcNextDueDate(doseDate, existing.repeat_every_months);
+      existing.next_due_date_auto_calculated = true;
+      existing.reminder_sent = false;
+      existing.day_of_reminder_sent = false;
+      existing.reminder_sent_at = null;
+      existing.day_of_reminder_sent_at = null;
+    }
+
+    await existing.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "تم تأكيد الجرعة بنجاح",
+      data: existing,
+    });
+  } catch (err) {
+    console.error("confirmVaccinationDose error:", err);
+    return res.status(500).json({ success: false, message: "خطأ في الخادم", error: err.message });
+  }
+};
+
 // ── Delete ────────────────────────────────────────────────────────────────────
 const deleteVaccination = async (req, res) => {
   try {
@@ -214,4 +274,5 @@ const deleteVaccination = async (req, res) => {
 module.exports = {
   createVaccination, getVaccinationsByAnimal,
   getVaccinationById, updateVaccination, deleteVaccination,
+  confirmVaccinationDose,
 };
