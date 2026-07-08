@@ -10,6 +10,7 @@ const userRoutes        = require("./routes/User.routes");
 const farmRoutes        = require("./routes/Farm.routes");
 const animalRoutes      = require("./routes/Animal.routes");
 const vaccinationRoutes = require("./routes/Vaccination.routes");
+const vaccineAdvisorRoutes = require("./routes/VaccineAdvisor.routes");
 const healthCaseRoutes  = require("./routes/Healthcase.routes");
 const onboardingRoutes  = require("./routes/onboarding.routes");
 
@@ -59,6 +60,7 @@ app.use("/api/users",       userRoutes);
 app.use("/api/farms",       farmRoutes);
 app.use("/api/animals",     animalRoutes);
 app.use("/api/vaccinations", vaccinationRoutes);
+app.use("/api/vaccine-advisor", vaccineAdvisorRoutes);
 app.use("/api/health-cases", healthCaseRoutes);
 app.use("/api/onboarding",   onboardingRoutes);
 app.use("/api/notifications", notificationRoutes);
