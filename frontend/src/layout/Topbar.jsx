@@ -40,35 +40,35 @@ export default function Topbar() {
       dir="rtl"
 
       className="flex sticky top-0 z-30 items-center justify-between gap-4 px-6 py-3
-                 bg-white/80 backdrop-blur-xl border-b border-stone-200/60 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]"
+                 bg-[#1b4d2c] border-b border-[#154022] shadow-md"
 
     >
       {/* Right Section: Breadcrumbs & Navigation */}
       <div className="flex items-center gap-3">
         <button
           onClick={() => navigate('/farms')}
-          className="flex items-center justify-center w-10 h-10 rounded-full border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 hover:text-[#2d5a1b] transition-all shadow-sm"
+          className="flex items-center justify-center w-10 h-10 rounded-full border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-all shadow-sm"
           title="العودة إلى صفحة المزارع"
         >
           <ArrowRight className="w-5 h-5" />
         </button>
 
-        <div className="hidden md:flex items-center gap-2 bg-stone-100/70 p-1.5 rounded-full border border-stone-200/50">
+        <div className="hidden md:flex items-center gap-2 bg-white/10 p-1.5 rounded-full border border-white/20">
           <button
             onClick={goToFarmHome}
-            className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-stone-700 hover:text-[#2d5a1b] shadow-sm transition-colors"
+            className="flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1.5 text-sm font-semibold text-white hover:bg-white/30 shadow-sm transition-colors"
             title="الرئيسية"
           >
-            <Home className="w-4 h-4 text-[#2d5a1b]" />
+            <Home className="w-4 h-4 text-white" />
             <span>الرئيسية</span>
           </button>
 
           {farmId && (
             <>
-              <ChevronLeft className="w-4 h-4 text-stone-400" />
+              <ChevronLeft className="w-4 h-4 text-white/50" />
               <button
                 onClick={() => navigate(`/farms/${farmId}/animals`)}
-                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-stone-600 hover:text-[#2d5a1b] transition-colors"
+                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-white/80 hover:text-white transition-colors"
                 title="عرض حيوانات المزرعة"
               >
                 <span>الحيوانات</span>
@@ -78,8 +78,8 @@ export default function Topbar() {
 
           {farmId && (
             <>
-              <ChevronLeft className="w-4 h-4 text-stone-400" />
-              <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold text-[#2d5a1b]">
+              <ChevronLeft className="w-4 h-4 text-white/50" />
+              <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold text-white">
                 <MapPin className="w-4 h-4" />
                 <span>{displayFarmName}</span>
               </div>
@@ -93,34 +93,34 @@ export default function Topbar() {
         {/* Notifications */}
         <button
           onClick={() => navigate('/notifications')}
-          className="relative p-2 rounded-full border border-stone-200 bg-white hover:bg-stone-50 text-stone-600 transition-all shadow-sm"
+          className="relative p-2 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white transition-all shadow-sm"
           title="الإشعارات"
         >
           <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-red-500 text-white text-[11px] font-black rounded-full flex items-center justify-center shadow-sm border-2 border-white">
+            <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-red-500 text-white text-[11px] font-black rounded-full flex items-center justify-center shadow-sm border-2 border-[#1b4d2c]">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
         </button>
 
         {/* User Profile Info */}
-        <div className="flex items-center gap-3 pl-4 border-l border-stone-200">
-          <div className="flex items-center gap-3 bg-stone-50 border border-stone-100 rounded-full pr-1 pl-3 py-1">
+        <div className="flex items-center gap-3 pl-4 border-l border-white/20">
+          <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-full pr-1 pl-3 py-1">
             {user?.avatar ? (
               <img
                 src={user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000${user.avatar}`}
                 alt={user.name}
-                className="w-8 h-8 rounded-full object-cover shadow-sm border border-white"
+                className="w-8 h-8 rounded-full object-cover shadow-sm border-2 border-white/30"
               />
             ) : (
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2d5a1b] to-[#3d7a25] text-white flex items-center justify-center text-sm font-bold shadow-sm border border-white">
+              <div className="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center text-sm font-bold shadow-sm border-2 border-white/30">
                 {user?.name?.charAt(0) || 'م'}
               </div>
             )}
             <div className="leading-tight hidden sm:block text-right">
-              <p className="text-[11px] text-stone-500 font-medium">مرحباً بك،</p>
-              <p className="text-sm font-bold text-stone-800 truncate max-w-[120px]">
+              <p className="text-[11px] text-white/60 font-medium">مرحباً بك،</p>
+              <p className="text-sm font-bold text-white truncate max-w-[120px]">
                 {user?.name?.split(' ')[0] || 'المستخدم'}
               </p>
             </div>

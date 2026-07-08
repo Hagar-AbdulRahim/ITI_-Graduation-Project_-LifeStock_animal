@@ -426,27 +426,27 @@ export default function AiAssistantPage() {
         <div className="absolute top-0 right-0 w-96 h-96 bg-white opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-white opacity-5 rounded-full blur-3xl translate-y-1/4 -translate-x-1/4"></div>
         
-        <div className="max-w-5xl mx-auto relative z-10 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="relative flex h-3.5 w-3.5 shrink-0">
+        <div className="max-w-5xl mx-auto relative z-10 flex flex-row items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+            <div className="relative flex h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0 mt-1 sm:mt-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-400 border-2 border-transparent"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 sm:h-3.5 sm:w-3.5 bg-emerald-400 border-2 border-transparent"></span>
             </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+            <div className="min-w-0 truncate">
+              <h1 className="text-base sm:text-2xl font-black text-white tracking-tight truncate">
                 المساعد البيطري الذكي
               </h1>
-              <p className="text-green-50/80 text-xs sm:text-sm font-medium mt-0.5">رعاية</p>
+              <p className="text-green-50/80 text-[10px] sm:text-sm font-medium mt-0.5">رعاية</p>
             </div>
           </div>
 
           <div className="flex gap-2 text-sm shrink-0">
             <button
               onClick={() => navigate(-1)}
-              className="flex items-center gap-1.5 text-white/90 hover:text-white bg-white/10 hover:bg-white/20 px-3 sm:px-4 py-2 rounded-full backdrop-blur-sm transition-all font-bold border border-white/5 shadow-sm"
+              className="flex items-center justify-center gap-1.5 text-white/90 hover:text-white bg-white/10 hover:bg-white/20 p-2 sm:px-4 sm:py-2 rounded-full backdrop-blur-sm transition-all font-bold border border-white/5 shadow-sm"
               title="رجوع"
             >
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">رجوع</span>
             </button>
             <button

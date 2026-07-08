@@ -63,23 +63,23 @@ const AddFarmPage = () => {
     <div className="min-h-screen bg-[#fbf9f6] font-cairo" dir="rtl">
 
       {/* ── Top bar ───────────────────────────────────────────────────── */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-20 shadow-sm">
+      <div className="bg-[#1b4d2c] border-b border-[#154022] sticky top-0 z-20 shadow-md">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[#fbf9f6] text-gray-500 hover:text-[#154b23] transition-colors"
+              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10 text-white transition-colors"
             >
               <ArrowRight className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-[17px] font-bold text-gray-900">إضافة مزرعة جديدة</h1>
-              <p className="text-[11px] text-gray-400 font-medium">تسجيل منشأة جديدة في نظام الإدارة</p>
+              <h1 className="text-[17px] font-bold text-white">إضافة مزرعة جديدة</h1>
+              <p className="text-[11px] text-white/60 font-medium">تسجيل منشأة جديدة في نظام الإدارة</p>
             </div>
           </div>
 
-          <span className="inline-flex items-center gap-1.5 text-[12px] text-[#154b23] font-bold bg-[#154b23]/10 border border-[#154b23]/20 px-3 py-1.5 rounded-full">
+          <span className="inline-flex items-center gap-1.5 text-[12px] text-white font-bold bg-white/15 border border-white/20 px-3 py-1.5 rounded-full">
             <Leaf className="w-3.5 h-3.5" />
             مزرعة جديدة
           </span>

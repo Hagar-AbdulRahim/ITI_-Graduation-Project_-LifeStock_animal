@@ -271,9 +271,10 @@ const AnimalVaccinationsPage = () => {
               )}
             </div>
             <button onClick={() => navigate(`/animals/${id}/vaccinations/add`)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-[#2a5c2a] text-white rounded-xl text-xs font-bold hover:bg-[#1f451f] transition-colors shadow-sm">
-              <Plus className="w-4 h-4" />
-              إضافة تطعيم جديد
+              className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-[#2a5c2a] text-white rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold hover:bg-[#1f451f] transition-colors shadow-sm whitespace-nowrap">
+              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span className="sm:hidden">إضافة تطعيم</span>
+              <span className="hidden sm:inline">إضافة تطعيم جديد</span>
             </button>
           </div>
         </div>

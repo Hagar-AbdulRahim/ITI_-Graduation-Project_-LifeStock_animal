@@ -75,8 +75,8 @@ const Login = () => {
   return (
     <div className="min-h-screen w-full flex bg-[#154b23] md:bg-[#fbf9f6] font-sans overflow-x-hidden relative items-center justify-center">
 
-      {/* ── Mobile Background Gradient (matches the register mockup) ── */}
-      <div className="md:hidden absolute inset-0 z-0 bg-gradient-to-br from-[#1b4d2c] via-[#154b23] to-[#0f301b]" />
+      {/* ── Mobile Background (Solid) ── */}
+      <div className="md:hidden absolute inset-0 z-0 bg-[#154b23]" />
 
       {/* ── Right Side - Image & Content (iPad & Desktop only) ── */}
       <div className="hidden md:flex md:w-1/2 lg:w-[45%] h-screen relative overflow-hidden bg-[#154b23] flex-shrink-0">
@@ -106,16 +106,26 @@ const Login = () => {
         </div>
       </div>
 
-      {/* ── Left Side - Form Card (matches Register mockup on mobile) ── */}
+      {/* ── Left Side - Form Card ── */}
       <div className="relative z-10 w-full md:w-1/2 lg:w-[55%] flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
-        <div className="w-full max-w-[380px] xs:max-w-md bg-[#eef3ee] md:bg-transparent rounded-[32px] md:rounded-none p-6 sm:p-8 md:p-0 shadow-2xl md:shadow-none border border-white/40 md:border-none">
-          <div className="text-right mb-6 md:mb-8">
-            <p className="text-sm font-extrabold text-[#1b4d2c] mb-2 tracking-wide md:block hidden">رعاية</p>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 text-center md:text-right">تسجيل الدخول</h1>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600 text-center md:text-right">مرحباً بك مجدداً! يرجى إدخال بياناتك للوصول إلى لوحة التحكم.</p>
+        <div className="relative overflow-hidden w-full max-w-[380px] xs:max-w-md bg-transparent md:bg-transparent rounded-[32px] md:rounded-none p-6 sm:p-8 md:p-0 shadow-2xl md:shadow-none border border-white/20 md:border-none [&_label]:text-white md:[&_label]:text-gray-700">
+          {/* Mobile Image Background for Form ONLY */}
+          <div className="md:hidden absolute inset-0 z-0">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-10"></div>
+            <img
+              src="https://images.unsplash.com/photo-1500595046743-cd271d694d30?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+              alt="خلفية الفورم"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          </div>
+          
+          <div className="relative z-20 text-right mb-6 md:mb-8">
+            <p className="text-sm font-extrabold text-[#4ade80] md:text-[#1b4d2c] mb-2 tracking-wide md:block hidden">رعاية</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-white md:text-gray-900 mb-2 text-center md:text-right">تسجيل الدخول</h1>
+            <p className="text-xs sm:text-sm md:text-base text-gray-200 md:text-gray-600 text-center md:text-right">مرحباً بك مجدداً! يرجى إدخال بياناتك للوصول إلى لوحة التحكم.</p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 relative z-20">
             <Input
               id="email"
               label="البريد الإلكتروني أو رقم الهاتف"
@@ -155,7 +165,7 @@ const Login = () => {
               })}
             />
 
-            <div className="flex items-center justify-between mt-2">
+            <div className="flex items-center justify-between mt-2 relative z-20">
               <div className="flex items-center gap-2">
                 <input
                   id="remember-me"
@@ -163,11 +173,11 @@ const Login = () => {
                   type="checkbox"
                   className="h-4 w-4 rounded border-gray-300 text-[#154b23] focus:ring-[#154b23] cursor-pointer"
                 />
-                <label htmlFor="remember-me" className="text-xs sm:text-sm text-gray-700 cursor-pointer select-none">
+                <label htmlFor="remember-me" className="text-xs sm:text-sm text-white md:text-gray-700 cursor-pointer select-none">
                   تذكرني
                 </label>
               </div>
-              <Link to="/forgot-password" className="text-xs sm:text-sm font-medium text-[#154b23] hover:underline">
+              <Link to="/forgot-password" className="text-xs sm:text-sm font-medium text-[#4ade80] md:text-[#154b23] hover:underline">
                 نسيت كلمة المرور؟
               </Link>
             </div>
@@ -175,10 +185,22 @@ const Login = () => {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full py-3 mt-2 min-h-[44px] bg-[#154b23] hover:bg-[#0f3619] text-white"
-              icon={<LogIn size={18} />}
+              className="w-full h-12 bg-[#1b4d2c] hover:bg-[#154b23] text-white text-sm sm:text-base shadow-lg shadow-[#1b4d2c]/20"
             >
-              {loading ? 'جاري الدخول...' : 'دخول'}
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  جاري الدخول...
+                </span>
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  <LogIn size={20} />
+                  تسجيل الدخول
+                </span>
+              )}
             </Button>
 
             {showResend && (
@@ -192,10 +214,11 @@ const Login = () => {
               </button>
             )}
 
-            <div className="flex items-center justify-center gap-2 my-4">
-              <span className="h-px flex-1 bg-gray-200"></span>
-              <p className="text-xs text-gray-400 font-medium">أو تابع عبر</p>
-              <span className="h-px flex-1 bg-gray-200"></span>
+            <div className="relative flex items-center justify-center mt-6">
+              <div className="absolute inset-x-0 border-t border-white/20 md:border-gray-200"></div>
+              <span className="relative bg-black/60 md:bg-[#fbf9f6] px-4 text-xs text-gray-300 md:text-gray-500 font-medium backdrop-blur-sm md:backdrop-blur-none rounded-full md:rounded-none">
+                أو المتابعة عبر
+              </span>
             </div>
 
             <div className="relative w-full flex justify-center">
@@ -245,10 +268,10 @@ const Login = () => {
               </div>
             </div>
 
-            <p className="text-center text-xs sm:text-sm md:text-base text-gray-600 mt-6">
+            <p className="text-center text-xs sm:text-sm text-gray-200 md:text-gray-600 mt-6 font-medium">
               ليس لديك حساب؟{' '}
-              <Link to="/register" className="text-[#154b23] font-bold hover:underline">
-                أنشئ حساباً جديداً
+              <Link to="/register" className="text-[#4ade80] md:text-[#1b4d2c] font-bold hover:underline">
+                إنشاء حساب جديد
               </Link>
             </p>
           </form>

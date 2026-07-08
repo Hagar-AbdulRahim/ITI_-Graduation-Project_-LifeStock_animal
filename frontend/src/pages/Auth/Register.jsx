@@ -44,7 +44,10 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-[#fbf9f6] font-sans overflow-x-hidden">
+    <div className="min-h-screen w-full flex bg-[#154b23] md:bg-[#fbf9f6] font-sans overflow-x-hidden relative">
+      {/* ── Mobile Background (Solid) ── */}
+      <div className="md:hidden absolute inset-0 z-0 bg-[#154b23]" />
+
       {/* Right Side - Review Card overlay */}
       <div className="hidden md:flex md:w-1/2 relative overflow-hidden bg-[#154b23]">
         <div className="absolute inset-0 bg-black/10 z-10"></div>
@@ -69,13 +72,6 @@ const Register = () => {
             <p className="text-base lg:text-lg leading-relaxed mb-6 font-medium">
               "ساعدتنا رعاية في تقليل حالات الطوارئ بنسبة 40% من خلال التنبؤ الصحي الاستباقي. إنها الأداة الأهم في مزرعتنا اليوم."
             </p>
-            <div className="flex items-center gap-4">
-              <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=100&h=100&q=80" alt="Doctor" className="w-12 h-12 rounded-full border-2 border-white/20 object-cover" />
-              <div>
-                <h4 className="font-bold text-sm">د. إبراهيم القحطاني</h4>
-                <p className="text-xs text-white/70">كبير الأطباء البيطريين، مزارع نجد</p>
-              </div>
-            </div>
           </div>
 
           {/* Stats */}
@@ -105,14 +101,24 @@ const Register = () => {
         {/* لمسات تصميمية ناعمة للموبايل فقط */}
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/5 blur-3xl md:hidden z-0"></div>
         <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-black/10 blur-3xl md:hidden z-0"></div>
-        <div className="w-full max-w-md relative z-10 bg-white/85 md:bg-transparent p-6 sm:p-8 md:p-0 rounded-3xl md:rounded-none shadow-[0_8px_30px_rgba(0,0,0,0.05)] md:shadow-none border border-white/40 md:border-none backdrop-blur-md md:backdrop-blur-none">
-          <div className="text-right mb-6 md:mb-8">
-            <p className="text-sm font-extrabold text-[#1b4d2c] mb-2 tracking-wide">رعاية</p>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">أنشئ حسابك الجديد</h1>
-            <p className="text-sm md:text-base text-gray-600">ابدأ رحلتك في إدارة الثروة الحيوانية بالذكاء الاصطناعي اليوم.</p>
+        <div className="w-full max-w-md relative z-10 bg-transparent md:bg-transparent p-6 sm:p-8 md:p-0 rounded-3xl md:rounded-none shadow-[0_8px_30px_rgba(0,0,0,0.05)] md:shadow-none border border-white/20 md:border-none overflow-hidden [&_label]:text-white md:[&_label]:text-gray-700">
+          {/* Mobile Image Background for Form ONLY */}
+          <div className="md:hidden absolute inset-0 z-0">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-10"></div>
+            <img
+              src="https://images.unsplash.com/photo-1500595046743-cd271d694d30?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+              alt="خلفية الفورم"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="relative z-20 text-right mb-6 md:mb-8">
+            <p className="text-sm font-extrabold text-[#4ade80] md:text-[#1b4d2c] mb-2 tracking-wide md:block hidden">رعاية</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-white md:text-gray-900 mb-2">أنشئ حسابك الجديد</h1>
+            <p className="text-sm md:text-base text-gray-200 md:text-gray-600">ابدأ رحلتك في إدارة الثروة الحيوانية بالذكاء الاصطناعي اليوم.</p>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 relative z-20">
             <Input
               id="fullName"
               label="الاسم الكامل"
@@ -183,8 +189,8 @@ const Register = () => {
                 className="h-4 w-4 mt-0.5 rounded border-gray-300 text-[#154b23] focus:ring-[#154b23] cursor-pointer flex-shrink-0"
                 {...register('terms', { required: 'يجب الموافقة على الشروط' })}
               />
-              <label htmlFor="terms" className="text-sm text-gray-700 cursor-pointer select-none leading-relaxed">
-                أوافق على <span className="font-bold text-[#154b23]">الشروط والأحكام</span> و <span className="font-bold text-[#154b23]">سياسة الخصوصية</span>.
+              <label htmlFor="terms" className="text-sm text-white md:text-gray-700 cursor-pointer select-none leading-relaxed">
+                أوافق على <span className="font-bold text-[#4ade80] md:text-[#154b23]">الشروط والأحكام</span> و <span className="font-bold text-[#4ade80] md:text-[#154b23]">سياسة الخصوصية</span>.
               </label>
             </div>
             {errors.terms && <p className="text-xs text-red-500 mt-0">{errors.terms.message}</p>}
@@ -200,9 +206,9 @@ const Register = () => {
             </Button>
           </form>
 
-          <p className="mt-6 md:mt-8 text-center text-sm md:text-base text-gray-600">
+          <p className="mt-6 md:mt-8 text-center text-sm md:text-base text-gray-200 md:text-gray-600 relative z-20">
             لديك حساب بالفعل؟{' '}
-            <Link to="/login" className="font-bold text-gray-900 hover:underline">
+            <Link to="/login" className="font-bold text-[#4ade80] md:text-gray-900 hover:underline">
               تسجيل الدخول
             </Link>
           </p>
