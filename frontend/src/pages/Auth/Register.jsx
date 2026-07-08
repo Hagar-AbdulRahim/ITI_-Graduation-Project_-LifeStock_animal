@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Mail, Lock, Eye, EyeOff, X, ArrowLeft, User, Phone } from 'lucide-react';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
+import AnimatedCounter from '../../components/common/AnimatedCounter';
 import { registerUser } from '../../redux/authSlice';
 import toast from 'react-hot-toast';
 
@@ -81,15 +82,15 @@ const Register = () => {
           <div className="absolute bottom-8 lg:bottom-12 w-full px-8 lg:px-12">
             <div className="flex justify-around items-center border-t border-white/20 pt-6 lg:pt-8 text-white">
               <div className="text-center">
-                <p className="text-xl lg:text-2xl font-bold">24/7</p>
+                <p className="text-xl lg:text-2xl font-bold"><AnimatedCounter value="24/7" /></p>
                 <p className="text-xs lg:text-sm text-white/70">دعم تقني</p>
               </div>
               <div className="text-center">
-                <p className="text-xl lg:text-2xl font-bold">98%</p>
+                <p className="text-xl lg:text-2xl font-bold"><AnimatedCounter value="98%" /></p>
                 <p className="text-xs lg:text-sm text-white/70">دقة التشخيص</p>
               </div>
               <div className="text-center">
-                <p className="text-xl lg:text-2xl font-bold">15k+</p>
+                <p className="text-xl lg:text-2xl font-bold"><AnimatedCounter value="+15k" /></p>
                 <p className="text-xs lg:text-sm text-white/70">رأس ماشية</p>
               </div>
             </div>
@@ -99,9 +100,12 @@ const Register = () => {
       </div>
 
       {/* Left Side - Form */}
-      <div className="w-full md:w-1/2 flex items-center justify-center px-4 py-8 sm:px-6 md:px-8 bg-[#fbf9f6] relative">
-
-        <div className="w-full max-w-md">
+      <div className="w-full md:w-1/2 flex items-center justify-center px-4 py-8 sm:px-6 md:px-8 bg-[#154b23] md:bg-[#fbf9f6] relative overflow-hidden">
+        
+        {/* لمسات تصميمية ناعمة للموبايل فقط */}
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/5 blur-3xl md:hidden z-0"></div>
+        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-black/10 blur-3xl md:hidden z-0"></div>
+        <div className="w-full max-w-md relative z-10 bg-white/85 md:bg-transparent p-6 sm:p-8 md:p-0 rounded-3xl md:rounded-none shadow-[0_8px_30px_rgba(0,0,0,0.05)] md:shadow-none border border-white/40 md:border-none backdrop-blur-md md:backdrop-blur-none">
           <div className="text-right mb-6 md:mb-8">
             <p className="text-sm font-extrabold text-[#1b4d2c] mb-2 tracking-wide">رعاية</p>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">أنشئ حسابك الجديد</h1>

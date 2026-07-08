@@ -16,7 +16,7 @@ async function testEmail() {
   try {
     const info = await transporter.sendMail({
       from: `"LivestockCare AI" <${process.env.EMAIL_USER}>`,
-      to: "re053174@gmail.com",
+      to: "yasm56787@gmail.com",
       subject: "🔔 اختبار - تفعيل الحساب في LivestockCare",
       html: `
         <div style="font-family: Arial; direction: rtl; padding: 20px;">

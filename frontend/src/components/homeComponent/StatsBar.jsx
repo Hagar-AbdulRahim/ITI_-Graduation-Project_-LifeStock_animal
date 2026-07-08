@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
 import { selectHeroStats } from '../../features/HomeDashboard/dashboardSlice'
+import AnimatedCounter from '../common/AnimatedCounter'
 
 // ─── Animated Counter Hook ───────────────────────────────────────────────────
 const useCountUp = (endValue, duration = 2000, shouldStart = false) => {

@@ -87,7 +87,7 @@ userSchema.methods.comparePassword = async function (candidate) {
 userSchema.methods.generateVerificationToken = function () {
   const rawToken = crypto.randomBytes(32).toString("hex");
   this.email_verification_token   = crypto.createHash("sha256").update(rawToken).digest("hex");
-  this.email_verification_expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  this.email_verification_expires = new Date(Date.now() + 60 * 60 * 1000); 
   this.email_verification_sent_at = new Date();
   return rawToken;
 };
