@@ -54,6 +54,33 @@ const countClarificationQuestions = (chatHistory = []) =>
   chatHistory.filter((msg) => msg.role === "assistant").length;
 
 // ════════════════════════════════════════════════════════════════════════════
+// formatTreatment — يحول object العلاج القادم من الـ AI (result.treatment)
+// إلى نص واحد مقروء يُعرض مباشرة في جدول الأدمن (recommended_treatment)
+// ════════════════════════════════════════════════════════════════════════════
+const formatTreatment = (treatment) => {
+  if (!treatment) return null;
+
+  const parts = [];
+
+  if (Array.isArray(treatment.medicines) && treatment.medicines.length > 0) {
+    const meds = treatment.medicines
+      .filter((m) => m && m.name)
+      .map((m) => {
+        const details = [m.dose, m.route, m.duration].filter(Boolean).join(" - ");
+        return details ? `${m.name} (${details})` : m.name;
+      })
+      .join("، ");
+    if (meds) parts.push(meds);
+  }
+
+  if (Array.isArray(treatment.general_instructions) && treatment.general_instructions.length > 0) {
+    parts.push(treatment.general_instructions.join("، "));
+  }
+
+  return parts.length > 0 ? parts.join(" | ") : null;
+};
+
+// ════════════════════════════════════════════════════════════════════════════
 // runDiagnosis — المنطق المشترك (المُحدَّث لدعم الـ schema الجديد)
 // ════════════════════════════════════════════════════════════════════════════
 const runDiagnosis = async (req, body) => {
@@ -134,6 +161,7 @@ const runDiagnosis = async (req, body) => {
         severity:          result.severity || null,
         matched_symptoms:  result.matched_symptoms || [],
         suggested_actions: result.immediate_actions || [],
+        recommended_treatment: formatTreatment(result.treatment),
         vet_required:      result.vet_required || false,
         vet_urgency:       result.vet_urgency || null,
         ai_raw_response:   result,
@@ -158,6 +186,7 @@ const runDiagnosis = async (req, body) => {
         severity:          result.severity || null,
         matched_symptoms:  result.matched_symptoms || [],
         suggested_actions: result.immediate_actions || [],
+        recommended_treatment: formatTreatment(result.treatment),
         vet_required:      result.vet_required || false,
         vet_urgency:       result.vet_urgency || null,
         ai_raw_response:   result,
@@ -270,6 +299,7 @@ const diagnose = async (req, res) => {
         severity:         result.severity || null,
         matched_symptoms: result.matched_symptoms || [],
         suggested_actions: result.immediate_actions || [],
+        recommended_treatment: formatTreatment(result.treatment),
         vet_required:     result.vet_required || false,
         vet_urgency:      result.vet_urgency || null,
         ai_raw_response:  result,
@@ -288,6 +318,7 @@ const diagnose = async (req, res) => {
         severity:         result.severity || null,
         matched_symptoms: result.matched_symptoms || [],
         suggested_actions: result.immediate_actions || [],
+        recommended_treatment: formatTreatment(result.treatment),
         vet_required:     result.vet_required || false,
         vet_urgency:      result.vet_urgency || null,
         ai_raw_response:  result,
