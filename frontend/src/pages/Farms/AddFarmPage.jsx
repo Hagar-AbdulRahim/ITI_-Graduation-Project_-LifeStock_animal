@@ -55,9 +55,9 @@ const AddFarmPage = () => {
   const inputBase =
     'w-full px-5 py-3.5 rounded-2xl text-[15px] text-gray-900 bg-white border-2 transition-all outline-none ' +
     'placeholder:text-gray-400 focus:shadow-[0_0_0_4px_rgba(21,75,35,0.1)]';
-  const inputOk  = inputBase + ' border-transparent focus:border-[#154b23] shadow-sm';
+  const inputOk = inputBase + ' border-transparent focus:border-[#154b23] shadow-sm';
   const inputErr = inputBase + ' border-red-300 focus:border-red-500 focus:shadow-[0_0_0_4px_rgba(239,68,68,0.15)] shadow-sm';
-  const errMsg   = 'text-[13px] text-red-600 font-bold flex items-center gap-1.5 mt-1';
+  const errMsg = 'text-[13px] text-red-600 font-bold flex items-center gap-1.5 mt-1';
 
   return (
     <div className="min-h-screen bg-[#fbf9f6] font-cairo" dir="rtl">
@@ -126,7 +126,7 @@ const AddFarmPage = () => {
           <div className="p-8 sm:p-10">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-8" noValidate>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                
+
                 {/* Farm name */}
                 <div className={`${fieldWrap} md:col-span-1`}>
                   <label className={label}>
@@ -225,8 +225,8 @@ const AddFarmPage = () => {
                     </>
                   ) : (
                     <>
-                      <Save className="w-5 h-5" />
-                      تأكيد وإضافة المزرعة
+                      <pageXOffset className="w-5 h-5" />
+                      إضافة
                     </>
                   )}
                 </button>

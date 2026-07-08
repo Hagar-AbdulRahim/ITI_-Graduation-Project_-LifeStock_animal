@@ -12,6 +12,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import { getRoleHomePath } from '../../utils/roleRedirect';
 import api from '../../services/api';
+
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showResend, setShowResend] = useState(false);
@@ -22,8 +23,6 @@ const Login = () => {
   const location = useLocation();
   const { loading } = useSelector((state) => state.auth);
 
-  // لو المستخدم كان جاي من صفحة محمية (زي /ai-assistant أو /vaccine-agent)
-  // رجّعه لنفس الصفحة دي بدل المسار الافتراضي بتاع الـ role
   const getRedirectPath = (role) => location.state?.from?.pathname || getRoleHomePath(role);
 
   const {
@@ -41,7 +40,6 @@ const Login = () => {
       return;
     }
 
-    // action.payload هو الـ object اللي بعتناه في rejectWithValue بالظبط
     const payload = action.payload;
     const isUnverified =
       payload !== null &&
@@ -75,47 +73,53 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-[#fbf9f6] font-sans overflow-x-hidden">
-      {/* Right Side - Image & Content */}
-      <div className="hidden md:flex md:w-1/2 relative overflow-hidden bg-[#154b23]">
+    <div className="min-h-screen w-full flex bg-[#154b23] md:bg-[#fbf9f6] font-sans overflow-x-hidden relative items-center justify-center">
+
+      {/* ── Mobile Background Gradient (matches the register mockup) ── */}
+      <div className="md:hidden absolute inset-0 z-0 bg-gradient-to-br from-[#1b4d2c] via-[#154b23] to-[#0f301b]" />
+
+      {/* ── Right Side - Image & Content (iPad & Desktop only) ── */}
+      <div className="hidden md:flex md:w-1/2 lg:w-[45%] h-screen relative overflow-hidden bg-[#154b23] flex-shrink-0">
         <div className="absolute inset-0 bg-black/20 z-10"></div>
         <img
           src="https://images.unsplash.com/photo-1500595046743-cd271d694d30?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
-          alt="Livestock cows in a green field"
+          alt="صورة مزرعة"
           className="absolute inset-0 w-full h-full object-cover"
           onError={(e) => { e.target.style.display = 'none'; }}
         />
 
-        <div className="absolute inset-0 z-20 flex flex-col p-8 lg:p-12 text-white justify-between">
+        <div className="absolute inset-0 z-20 flex flex-col p-6 md:p-8 lg:p-12 text-white justify-between">
           <div className="flex justify-start">
-            <h2 className="text-lg lg:text-xl font-bold">LivestockCare AI</h2>
+            <h2 className="text-lg lg:text-xl font-extrabold tracking-wide">رعاية</h2>
           </div>
           
-          <div className="flex flex-col mb-16 lg:mb-20 max-w-lg">
-            <h3 className="text-2xl lg:text-3xl font-bold mb-4 leading-tight text-right">الذكاء الاصطناعي في خدمة الثروة الحيوانية</h3>
-            <p className="text-base lg:text-lg text-white/90 leading-relaxed text-right">
+          <div className="flex flex-col mb-12 md:mb-16 lg:mb-20 max-w-lg">
+            <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-3 md:mb-4 leading-tight text-right">الذكاء الاصطناعي في خدمة الثروة الحيوانية</h3>
+            <p className="text-sm md:text-base lg:text-lg text-white/90 leading-relaxed text-right">
               نحن نوفر لك الأدوات الذكية لمراقبة صحة قطيعك، تحسين الإنتاجية باستمرار بأحدث تقنيات التعلم الآلي.
             </p>
           </div>
 
           <div className="flex justify-start">
-            <p className="text-xs text-white/70">© 2024 LivestockCare AI لتقنيات بيطرية مبتكرة. مستدام.</p>
+            <p className="text-xs text-white/70">© 2024 <span className="font-extrabold">رعاية</span> لتقنيات بيطرية مبتكرة. مستدام.</p>
           </div>
         </div>
       </div>
-      {/* Left Side - Form */}
-      <div className="w-full md:w-1/2 flex items-center justify-center px-4 py-8 sm:px-6 md:px-8 bg-[#fbf9f6]">
-        <div className="w-full max-w-md">
+
+      {/* ── Left Side - Form Card (matches Register mockup on mobile) ── */}
+      <div className="relative z-10 w-full md:w-1/2 lg:w-[55%] flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
+        <div className="w-full max-w-[380px] xs:max-w-md bg-[#eef3ee] md:bg-transparent rounded-[32px] md:rounded-none p-6 sm:p-8 md:p-0 shadow-2xl md:shadow-none border border-white/40 md:border-none">
           <div className="text-right mb-6 md:mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">تسجيل الدخول</h1>
-            <p className="text-sm md:text-base text-gray-600">مرحباً بك مجدداً! يرجى إدخال بياناتك للوصول إلى لوحة التحكم.</p>
+            <p className="text-sm font-extrabold text-[#1b4d2c] mb-2 tracking-wide md:block hidden">رعاية</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 text-center md:text-right">تسجيل الدخول</h1>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600 text-center md:text-right">مرحباً بك مجدداً! يرجى إدخال بياناتك للوصول إلى لوحة التحكم.</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <Input
               id="email"
               label="البريد الإلكتروني أو رقم الهاتف"
-              placeholder="example@livestock.ai"
+              placeholder="example@reaya.ai"
               type="text"
               iconRight={<Mail size={18} />}
               error={errors.email?.message}
@@ -159,11 +163,11 @@ const Login = () => {
                   type="checkbox"
                   className="h-4 w-4 rounded border-gray-300 text-[#154b23] focus:ring-[#154b23] cursor-pointer"
                 />
-                <label htmlFor="remember-me" className="text-sm text-gray-700 cursor-pointer select-none">
+                <label htmlFor="remember-me" className="text-xs sm:text-sm text-gray-700 cursor-pointer select-none">
                   تذكرني
                 </label>
               </div>
-              <Link to="/forgot-password" className="text-sm font-medium text-[#154b23] hover:underline">
+              <Link to="/forgot-password" className="text-xs sm:text-sm font-medium text-[#154b23] hover:underline">
                 نسيت كلمة المرور؟
               </Link>
             </div>
@@ -171,7 +175,7 @@ const Login = () => {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full py-3 mt-2 min-h-[44px]"
+              className="w-full py-3 mt-2 min-h-[44px] bg-[#154b23] hover:bg-[#0f3619] text-white"
               icon={<LogIn size={18} />}
             >
               {loading ? 'جاري الدخول...' : 'دخول'}
@@ -190,12 +194,11 @@ const Login = () => {
 
             <div className="flex items-center justify-center gap-2 my-4">
               <span className="h-px flex-1 bg-gray-200"></span>
-              <p className="text-sm text-gray-400 font-medium">أو تابع عبر</p>
+              <p className="text-xs text-gray-400 font-medium">أو تابع عبر</p>
               <span className="h-px flex-1 bg-gray-200"></span>
             </div>
 
             <div className="relative w-full flex justify-center">
-              {/* Custom design custom Google button */}
               <button
                 type="button"
                 className="w-full py-3 min-h-[44px] border border-gray-200 rounded-full flex items-center justify-center gap-2 bg-white text-gray-700 font-bold hover:bg-gray-50 transition-colors shadow-sm pointer-events-none"
@@ -204,7 +207,6 @@ const Login = () => {
                 <span>جوجل</span>
               </button>
 
-              {/* Invisible GoogleLogin button overlay to obtain the real id_token */}
               <div className="absolute inset-0 opacity-[0.01] overflow-hidden cursor-pointer w-full h-full flex justify-center [&_iframe]:!w-full [&_iframe]:!h-full">
                 <GoogleLogin
                   type="standard"
@@ -212,7 +214,6 @@ const Login = () => {
                   size="large"
                   text="signin_with"
                   shape="pill"
-
                   onSuccess={async (credentialResponse) => {
                     try {
                       const res = await axios.post(
@@ -244,7 +245,7 @@ const Login = () => {
               </div>
             </div>
 
-            <p className="text-center text-sm md:text-base text-gray-600 mt-6">
+            <p className="text-center text-xs sm:text-sm md:text-base text-gray-600 mt-6">
               ليس لديك حساب؟{' '}
               <Link to="/register" className="text-[#154b23] font-bold hover:underline">
                 أنشئ حساباً جديداً

@@ -66,7 +66,7 @@ const Register = () => {
               ))}
             </div>
             <p className="text-base lg:text-lg leading-relaxed mb-6 font-medium">
-              "ساعدتنا LivestockCare AI في تقليل حالات الطوارئ بنسبة 40% من خلال التنبؤ الصحي الاستباقي. إنها الأداة الأهم في مزرعتنا اليوم."
+              "ساعدتنا رعاية في تقليل حالات الطوارئ بنسبة 40% من خلال التنبؤ الصحي الاستباقي. إنها الأداة الأهم في مزرعتنا اليوم."
             </p>
             <div className="flex items-center gap-4">
               <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=100&h=100&q=80" alt="Doctor" className="w-12 h-12 rounded-full border-2 border-white/20 object-cover" />
@@ -103,7 +103,7 @@ const Register = () => {
 
         <div className="w-full max-w-md">
           <div className="text-right mb-6 md:mb-8">
-            <p className="text-sm font-bold text-gray-900 mb-2">LivestockCare AI</p>
+            <p className="text-sm font-extrabold text-[#1b4d2c] mb-2 tracking-wide">رعاية</p>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">أنشئ حسابك الجديد</h1>
             <p className="text-sm md:text-base text-gray-600">ابدأ رحلتك في إدارة الثروة الحيوانية بالذكاء الاصطناعي اليوم.</p>
           </div>

@@ -53,7 +53,7 @@ export default function VerifyEmail() {
         />
         <div className="absolute inset-0 z-20 flex flex-col p-8 lg:p-12 text-white justify-between">
           <div>
-            <h2 className="text-lg lg:text-xl font-bold">LivestockCare AI</h2>
+            <h2 className="text-lg lg:text-xl font-extrabold tracking-wide">رعاية</h2>
           </div>
           <div className="flex flex-col mb-16 lg:mb-20 max-w-lg">
             <h3 className="text-2xl lg:text-3xl font-bold mb-4 leading-tight text-right">تفعيل الحساب</h3>
@@ -61,7 +61,7 @@ export default function VerifyEmail() {
               نقوم بالتحقق من بريدك الإلكتروني لتفعيل حسابك وضمان الأمان.
             </p>
           </div>
-          <p className="text-xs text-white/70">© 2024 LivestockCare AI. مستدام.</p>
+          <p className="text-xs text-white/70">© 2024 رعاية. مستدام.</p>
         </div>
       </div>
 

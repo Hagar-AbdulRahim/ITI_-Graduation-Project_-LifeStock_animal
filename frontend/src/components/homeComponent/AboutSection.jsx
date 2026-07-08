@@ -205,7 +205,7 @@ const AboutSection = () => {
             نحن هنا لنرتقي بصحة <span className="text-[#1b4d2c]">ماشيتك</span>
           </h2>
 
-          <p className="text-[#555] text-sm md:text-base leading-relaxed max-w-2xl">
+          <p className=" text-[#555] text-sm md:text-base  leading-[32px] max-w-2xl">
             نسعى إلى تمكين المزارع المصري من خلال حلول ذكية تعتمد على الذكاء
             الاصطناعي، للمساهمة في تحسين صحة وإنتاجية الثروة الحيوانية، وتقليل
             الخسائر الناتجة عن الأمراض، عبر أدوات سهلة الاستخدام ومتاحة في أي

@@ -46,7 +46,7 @@ export default function ForgotPassword() {
         />
         <div className="absolute inset-0 z-20 flex flex-col p-8 lg:p-12 text-white justify-between">
           <div>
-            <h2 className="text-lg lg:text-xl font-bold">LivestockCare AI</h2>
+            <h2 className="text-lg lg:text-xl font-extrabold tracking-wide">رعاية</h2>
           </div>
           <div className="flex flex-col mb-16 lg:mb-20 max-w-lg">
             <h3 className="text-2xl lg:text-3xl font-bold mb-4 leading-tight text-right">استعادة حسابك بكل سهولة</h3>
@@ -54,7 +54,7 @@ export default function ForgotPassword() {
               أدخل بريدك الإلكتروني وسنرسل لك كود للتحقق لإعادة تعيين كلمة المرور.
             </p>
           </div>
-          <p className="text-xs text-white/70">© 2024 LivestockCare AI. مستدام.</p>
+          <p className="text-xs text-white/70">© 2024 رعاية. مستدام.</p>
         </div>
       </div>
 
@@ -62,7 +62,7 @@ export default function ForgotPassword() {
       <div className="w-full md:w-1/2 flex items-center justify-center px-4 py-8 sm:px-6 md:px-8 bg-[#fbf9f6]">
         <div className="w-full max-w-md">
           <div className="text-right mb-6 md:mb-8">
-            <p className="text-sm font-bold text-gray-900 mb-2">LivestockCare AI</p>
+            <p className="text-3xl font-extrabold text-[#1b4d2c] mb-2 tracking-wide">رعاية</p>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">نسيت كلمة المرور؟</h1>
             <p className="text-sm md:text-base text-gray-600">أدخل بريدك الإلكتروني وسنرسل لك كود التحقق لإعادة تعيين كلمة المرور.</p>
           </div>

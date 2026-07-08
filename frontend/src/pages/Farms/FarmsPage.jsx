@@ -10,22 +10,29 @@ import { updateFarm, deleteFarm } from '../../services/farmService';
 const TopNavbar = ({ searchQuery, setSearchQuery }) => {
   const navigate = useNavigate();
   return (
-    <header className="bg-[#1b4d2c] h-16 sm:h-20 px-4 sm:px-6 lg:px-8 flex items-center justify-between sticky top-0 z-20 font-cairo   mb-4 shadow-sm">
-      <div className="flex-1 max-w-xl">
-        <div className="relative flex items-center w-full max-w-md">
-          <Search className="w-4 h-4 text-gray-400 absolute right-4" />
+    <header className="bg-[#1b4d2c] h-14 sm:h-16 md:h-20 px-3 sm:px-6 lg:px-8 flex items-center justify-between sticky top-0 z-20 font-cairo mb-4 shadow-sm gap-3">
+      <div className="flex-1 min-w-0">
+        <div className="relative flex items-center w-full max-w-[200px] sm:max-w-md">
+          <Search className="w-4 h-4 text-gray-400 absolute right-3 sm:right-4" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="البحث عن مزرعة..."
-            className="w-full bg-white border border-white/10 rounded-full py-2.5 pr-11 pl-4 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-white/40 focus:border-white transition-all"
+            className="w-full bg-white border border-white/10 rounded-full py-2 sm:py-2.5 pr-9 sm:pr-11 pl-3 sm:pl-4 text-xs sm:text-sm text-gray-700 outline-none focus:ring-2 focus:ring-white/40 focus:border-white transition-all"
           />
         </div>
       </div>
 
-      <div className="flex items-center gap-3 sm:gap-6">
-        <div className="flex items-center gap-3 sm:gap-4 text-white/80">
+      <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-3 text-white/80">
+          <button
+            onClick={() => navigate('/')}
+            className="hover:text-white transition-colors"
+            title="الصفحة الرئيسية"
+          >
+            <Home className="w-5 h-5" />
+          </button>
           <button
             onClick={() => navigate('/notifications')}
             className="hover:text-white transition-colors relative"
@@ -33,16 +40,8 @@ const TopNavbar = ({ searchQuery, setSearchQuery }) => {
             <Bell className="w-5 h-5" />
             <span className="absolute top-0 right-0 w-2 h-2 bg-red-400 rounded-full"></span>
           </button>
-          <button
-            onClick={() => navigate('/')}
-            className="hover:text-white transition-colors hidden sm:block"
-            title="الصفحة الرئيسية"
-          >
-            <Home className="w-5 h-5" />
-          </button>
-
         </div>
-        <div className="h-8 w-px bg-white/20 hidden sm:block"></div>
+        <div className="h-6 sm:h-8 w-px bg-white/20"></div>
       </div>
     </header>
   );

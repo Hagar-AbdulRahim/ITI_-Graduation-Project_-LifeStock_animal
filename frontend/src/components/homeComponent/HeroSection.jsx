@@ -85,13 +85,7 @@ const HeroSection = () => {
 </button>
           {/* Play / Watch Button */}
           <button
-            onClick={() => {
-              if (isAuthenticated) {
-                navigate(firstFarmId ? `/farms/${firstFarmId}/ai-assistant` : '/farms');
-              } else {
-                navigate('/login');
-              }
-            }}
+            onClick={() => navigate('/services')}
             className="flex items-center gap-2.5 font-bold text-sm sm:text-base px-8 py-4 rounded-full transition-all duration-300 text-white bg-white/10 backdrop-blur-md border border-white/25 hover:bg-white/20 hover:border-white/40 cursor-pointer shadow-lg shadow-black/10"
 
           >

@@ -10,7 +10,7 @@ const TestimonialCard = ({ t, index }) => {
 
   return (
     <div
-      className="w-full max-w-[260px] aspect-square mx-auto cursor-pointer py-4"
+      className="w-full max-w-[280px] aspect-square mx-auto cursor-pointer py-4"
       style={{ perspective: '1000px' }}
       onMouseLeave={() => setIsFlipped(false)}
     >
@@ -36,10 +36,10 @@ const TestimonialCard = ({ t, index }) => {
  
           {/* Name & Date */}
           <div className="space-y-1 mb-2 max-w-full">
-            <p className="font-bold text-stone-900 group-hover:text-white text-[15px] leading-tight truncate px-2 transition-colors duration-300">
+            <p className="font-bold text-stone-900 group-hover:text-white text-[17px] leading-tight truncate px-2 transition-colors duration-300">
               {t.userName}
             </p>
-            <p className="text-stone-400 group-hover:text-stone-300 text-[11px] transition-colors duration-300">
+            <p className="text-stone-400 group-hover:text-stone-300 text-[12px] transition-colors duration-300">
               {t.created_at ? new Date(t.created_at).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}
             </p>
           </div>
@@ -89,7 +89,7 @@ const TestimonialCard = ({ t, index }) => {
             "
           </span>
  
-          <p className="text-stone-600 group-hover:text-white/90 text-[12px] leading-relaxed flex-1 flex items-center justify-center px-1 line-clamp-6 transition-colors duration-300">
+          <p className="text-stone-600 group-hover:text-white/90 text-[14.5px] leading-relaxed flex-1 flex items-center justify-center px-1 line-clamp-6 transition-colors duration-300">
             "{t.comment}"
           </p>
         </div>
