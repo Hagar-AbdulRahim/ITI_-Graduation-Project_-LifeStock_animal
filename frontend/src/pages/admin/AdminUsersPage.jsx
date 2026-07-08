@@ -13,15 +13,13 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
-  const [editUser, setEditUser] = useState(null);
   const [saving, setSaving] = useState(false);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await adminService.getUsers({ page, limit: 15, search: search || undefined, role: roleFilter || undefined });
+      const res = await adminService.getUsers({ page, limit: 15, search: search || undefined });
       setUsers(res.data.data);
       setPagination(res.data.pagination);
     } catch {
@@ -29,7 +27,7 @@ export default function AdminUsersPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, roleFilter]);
+  }, [page, search]);
 
   useEffect(() => {
     const t = setTimeout(fetchUsers, search ? 400 : 0);
@@ -39,15 +37,9 @@ export default function AdminUsersPage() {
   const handleSave = async (form) => {
     setSaving(true);
     try {
-      if (editUser?._id) {
-        await adminService.updateUser(editUser._id, form);
-        toast.success('تم تحديث المستخدم');
-      } else {
-        await adminService.createUser(form);
-        toast.success('تم إنشاء المستخدم');
-      }
+      await adminService.createUser(form);
+      toast.success('تم إنشاء المستخدم');
       setModalOpen(false);
-      setEditUser(null);
       fetchUsers();
     } catch (err) {
       toast.error(err.response?.data?.message || 'فشل الحفظ');
@@ -56,11 +48,12 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleDeactivate = async (id) => {
-    if (!window.confirm('تغيير حالة هذا المستخدم؟')) return;
+  const handleToggleStatus = async (r) => {
+    const confirmMsg = r.is_active ? 'هل تريد تعطيل هذا المستخدم؟' : 'هل تريد تنشيط هذا المستخدم؟';
+    if (!window.confirm(confirmMsg)) return;
     try {
-      await adminService.toggleUser(id);
-      toast.success('تم تحديث حالة المستخدم');
+      await adminService.toggleUser(r._id);
+      toast.success(r.is_active ? 'تم تعطيل المستخدم' : 'تم تنشيط المستخدم');
       fetchUsers();
     } catch {
       toast.error('فشل تحديث الحالة');
@@ -83,10 +76,13 @@ export default function AdminUsersPage() {
       render: (r) => (
         <div className="flex gap-3">
           <Link to={`/admin/users/${r._id}`} className="text-[#2a5c2a] text-xs font-bold hover:underline">عرض</Link>
-          <button type="button" onClick={() => { setEditUser(r); setModalOpen(true); }} className="text-blue-600 text-xs font-bold hover:underline">تعديل</button>
-          {r.is_active && (
-            <button type="button" onClick={() => handleDeactivate(r._id)} className="text-red-600 text-xs font-bold hover:underline">تعطيل</button>
-          )}
+          <button
+            type="button"
+            onClick={() => handleToggleStatus(r)}
+            className={`text-xs font-bold hover:underline ${r.is_active ? 'text-red-600' : 'text-green-600'}`}
+          >
+            {r.is_active ? 'تعطيل' : 'تنشيط'}
+          </button>
         </div>
       ),
     },
@@ -99,7 +95,7 @@ export default function AdminUsersPage() {
           <h2 className="text-2xl font-black text-stone-800 drop-shadow-sm">إدارة المستخدمين</h2>
           <p className="text-sm text-stone-500 font-medium">سجل بجميع المزارعين والأطباء والمديرين.</p>
         </div>
-        <Button className="w-auto px-6 shadow-md hover:shadow-lg transition-all" onClick={() => { setEditUser(null); setModalOpen(true); }}>
+        <Button className="w-auto px-6 shadow-md hover:shadow-lg transition-all" onClick={() => setModalOpen(true)}>
           + مستخدم جديد
         </Button>
       </div>
@@ -115,15 +111,6 @@ export default function AdminUsersPage() {
               className="w-full border-none bg-stone-50 shadow-inner rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2a5c2a]/20 transition-all placeholder:text-stone-400"
             />
           </div>
-          <div className="flex items-center gap-3">
-            <label className="text-sm font-bold text-stone-600">تصفية:</label>
-            <select value={roleFilter} onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }} className="border-none bg-stone-50 shadow-inner rounded-xl px-4 py-2.5 text-sm font-medium text-stone-700 outline-none focus:ring-2 focus:ring-[#2a5c2a]/20 transition-all cursor-pointer">
-              <option value="">كل الأدوار</option>
-              <option value="user">مزارع</option>
-              <option value="doctor">طبيب</option>
-              <option value="admin">مدير</option>
-            </select>
-          </div>
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-stone-100/80 bg-white/50">
@@ -131,7 +118,7 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      <UserFormModal open={modalOpen} onClose={() => { setModalOpen(false); setEditUser(null); }} onSubmit={handleSave} initialData={editUser} loading={saving} />
+      <UserFormModal open={modalOpen} onClose={() => setModalOpen(false)} onSubmit={handleSave} initialData={null} loading={saving} />
     </div>
   );
 }

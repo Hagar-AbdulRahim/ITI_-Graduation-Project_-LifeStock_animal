@@ -43,24 +43,14 @@ export const ADMIN_SIDEBAR_LINKS = [
     path: '/admin/animals',
     icon: 'animals',
   },
-  {
-    id: 'health',
-    label: 'الحالات الصحية',
-    path: '/admin/health-cases',
-    icon: 'diagnosis',
-  },
+ 
   {
     id: 'consultations',
     label: 'الاستشارات',
     path: '/admin/consultations',
     icon: 'ai',
   },
-  {
-    id: 'clinics',
-    label: 'العيادات',
-    path: '/admin/clinics',
-    icon: 'diagnosis',
-  },
+  
   {
     id: 'knowledge',
     label: 'قاعدة المعرفة',
@@ -88,12 +78,7 @@ export const DOCTOR_SIDEBAR_LINKS = [
     path: '/doctor/dashboard',
     icon: 'dashboard',
   },
-  {
-    id: 'cases',
-    label: 'الحالات الصحية',
-    path: '/doctor/cases',
-    icon: 'diagnosis',
-  },
+ 
   {
     id: 'consultations',
     label: 'الاستشارات',
