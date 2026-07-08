@@ -21,6 +21,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import onboardingService from '../../services/onboardingService';
 // Tailwind CSS is imported globally via main entry point
 
 
@@ -79,6 +80,10 @@ const OnboardingChatPage = () => {
       setIsInitializing(false);
     }
   }, [animalId]);
+
+  useEffect(() => {
+    initChat();
+  }, [initChat]);
 
   // ── Retry handler ────────────────────────────────────────────────
   const handleRetry = async () => {
@@ -391,17 +396,15 @@ const OnboardingChatPage = () => {
         <div className="p-3 sm:p-4 bg-white border-t border-gray-200 shrink-0">
           <div className="flex items-center bg-[#fafaf9] border border-gray-200 rounded-[14px] p-1 gap-1 focus-within:border-[#2a5c2a] focus-within:ring-4 focus-within:ring-[#2a5c2a]/10 transition-all">
             {(() => {
-              const lastMessage = messages[messages.length - 1];
-              const expectDate = lastMessage && lastMessage.sender === 'ai' && /تاريخ|date/i.test(lastMessage.text);
               return (
                 <>
                   <input
                     ref={inputRef}
-                    type={expectDate ? "date" : "text"}
+                    type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder={expectDate ? "اختر التاريخ" : "اكتب ردك هنا..."}
+                    placeholder="اكتب ردك هنا..."
                     className="flex-1 border-none outline-none bg-transparent font-cairo text-[13.5px] text-gray-800 px-3 py-2 min-w-0 placeholder-gray-400"
                     disabled={isTyping}
                     autoFocus

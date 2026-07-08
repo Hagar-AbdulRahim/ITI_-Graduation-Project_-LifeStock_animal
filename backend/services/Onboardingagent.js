@@ -1,209 +1,134 @@
-const { genAI, CHAT_MODEL_NAME } = require("../config/gemini");
-const { searchKnowledgeBase }    = require("./ragService");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { CHAT_MODEL_NAME } = require("../config/gemini");
+const { searchKnowledgeBase } = require("./ragService");
 
-const SPECIES_LABELS = { cattle: "بقرة", sheep: "خروف", goat: "ماعز" };
+// ── الـ System Prompt المحسّن ────────────────────────────────────────────────
+const buildSystemPrompt = (animal, ragContext) => `
+أنت مساعد بيطري محترف. مهمتك هي تسجيل التاريخ المرضي والتحصينات للحيوان الجديد بدقة.
 
-const stripMarkdownFences = (text) =>
-  text.trim()
-    .replace(/^```(json)?\s*/i, "")
-    .replace(/```\s*$/i, "")
-    .trim();
-
-const toGeminiHistory = (conversationHistory) => {
-  const filtered = conversationHistory.filter((msg, idx) => {
-    if (idx === 0 && msg.role === "assistant") return false;
-    return true;
-  });
-  return filtered.map((msg) => ({
-    role:  msg.role === "assistant" ? "model" : "user",
-    parts: [{ text: msg.content }],
-  }));
-};
-
-const buildSystemPrompt = (animal, vaccineContext, diseaseContext) => {
-  const speciesAr  = SPECIES_LABELS[animal.species] || animal.species;
-  const ageText    = animal.age_value
-    ? `${animal.age_value} ${animal.age_unit === "months" ? "شهر" : "سنة"}`
-    : "غير محدد";
-  const weightText = animal.weight_kg ? `${animal.weight_kg} كغ` : "غير محدد";
-  const breedText  = animal.breed     || "غير محدد";
-  const genderText = animal.gender === "male" ? "ذكر" : animal.gender === "female" ? "أنثى" : "غير محدد";
-
-  return `
-أنت مساعد بيطري ذكي تساعد مزارعاً في تسجيل التاريخ المرضي للحيوان الجديد.
-
-[بيانات الحيوان — لا تسأل عنها]
-- النوع: ${speciesAr}
+بيانات الحيوان الأساسية:
+- النوع: ${animal.species === "cattle" ? "بقرة" : animal.species === "sheep" ? "خروف" : "ماعز"}
+- العمر: ${animal.age_value} ${animal.age_unit === "years" ? "سنة" : "شهر"}
 - رقم الوسم: ${animal.tag_number || "غير محدد"}
-- الجنس: ${genderText}
-- العمر: ${ageText}
-- الوزن: ${weightText}
-- السلالة: ${breedText}
 
-[معلومات الأمراض من قاعدة المعرفة — استخدمها للتوجيه]
-${diseaseContext || "لا توجد بيانات أمراض في قاعدة المعرفة"}
+معلومات إرشادية (استخدمها عند ذكر مرض):
+${ragContext || "لا توجد معلومات إضافية"}
 
-[معلومات اللقاحات من قاعدة المعرفة — استخدمها للاقتراحات]
-${vaccineContext || "لا توجد بيانات لقاحات في قاعدة المعرفة"}
+قواعد العمل الصارمة:
+1. استخدم لغة عربية فصحى بسيطة ومهنية.
+2. لا تستخدم عبارات شخصية مثل "يا حاج" أو "يا فندم".
+3. لا تذكر "قاعدة البيانات" أو "الذكاء الاصطناعي"؛ تعامل كأنك خبير بشري.
+4. سؤال واحد فقط في كل رسالة.
+5. لا تقترح علاجاً دوائياً، ركز فقط على التاريخ المرضي واللقاحات.
+6. إذا ذكر المزارع مرضاً:
+   - تأكد من الأعراض من المعلومات المتاحة.
+   - إذا وجد لقاح وقائي للمرض، اسأل: "هل تلقى الحيوان لقاح [اسم اللقاح] من قبل؟"
+   - إذا وافق على تسجيل لقاح: اسأل عن تاريخ آخر جرعة أو إذا كان يريد البدء من الآن.
+7. بعد كل مرض، اسأل: "هل أُصيب الحيوان بأي أمراض أخرى؟"
+8. عند الانتهاء (قول "لا"): قدم ملخصاً مهنياً واطلب التأكيد النهائي.
 
-[الـ Flow المطلوب بالترتيب]
-
-الخطوة 1: اسأل هل الحيوان أصيب بأي مرض قبل كده؟
-
---- لو قال "لا" أو انتهت الأمراض: انتقل للخطوة الأخيرة (الملخص النهائي) ---
-
---- لو قال "أيوه" أو ذكر مرض: اتبع الخطوات دي لكل مرض ---
-
-الخطوة 2: لو ذكر مرض:
-  أ. اعرض عليه الأعراض الشائعة للمرض ده من قاعدة المعرفة وسأله: "هل الحيوان كان عنده الأعراض دي؟"
-  ب. اسأله: "إمتى تقريباً كان المرض ده؟"
-  ج. اسأله: "هل الحيوان خد علاج وقتها؟ وإيه اسم الدواء لو تعرف؟"
-  د. اسأله: "هل شفي تماماً ولا في أعراض لسه موجودة؟"
-
-الخطوة 3: لو المرض له لقاح وقائي في قاعدة المعرفة:
-  أ. أخبره إن المرض ده له لقاح وقائي من قاعدة المعرفة
-  ب. قوله هل اللقاح ده دوري (وكل كام شهر) أو مرة واحدة
-  ج. اسأله: "هل الحيوان خد لقاح [اسم اللقاح] قبل كده؟"
-  - لو "أيوه": اسأله إمتى آخر جرعة — سجّله كـ is_first_dose: false
-  - لو "لا": سأله هل يريد إضافته لسجل الحيوان كتطعيم مجدول؟
-    * لو وافق: اسأله متى يريد تحديد موعد أول جرعة، واشرح له:
-      - نوع اللقاح (دوري/مرة واحدة)
-      - لو دوري: كل كام شهر بيتكرر
-      - قوله إن المنصة هتذكره بالموعد
-    * سجّله كـ is_first_dose: true بالموعد اللي اختاره
-
-الخطوة 4: بعد الانتهاء من مرض واحد:
-  اسأله: "هل في مرض تاني حصل مع الحيوان قبل كده؟"
-  - لو "أيوه": ارجع للخطوة 2 مع المرض الجديد
-  - لو "لا": انتقل للخطوة الأخيرة
-
-الخطوة الأخيرة: الملخص النهائي
-  لخّص كل المعلومات اللي جمعتها:
-  - الأمراض وأعراضها والعلاج
-  - اللقاحات المسجلة (أخذها + المجدولة)
-  واطلب تأكيده
-
-[قواعد مهمة]
-- سؤال واحد في كل رسالة
-- لو المرض مش في قاعدة المعرفة: سجّل المعلومات من كلام المزارع بدون إضافة أعراض من عندك
-- لو اللقاح مش في قاعدة المعرفة: مش لازم تقترحه
-- تكلم بعربية مصرية بسيطة ومباشرة
-
-[صيغة الرد النهائي — بعد التأكيد فقط]
+عند إنهاء المحادثة، ابدأ ردك بـ FINAL_JSON: متبوعاً بـ JSON صالح بهذا الشكل:
 FINAL_JSON:{
   "conversation_complete": true,
   "medical_history": [
     {
       "disease_or_symptom": "اسم المرض",
-      "symptoms_from_rag": ["أعراض من قاعدة المعرفة ظهرت على الحيوان"],
       "approximate_date": "YYYY-MM-DD أو وصف تقريبي",
-      "treatment": "الدواء أو العلاج أو null",
-      "recovered": true,
-      "notes": ""
+      "confirmed_symptoms": ["أعراض"],
+      "notes": "ملاحظات"
     }
   ],
   "vaccinations": [
     {
       "vaccine_name": "اسم اللقاح",
-      "vaccine_type": "periodic أو emergency",
-      "is_first_dose": true أو false,
-      "last_date": "YYYY-MM-DD أو null لو أول جرعة",
-      "scheduled_date": "YYYY-MM-DD لو مجدول مستقبلي — وإلا null",
-      "period_months": 6,
-      "from_rag": true,
-      "notes": ""
+      "vaccination_type": "دوري أو مرة_واحدة",
+      "revaccination_interval_months": رقم أو null,
+      "last_date": "YYYY-MM-DD أو null"
     }
   ],
-  "summary_message": "ملخص ودود لكل اللي تم تسجيله"
+  "summary_message": "ملخص مهني لما تم تسجيله."
 }
 `.trim();
-};
 
-const continueOnboardingConversation = async (
-  animal,
-  conversationHistory = [],
-  userMessage = null
-) => {
-  // ── جيب الـ context من الـ RAG في أول استدعاء فقط ─────────────────────────
-  let vaccineContext  = "";
-  let diseaseContext  = "";
+// ── دالة الجلسة الرئيسية ──────────────────────────────────────────────────────
+const continueOnboardingConversation = async (animal, conversationHistory = [], userMessage = null) => {
+  
+  // 1. جلب السياق من الـ RAG
+  let ragContext = "";
+  const searchQuery = userMessage || `أمراض وتطعيمات ${animal.species}`;
 
-  if (conversationHistory.length === 0) {
-    try {
-      const speciesAr = SPECIES_LABELS[animal.species];
-      const query     = `أمراض ${speciesAr} الشائعة وأعراضها ولقاحاتها`;
+  try {
+    const [diseaseResults, vaccineResults] = await Promise.all([
+      searchKnowledgeBase(searchQuery, "disease", 3),
+      searchKnowledgeBase(searchQuery, "vaccine", 3),
+    ]);
 
-      const [vaccineResults, diseaseResults] = await Promise.all([
-        searchKnowledgeBase(query, "vaccine", 8),
-        searchKnowledgeBase(query, "disease", 8),
-      ]);
-
-      vaccineContext = vaccineResults.map((r) => r.text).join("\n\n---\n\n");
-      diseaseContext = diseaseResults.map((r) => r.text).join("\n\n---\n\n");
-    } catch (err) {
-      console.warn("RAG search failed:", err.message);
-    }
+    ragContext = [
+      ...diseaseResults.filter(r => r.score > 0.5).map(r => r.text),
+      ...vaccineResults.filter(r => r.score > 0.5).map(r => r.text)
+    ].join("\n\n");
+  } catch (err) {
+    console.warn("RAG search warning:", err.message);
   }
 
-  // ── بناء الـ system prompt ────────────────────────────────────────────────
-  const systemPrompt = buildSystemPrompt(animal, vaccineContext, diseaseContext);
-
-  const model = genAI.getGenerativeModel({
-    model:             CHAT_MODEL_NAME,
-    systemInstruction: systemPrompt,
+  // 2. تنظيف الـ History لضمان أن الترتيب (user -> model)
+  const history = conversationHistory.map(m => ({
+    role: m.role === "assistant" ? "model" : "user",
+    parts: [{ text: m.content }],
+  })).filter((m, idx, arr) => {
+      // إزالة أي رسالة نموذج في البداية
+      if (idx === 0 && m.role === "model") return false;
+      return true;
   });
 
-  const messageToSend =
-    conversationHistory.length === 0 && !userMessage
-      ? "ابدأ المحادثة واسأل المزارع أول سؤال عن التاريخ المرضي للحيوان."
-      : userMessage;
+  // 3. بناء الـ Model
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  const model = genAI.getGenerativeModel({
+    model: CHAT_MODEL_NAME,
+    systemInstruction: buildSystemPrompt(animal, ragContext),
+  });
 
-  if (!messageToSend || typeof messageToSend !== "string") {
-    throw new Error("لا يمكن إرسال رسالة فارغة");
-  }
+  const chatSession = model.startChat({
+    history: history,
+    generationConfig: { temperature: 0.3 },
+  });
 
-  const chat   = model.startChat({ history: toGeminiHistory(conversationHistory) });
-  const result = await chat.sendMessage(messageToSend);
+  // 4. إرسال الرسالة
+  const firstTurn = conversationHistory.length === 0 && !userMessage;
+  // لو أول استدعاء: نطلب من الـ AI يبدأ هو بالسؤال (مش المزارع)
+  // لو مش أول استدعاء: نبعت رسالة المزارع الفعلية
+  const messageToSend = firstTurn
+    ? "ابدأ المحادثة الآن بسؤال المزارع عن التاريخ المرضي للحيوان."
+    : userMessage;
+
+  const result = await chatSession.sendMessage(messageToSend);
   const assistantReply = result.response.text().trim();
 
+  // 5. تحديث التاريخ — في أول استدعاء مش بنضيف trigger message للـ history
+  // عشان الـ AI في الاستدعاء الجاي ما يشوفش رسالة "ابدأ المحادثة" ويتوهم
   const updatedHistory = [
     ...conversationHistory,
-    ...(userMessage ? [{ role: "user", content: userMessage }] : []),
+    ...(firstTurn || !userMessage ? [] : [{ role: "user", content: userMessage }]),
     { role: "assistant", content: assistantReply },
   ];
 
-  // ── هل المحادثة خلصت؟ ────────────────────────────────────────────────────
-  if (assistantReply.includes("FINAL_JSON:")) {
-    const jsonStr = stripMarkdownFences(
-      assistantReply.split("FINAL_JSON:")[1]
-    );
-
-    let extractedData;
+  // 6. التعامل مع JSON النهائي
+  if (assistantReply.startsWith("FINAL_JSON:")) {
+    const jsonStr = assistantReply.replace("FINAL_JSON:", "").trim();
     try {
-      extractedData = JSON.parse(jsonStr);
-    } catch {
+      const extractedData = JSON.parse(jsonStr);
       return {
-        reply:         "حصل خطأ بسيط في التلخيص، هل يمكنك تأكيد إن المعلومات صحيحة؟",
-        isComplete:    false,
-        extractedData: null,
+        reply: extractedData.summary_message,
+        isComplete: true,
+        extractedData,
         updatedHistory,
       };
+    } catch {
+      return { reply: "حدث خطأ في التلخيص، هل المعلومات صحيحة؟", isComplete: false, updatedHistory };
     }
-
-    return {
-      reply:         extractedData.summary_message,
-      isComplete:    true,
-      extractedData,
-      updatedHistory,
-    };
   }
 
-  return {
-    reply:         assistantReply,
-    isComplete:    false,
-    extractedData: null,
-    updatedHistory,
-  };
+  return { reply: assistantReply, isComplete: false, updatedHistory };
 };
 
 module.exports = { continueOnboardingConversation };
