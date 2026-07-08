@@ -78,7 +78,13 @@ const HeroSection = () => {
           {/* Main Green Start Button */}
 
         <button
-  onClick={() => navigate('/login')}
+  onClick={() => {
+    if (isAuthenticated) {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    } else {
+      navigate('/login');
+    }
+  }}
   className="flex items-center gap-2.5 bg-[#1b4d2c] hover:bg-[#16a34a] text-white font-bold text-sm sm:text-base px-8 py-4 rounded-full transition-all duration-300 shadow-lg shadow-green-900/30 hover:shadow-xl hover:shadow-green-500/25 border border-white/10 hover:border-white/20 backdrop-blur-sm active:scale-95"
 >
   <span>ابدأ التجربة المجانية</span>

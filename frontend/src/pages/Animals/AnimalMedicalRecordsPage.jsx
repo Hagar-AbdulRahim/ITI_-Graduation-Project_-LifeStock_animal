@@ -193,7 +193,7 @@ const CaseDetailModal = ({ caseId, onClose, onResolved }) => {
       >
         <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl border border-gray-100 overflow-hidden">
           {/* Modal Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-[#2d5a1b]/4">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-100 bg-[#2d5a1b]/4">
             <h2 className="text-base font-black text-gray-900">تفاصيل الحالة الصحية</h2>
             <button
               onClick={onClose}
@@ -203,7 +203,7 @@ const CaseDetailModal = ({ caseId, onClose, onResolved }) => {
             </button>
           </div>
 
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {loading ? (
               <div className="py-12 flex flex-col items-center gap-3 text-gray-400">
                 <Loader2 className="w-8 h-8 text-[#2d5a1b] animate-spin" />
@@ -250,8 +250,8 @@ const CaseDetailModal = ({ caseId, onClose, onResolved }) => {
                 )}
 
                 {/* Diagnosis header */}
-                <div className={`rounded-2xl p-5 border ${sev.badge} space-y-3`}>
-                  <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className={`rounded-2xl p-4 sm:p-5 border ${sev.badge} space-y-3`}>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${sev.dot}`} />
                       <h3 className="text-lg font-black text-gray-900">{detail.ai_diagnosis}</h3>
@@ -263,7 +263,7 @@ const CaseDetailModal = ({ caseId, onClose, onResolved }) => {
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-gray-600">
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-gray-600">
                     <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{formatDate(detail.created_at)}</span>
                     <span className="flex items-center gap-1"><InputTypeIcon type={detail.input_type} />
                       {detail.input_type === 'image' ? 'تحليل صورة' : detail.input_type === 'voice' ? 'تسجيل صوتي' : 'إدخال نصي'}
@@ -273,7 +273,7 @@ const CaseDetailModal = ({ caseId, onClose, onResolved }) => {
                 </div>
 
                 {/* Case status */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className={`flex items-center gap-3 p-3 rounded-xl border ${detail.resolved ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'}`}>
                     {detail.resolved ? <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" /> : <Clock className="w-5 h-5 text-amber-500 flex-shrink-0" />}
                     <div>
@@ -651,8 +651,8 @@ const AnimalMedicalRecordsPage = () => {
                 )}
 
                 {/* Footer row */}
-                <div className="flex items-center justify-between text-xs text-gray-400 pt-3 border-t border-gray-50">
-                  <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 text-xs text-gray-400 pt-3 border-t border-gray-50">
+                  <div className="flex flex-wrap items-center gap-3">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />{formatDate(item.created_at)}
                     </span>

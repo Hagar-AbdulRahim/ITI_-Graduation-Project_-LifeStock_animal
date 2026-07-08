@@ -34,26 +34,7 @@ export default function MainLayout() {
           </div>
         </main>
 
-        {/* Footer */}
-        <footer className="px-6 py-4 border-t border-stone-200 text-xs text-stone-400 text-center bg-white/50">
-          © ٢٠٢٤ رعاية الماشية AI. ذكاء بيطري لزراعة مستدامة.
-          <span className="mx-2">|</span>
-          <a href="#" className="hover:text-stone-600 transition-colors">
-            سياسة الخصوصية
-          </a>
-          <span className="mx-2">|</span>
-          <a href="#" className="hover:text-stone-600 transition-colors">
-            شروط الخدمة
-          </a>
-          <span className="mx-2">|</span>
-          <a href="#" className="hover:text-stone-600 transition-colors">
-            توثيق API
-          </a>
-          <span className="mx-2">|</span>
-          <a href="#" className="hover:text-stone-600 transition-colors">
-            اتصل بالدعم
-          </a>
-        </footer>
+
       </div>
     </div>
   )
