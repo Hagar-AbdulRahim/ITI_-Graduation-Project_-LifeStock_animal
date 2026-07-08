@@ -73,24 +73,67 @@ export default function EmergencyPage() {
   }, [])
 
   const requestGPS = () => {
-    if (!navigator.geolocation) {
-      setLocStatus('denied')
-      return
-    }
-    setLocStatus('loading')
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude })
-        setLocStatus('granted')
-        toast.success('تم تحديد موقعك بنجاح')
-      },
-      () => {
-        setLocStatus('denied')
-        toast('فعّل الموقع للحصول على نتائج أدق', { icon: '📍' })
-      },
-      { timeout: 10000 }
-    )
+  console.log("requestGPS called");
+
+  if (!navigator.geolocation) {
+    console.log("Geolocation is not supported by this browser.");
+
+    setLocStatus("denied");
+    toast.error("متصفحك لا يدعم تحديد الموقع.");
+    return;
   }
+
+  setLocStatus("loading");
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      console.log("Location Success:", pos.coords);
+
+      setLocation({
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+      });
+
+      setLocStatus("granted");
+      toast.success("تم تحديد موقعك بنجاح");
+    },
+    (error) => {
+      console.log("Location Error:", error.code, error.message);
+
+      setLocStatus("denied");
+
+      switch (error.code) {
+        case 1:
+          toast.error(
+            "تم رفض إذن الموقع. يرجى الضغط على أيقونة الموقع بجوار عنوان الصفحة والسماح بالوصول للموقع."
+          );
+          break;
+
+        case 2:
+          toast.error(
+          "تعذر تحديد موقعك. تأكد من تشغيل خدمات الموقع والاتصال بالإنترنت."
+          );
+          break;
+
+        case 3:
+          toast.error(
+            "انتهت مهلة تحديد الموقع. تأكد من اتصال الإنترنت وحاول مرة أخرى."
+          );
+          break;
+
+        default:
+          toast("فعّل الموقع للحصول على نتائج أدق", {
+            icon: "📍",
+          });
+      }
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0,
+    }
+  );
+};
 
   // ── إرسال رسالة ──────────────────────────────────────────
   const handleSend = async (text = input) => {
@@ -109,44 +152,47 @@ export default function EmergencyPage() {
     setIsTyping(true)
 
     try {
-      const payload = { message: text }
+    const payload = { message: text }
 
-      if (location) {
-        payload.lat = location.lat
-        payload.lng = location.lng
-      } else {
-        const coords = GOVERNORATE_COORDS[governorate]
-        if (!coords) {
-          toast.error('المحافظة غير معروفة')
-          setIsTyping(false)
-          return
-        }
-        payload.lat = coords.lat
-        payload.lng = coords.lng
+    if (governorate) {
+      // لو المستخدم اختار محافظة يدويًا، الأولوية له دايمًا حتى لو GPS اشتغل في الخلفية
+      const coords = GOVERNORATE_COORDS[governorate]
+      if (!coords) {
+        toast.error('المحافظة غير معروفة')
+        setIsTyping(false)
+        return
       }
+      payload.lat = coords.lat
+      payload.lng = coords.lng
+      payload.governorate = governorate
+    } else if (location) {
+      payload.lat = location.lat
+      payload.lng = location.lng
+    }
 
-      const res = await emergencyChat(payload)
+    const res = await emergencyChat(payload)
+  
 
-      const aiMsg = {
+    const aiMsg = {
+      id: `ai-${Date.now()}`,
+      sender: 'ai',
+      text: res.reply,
+      clinics: res.clinics,
+    }
+    setMessages((prev) => [...prev, aiMsg])
+  } catch {
+    toast.error('حدث خطأ، حاول مرة أخرى')
+    setMessages((prev) => [
+      ...prev,
+      {
         id: `ai-${Date.now()}`,
         sender: 'ai',
-        text: res.reply,
-        clinics: res.clinics,
-      }
-      setMessages((prev) => [...prev, aiMsg])
-    } catch {
-      toast.error('حدث خطأ، حاول مرة أخرى')
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `ai-${Date.now()}`,
-          sender: 'ai',
-          text: 'عذراً، حدث خطأ في الاتصال بالخادم. يرجى المحاولة مرة أخرى.',
-        },
-      ])
-    } finally {
-      setIsTyping(false)
-    }
+        text: 'عذراً، حدث خطأ في الاتصال بالخادم. يرجى المحاولة مرة أخرى.',
+      },
+    ])
+  } finally {
+    setIsTyping(false)
+  }
   }
 
   return (

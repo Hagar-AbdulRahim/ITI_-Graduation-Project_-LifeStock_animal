@@ -12,7 +12,6 @@ const NOMINATIM_URL     = "https://nominatim.openstreetmap.org/search";
 const GEOAPIFY_URL      = "https://api.geoapify.com/v2/places";
 const DEFAULT_RADIUS    = 10000; // 10 كم
 
-// ── Nominatim: تحويل اسم المحافظة لإحداثيات ─────────────
 const geocodeGovernorate = async (governorate) => {
   try {
     const res = await axios.get(NOMINATIM_URL, {
@@ -38,7 +37,6 @@ const geocodeGovernorate = async (governorate) => {
   }
 };
 
-// ── Haversine: حساب المسافة بالكيلومتر ──────────────────
 const calculateDistanceKm = (lat1, lng1, lat2, lng2) => {
   const toRad = (d) => (d * Math.PI) / 180;
   const R = 6371;
@@ -50,7 +48,6 @@ const calculateDistanceKm = (lat1, lng1, lat2, lng2) => {
   return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) * 10) / 10;
 };
 
-// ── Geoapify: البحث عن عيادات بيطرية قريبة (الاستدعاء الفعلي لـ API) ──
 const fetchFromGeoapify = async ({ lat, lng, radius }) => {
   const apiKey = process.env.GEOAPIFY_API_KEY;
 
@@ -111,8 +108,6 @@ const fetchFromGeoapify = async ({ lat, lng, radius }) => {
 
 /**
  * ── الدالة العامة المستخدمة في الراوتر ──
- * نفس التوقيع القديم + باراميتر اختياري governorate.
- * لو Geoapify رجّع فاضي، بترجع لقاعدة البيانات المحلية تلقائياً.
  */
 const findNearbyClinics = async ({ lat, lng, radius = DEFAULT_RADIUS, governorate }) => {
   const geoapifyResults = await fetchFromGeoapify({ lat, lng, radius });

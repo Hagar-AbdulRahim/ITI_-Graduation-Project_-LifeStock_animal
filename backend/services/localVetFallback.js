@@ -15,7 +15,7 @@
 const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
-const { toEnglishGovernorate } = require("../utils/governorateMap");
+const { toEnglishGovernorate, canonicalizeEnglishGovernorate } = require("../utils/governorateMap");
 
 const DATA_PATH = path.join(__dirname, "..", "knowledge-base", "vet_directorates_egypt.json");
 
@@ -72,13 +72,12 @@ function formatWorkingHours(working_hours) {
       : "";
     return `${uniqueHours[0]}${closedNote}`;
   }
-  // fallback عام لو الساعات مختلفة من يوم لآخر
   return days.map(([d, v]) => `${d}: ${v}`).join(" | ");
 }
 
 function normalizeEntry(entry, distance_km) {
   return {
-    place_id: entry.name_ar || entry.name, // مفيش place_id حقيقي، نستخدم الاسم كمعرف فريد
+    place_id: entry.name_ar || entry.name,
     name: entry.name_ar || entry.name,
     address: entry.address || null,
     phone: entry.phone || entry.alternate_phone || null,
@@ -86,8 +85,16 @@ function normalizeEntry(entry, distance_km) {
     lat: entry.latitude ?? null,
     lng: entry.longitude ?? null,
     distance_km,
-    source: "local_directorate", // عشان تفرق بينها وبين نتايج geoapify لو حبيت
+    source: "local_directorate",
   };
+}
+
+/** مطابقة مرنة: تطابق تام، أو احتواء في أي اتجاه (عشان "Assiut Governorate" تتطابق مع "Assiut") */
+function governoratesMatch(entryGov, targetGov) {
+  if (!entryGov || !targetGov) return false;
+  const a = entryGov.toLowerCase().trim();
+  const b = targetGov.toLowerCase().trim();
+  return a === b || a.includes(b) || b.includes(a);
 }
 
 /**
@@ -100,16 +107,20 @@ function normalizeEntry(entry, distance_km) {
 async function findNearbyFromLocalDB({ lat, lng, governorate, limit = 10 }) {
   const data = loadLocalVetData();
 
+  console.log('DEBUG governorate raw:', governorate);
   let enGovernorate = toEnglishGovernorate(governorate);
   if (!enGovernorate && lat && lng) {
-    enGovernorate = await getGovernorateFromCoords(lat, lng);
+    const geocoded = await getGovernorateFromCoords(lat, lng);
+    enGovernorate = canonicalizeEnglishGovernorate(geocoded);
   }
+  console.log('DEBUG enGovernorate:', enGovernorate);
+  console.log('DEBUG total data length:', data.length);
 
-  // 1) نفلتر بالمحافظة الأول (لو معروفة) — عشان محافظة متبانش لواحد في محافظة تانية.
-  //    لو مش عارفين المحافظة خالص (نادر)، بنرجع لكل الداتا كحل أخير.
+  // 1) نفلتر بالمحافظة الأول (لو معروفة) — مطابقة مرنة عشان اختلاف الصيغ.
   const pool = enGovernorate
-    ? data.filter((e) => e.governorate?.toLowerCase() === enGovernorate.toLowerCase())
+    ? data.filter((e) => governoratesMatch(e.governorate, enGovernorate))
     : data;
+  console.log('DEBUG pool length after filter:', pool.length);
 
   // 2) جوه نفس المحافظة: اللي عندهم إحداثيات نرتبهم بالمسافة الفعلية،
   //    واللي مالهومش إحداثيات نضيفهم في الآخر من غير مسافة.
@@ -124,8 +135,6 @@ async function findNearbyFromLocalDB({ lat, lng, governorate, limit = 10 }) {
     }
   }
 
-  // لو مكنش فيه محافظة معروفة (بحثنا في كل الداتا)، بنحط سقف منطقي للمسافة
-  // عشان مايظهرش حد على بعد مئات الكيلومترات.
   const MAX_KM_WHEN_NO_GOVERNORATE = 150;
   const filteredWithDistance = enGovernorate
     ? withDistance
