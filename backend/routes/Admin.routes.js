@@ -32,7 +32,7 @@ const {
   getAnimals,
 } = require("../controllers/Admin.controller");
 
-router.use(protect, authorize("admin"));
+router.use(protect, authorize("admin", "sub_admin"));
 
 router.get("/dashboard/stats", getDashboardStats);
 router.get("/stats", getDashboardStats);

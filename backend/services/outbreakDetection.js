@@ -187,7 +187,7 @@ const upsertOutbreakReport = async (diagnosis, governorate, casesCount) => {
 
 // إشعار الأدمن بالفاشية قيد المراجعة
 const notifyAdminOfPendingOutbreak = async (report) => {
-  const admins = await User.find({ role: "admin" }).select("+push_subscription");
+  const admins = await User.find({ role: { $in: ["admin", "sub_admin"] } }).select("+push_subscription");
 
   let sentCount = 0;
   for (const admin of admins) {

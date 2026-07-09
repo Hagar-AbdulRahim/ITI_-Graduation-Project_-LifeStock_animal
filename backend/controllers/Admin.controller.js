@@ -9,7 +9,7 @@ const VeterinaryClinic = require("../models/veterinaryClinic");
 const KnowledgeBase = require("../models/knowledgeBase");
 const mongoose      = require("mongoose");
 const { sendNotification } = require("../services/notificationService");
-const { parsePagination, paginatedResponse } = require("../utils/accessControl");
+const { parsePagination, paginatedResponse, isAdmin } = require("../utils/accessControl");
 const { embeddingModel } = require("../config/gemini");
 const { extractKnowledgeBaseChunks } = require("../scripts/ExtractJsonText");
 const { runOutbreakDetection, OUTBREAK_CASE_THRESHOLD, OUTBREAK_WINDOW_HOURS } = require("../services/outbreakDetection");
@@ -128,7 +128,7 @@ const createUser = async (req, res) => {
       return res.status(400).json({ success: false, message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" });
     }
 
-    const allowedRoles = ["user", "admin"];
+    const allowedRoles = ["user", "sub_admin"];
     const assignedRole = allowedRoles.includes(role) ? role : "user";
 
     const normalizedEmail = email.toLowerCase().trim();
@@ -196,6 +196,10 @@ const toggleUser = async (req, res) => {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
 
+    if (req.user.role === "sub_admin" && user.role === "admin") {
+      return res.status(403).json({ success: false, message: "ليس لديك صلاحية تعديل حساب مدير النظام" });
+    }
+
     user.is_active = !user.is_active;
     await user.save();
 
@@ -209,8 +213,14 @@ const toggleUser = async (req, res) => {
 
 const deleteUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(req.params.id, { is_active: false }, { new: true });
+    const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
+
+    if (req.user.role === "sub_admin" && user.role === "admin") {
+      return res.status(403).json({ success: false, message: "ليس لديك صلاحية تعطيل حساب مدير النظام" });
+    }
+
+    await User.findByIdAndUpdate(req.params.id, { is_active: false }, { new: true });
 
     console.log(`[AUDIT] Admin ${req.user._id} deactivated user ${user._id}`);
     res.json({ success: true, message: "تم تعطيل المستخدم" });
@@ -219,7 +229,6 @@ const deleteUser = async (req, res) => {
     res.status(500).json({ success: false, message: "خطأ في الخادم" });
   }
 };
-
 
 const getFarms = async (req, res) => {
   try {
@@ -275,6 +284,10 @@ const getFarmById = async (req, res) => {
 
 const deleteFarm = async (req, res) => {
   try {
+    if (!isAdmin(req.user)) {
+      return res.status(403).json({ success: false, message: "ليس لديك صلاحية حذف المزارع" });
+    }
+
     const farm = await Farm.findByIdAndUpdate(req.params.id, { is_active: false }, { new: true });
     if (!farm) return res.status(404).json({ success: false, message: "المزرعة غير موجودة" });
 

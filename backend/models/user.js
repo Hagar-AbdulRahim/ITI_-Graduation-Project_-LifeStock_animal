@@ -56,7 +56,7 @@ const userSchema = new mongoose.Schema(
     // ── Role-Based Access ─────────────────────────────────────────────────────
     role: {
       type: String,
-      enum: ["user", "admin"],
+      enum: ["user", "admin", "sub_admin"],
       default: "user",
     },
 
