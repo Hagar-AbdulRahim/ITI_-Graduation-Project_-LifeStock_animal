@@ -73,23 +73,15 @@ export default function AdminDashboardPage() {
   }));
 
   return (
-    <div className="space-y-8 pb-10 relative">
-      {/* Background Decor */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-green-300/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
-      <div className="absolute top-40 left-10 w-72 h-72 bg-emerald-200/20 rounded-full blur-3xl -z-10 pointer-events-none"></div>
-
+    <div className="space-y-6 pb-10">
       {/* Header Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-l from-[#2a5c2a] to-[#3d8c40] rounded-3xl p-8 shadow-xl shadow-green-900/10 text-white transition-all duration-300 hover:shadow-green-900/20">
+      <div className="relative overflow-hidden bg-gradient-to-l from-[#1b4d2c] to-[#2a5c2a] rounded-2xl p-8 shadow-[0_4px_24px_-4px_rgba(27,77,44,0.4)] text-white border border-[#2a5c2a]/30">
         <div className="relative z-10">
-          <h2 className="text-3xl font-black mb-3 drop-shadow-sm">نظرة عامة على المنصة</h2>
-          <p className="text-green-50 text-sm md:text-base max-w-xl leading-relaxed">
+          <h2 className="text-2xl font-black mb-2">نظرة عامة على المنصة</h2>
+          <p className="text-green-50/90 text-sm max-w-xl leading-relaxed">
             مرحباً بك في لوحة تحكم الإدارة. تابع إحصائيات حية ومؤشرات الأداء الرئيسية من قاعدة البيانات للحفاظ على صحة ونشاط الثروة الحيوانية.
           </p>
         </div>
-        {/* Decorative elements in banner */}
-        <div className="absolute top-0 right-0 w-full h-full opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
-        <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-white/20 rounded-full blur-2xl"></div>
-        <div className="absolute -top-10 right-20 w-32 h-32 bg-green-200/20 rounded-full blur-xl"></div>
       </div>
 
       {/* KPI Cards */}
@@ -102,7 +94,7 @@ export default function AdminDashboardPage() {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Growth Area Chart */}
-        <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
+        <div className="bg-white rounded-2xl p-6 border border-stone-200/80 shadow-[0_2px_16px_-4px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_24px_-4px_rgba(42,92,42,0.12)] transition-shadow">
           <div className="flex items-center justify-between mb-6">
             <h3 className="font-bold text-lg text-stone-800">نمو المستخدمين</h3>
             <span className="px-3 py-1 bg-green-50 text-[#2a5c2a] text-xs font-bold rounded-full">آخر 6 أشهر</span>
@@ -130,7 +122,7 @@ export default function AdminDashboardPage() {
 
 
         {/* Animals Pie Chart */}
-        <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
+        <div className="bg-white rounded-2xl p-6 border border-stone-200/80 shadow-[0_2px_16px_-4px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_24px_-4px_rgba(42,92,42,0.12)] transition-shadow">
           <h3 className="font-bold text-lg text-stone-800 mb-6">توزيع الحيوانات حسب النوع</h3>
           <ResponsiveContainer width="100%" height={280}>
             <PieChart>

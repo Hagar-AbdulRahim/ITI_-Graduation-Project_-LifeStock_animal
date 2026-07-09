@@ -9,7 +9,7 @@ const VeterinaryClinic = require("../models/veterinaryClinic");
 const KnowledgeBase = require("../models/knowledgeBase");
 const mongoose      = require("mongoose");
 const { sendNotification } = require("../services/notificationService");
-const { parsePagination, paginatedResponse } = require("../utils/accessControl");
+const { parsePagination, paginatedResponse, isAdmin } = require("../utils/accessControl");
 const { embeddingModel } = require("../config/gemini");
 const { extractKnowledgeBaseChunks } = require("../scripts/ExtractJsonText");
 const { runOutbreakDetection, OUTBREAK_CASE_THRESHOLD, OUTBREAK_WINDOW_HOURS } = require("../services/outbreakDetection");
@@ -116,6 +116,59 @@ const getUsers = async (req, res) => {
   }
 };
 
+const createUser = async (req, res) => {
+  try {
+    const { name, email, phone, password, governorate, role } = req.body;
+
+    if (!name?.trim() || !email?.trim() || !password || !governorate?.trim()) {
+      return res.status(400).json({ success: false, message: "الاسم والبريد وكلمة المرور والمحافظة مطلوبة" });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ success: false, message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" });
+    }
+
+    const allowedRoles = ["user", "sub_admin"];
+    const assignedRole = allowedRoles.includes(role) ? role : "user";
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const existing = await User.findOne({ email: normalizedEmail });
+    if (existing) {
+      return res.status(409).json({ success: false, message: "البريد الإلكتروني مسجل بالفعل" });
+    }
+
+    const user = new User({
+      name: name.trim(),
+      email: normalizedEmail,
+      phone: phone?.trim() || null,
+      password,
+      governorate: governorate.trim(),
+      role: assignedRole,
+      auth_provider: "local",
+      is_email_verified: true,
+      is_active: true,
+    });
+
+    await user.save();
+
+    console.log(`[AUDIT] Admin ${req.user._id} created user ${user._id} with role ${assignedRole}`);
+
+    const safeUser = await User.findById(user._id).select("-password -email_verification_token -password_reset_otp");
+
+    res.status(201).json({
+      success: true,
+      message: "تم إنشاء المستخدم بنجاح",
+      data: safeUser,
+    });
+  } catch (err) {
+    console.error("createUser error:", err);
+    if (err.code === 11000) {
+      return res.status(409).json({ success: false, message: "البريد الإلكتروني مسجل بالفعل" });
+    }
+    res.status(500).json({ success: false, message: "خطأ في الخادم" });
+  }
+};
+
 const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select("-password -email_verification_token -password_reset_otp");
@@ -143,6 +196,10 @@ const toggleUser = async (req, res) => {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
 
+    if (req.user.role === "sub_admin" && user.role === "admin") {
+      return res.status(403).json({ success: false, message: "ليس لديك صلاحية تعديل حساب مدير النظام" });
+    }
+
     user.is_active = !user.is_active;
     await user.save();
 
@@ -156,8 +213,14 @@ const toggleUser = async (req, res) => {
 
 const deleteUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(req.params.id, { is_active: false }, { new: true });
+    const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
+
+    if (req.user.role === "sub_admin" && user.role === "admin") {
+      return res.status(403).json({ success: false, message: "ليس لديك صلاحية تعطيل حساب مدير النظام" });
+    }
+
+    await User.findByIdAndUpdate(req.params.id, { is_active: false }, { new: true });
 
     console.log(`[AUDIT] Admin ${req.user._id} deactivated user ${user._id}`);
     res.json({ success: true, message: "تم تعطيل المستخدم" });
@@ -167,8 +230,7 @@ const deleteUser = async (req, res) => {
   }
 };
 
-
-  const getFarms = async (req, res) => {
+const getFarms = async (req, res) => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
     const filter = { is_active: true };
@@ -180,7 +242,19 @@ const deleteUser = async (req, res) => {
       Farm.countDocuments(filter),
     ]);
 
-    paginatedResponse(res, farms, total, page, limit);
+    // أضف عدد الحيوانات لكل مزرعة
+    const farmIds = farms.map((f) => f._id);
+    const animalCounts = await Animal.aggregate([
+      { $match: { farm_id: { $in: farmIds }, is_active: true } },
+      { $group: { _id: "$farm_id", count: { $sum: 1 } } },
+    ]);
+    const countMap = Object.fromEntries(animalCounts.map((a) => [a._id.toString(), a.count]));
+    const farmsWithCount = farms.map((f) => ({
+      ...f.toObject(),
+      total_animals: countMap[f._id.toString()] || 0,
+    }));
+
+    paginatedResponse(res, farmsWithCount, total, page, limit);
   } catch (err) {
     console.error("getFarms error:", err);
     res.status(500).json({ success: false, message: "خطأ في الخادم" });
@@ -210,6 +284,10 @@ const getFarmById = async (req, res) => {
 
 const deleteFarm = async (req, res) => {
   try {
+    if (!isAdmin(req.user)) {
+      return res.status(403).json({ success: false, message: "ليس لديك صلاحية حذف المزارع" });
+    }
+
     const farm = await Farm.findByIdAndUpdate(req.params.id, { is_active: false }, { new: true });
     if (!farm) return res.status(404).json({ success: false, message: "المزرعة غير موجودة" });
 
@@ -829,6 +907,7 @@ const broadcastNotification = async (req, res) => {
 module.exports = {
   getDashboardStats,
   getUsers,
+  createUser,
   getUserById,
   toggleUser,
   deleteUser,
@@ -850,10 +929,11 @@ module.exports = {
   triggerOutbreakDetection,
   getNotifications,
   broadcastNotification,
-  getHealthCases,
-  updateHealthCase,
   getFarms,
   getFarmById,
   deleteFarm,
   getAnimals,
+  getHealthCases,
+  updateHealthCase,
 };
+

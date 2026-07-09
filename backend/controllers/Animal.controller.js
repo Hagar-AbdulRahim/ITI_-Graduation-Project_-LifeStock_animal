@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { isStaff, canModifyLivestock } = require("../utils/accessControl");
 const Animal = require("../models/animal");
 const Farm   = require("../models/farm");
 const fs     = require("fs");
@@ -100,7 +101,7 @@ const getAnimalsByFarm = async (req, res) => {
 
     // الأدمن يقدر يشوف حيوانات أي مزرعة بدون التحقق من الملكية
     let farm;
-    if (req.user.role === "admin") {
+    if (isStaff(req.user)) {
       farm = await Farm.findOne({ _id: farmId, is_active: true });
     } else {
       farm = await userOwnsFarm(farmId, req.user._id);
@@ -134,7 +135,7 @@ const getAnimalsByFarm = async (req, res) => {
   try {
     let animal;
 
-    if (req.user.role === "admin") {
+    if (isStaff(req.user)) {
       // الأدمن يقدر يشوف أي حيوان بدون قيد المزرعة
       animal = await Animal.findById(req.params.id).populate("farm_id");
     } else {
@@ -162,10 +163,10 @@ const updateAnimal = async (req, res) => {
     }
 
     // الأدمن يقدر يعدل أي حيوان، غير كده لازم يكون صاحب المزرعة
-    const isAdmin = req.user.role === "admin";
+    const isAdminUser = canModifyLivestock(req.user);
     const isOwner = existing.farm_id.user_id.toString() === req.user._id.toString();
 
-    if (!isAdmin && !isOwner) {
+    if (!isAdminUser && !isOwner) {
       return res.status(403).json({ success: false, message: "غير مصرح" });
     }
 
@@ -184,7 +185,7 @@ const updateAnimal = async (req, res) => {
       { new: true, runValidators: true }
     );
 
-    if (isAdmin && !isOwner) {
+    if (isAdminUser && !isOwner) {
       console.log(`[AUDIT] Admin ${req.user._id} updated animal ${animal._id}`);
     }
 
@@ -215,10 +216,10 @@ const deleteAnimal = async (req, res) => {
     }
 
     // الأدمن يقدر يحذف أي حيوان، غير كده لازم يكون صاحب المزرعة
-    const isAdmin = req.user.role === "admin";
+    const isAdminUser = canModifyLivestock(req.user);
     const isOwner = existing.farm_id.user_id.toString() === req.user._id.toString();
 
-    if (!isAdmin && !isOwner) {
+    if (!isAdminUser && !isOwner) {
       return res.status(403).json({ success: false, message: "غير مصرح" });
     }
 
@@ -233,7 +234,7 @@ const deleteAnimal = async (req, res) => {
       { $set: { total_animals: 0 } }
     );
 
-    if (isAdmin && !isOwner) {
+    if (isAdminUser && !isOwner) {
       console.log(`[AUDIT] Admin ${req.user._id} deleted animal ${existing._id}`);
     }
 

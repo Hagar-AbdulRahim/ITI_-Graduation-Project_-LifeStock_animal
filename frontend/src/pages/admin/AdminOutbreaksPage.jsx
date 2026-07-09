@@ -3,6 +3,15 @@ import toast from 'react-hot-toast';
 import adminService from '../../services/adminService';
 import DataTable from '../../components/admin/DataTable';
 import { EGYPTIAN_GOVERNORATES } from '../../constant/adminData';
+import {
+  AdminPageHeader,
+  AdminPanel,
+  AdminFilterBar,
+  AdminSelect,
+  AdminPrimaryButton,
+  adminInputClass,
+  adminLabelClass,
+} from '../../components/admin/AdminUI';
 
 const EMPTY_FORM = {
   disease_name: '',
@@ -99,8 +108,8 @@ export default function AdminOutbreaksPage() {
     }
   };
 
-  const inputCls = "w-full border-none bg-stone-50 shadow-inner rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-red-400/30 transition-all placeholder:text-stone-400";
-  const labelCls = "text-xs font-bold text-stone-500";
+  const inputCls = `${adminInputClass} hover:shadow-sm`;
+  const labelCls = adminLabelClass;
 
   const columns = [
     { key: 'disease_name', label: 'المرض', render: (r) => <span className="font-bold text-stone-800">{r.disease_name}</span> },
@@ -137,25 +146,19 @@ export default function AdminOutbreaksPage() {
   ];
 
   return (
-    <div className="space-y-6 relative z-10" dir="rtl">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-2xl font-black text-stone-800 drop-shadow-sm">إدارة الفاشيات</h2>
-          <p className="text-sm text-stone-500 font-medium">مراقبة الفاشيات والأمراض المعدية وإصدار التحذيرات.</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowForm(!showForm)}
-          className={`px-5 py-2.5 text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all ${
-            showForm ? 'bg-stone-200 text-stone-700 hover:bg-stone-300' : 'bg-gradient-to-l from-[#2a5c2a] to-[#3d8c40] text-white'
-          }`}
-        >
-          {showForm ? 'إلغاء' : '+ تسجيل فاشية جديدة'}
-        </button>
-      </div>
+    <div dir="rtl">
+      <AdminPageHeader
+        title="إدارة الفاشيات"
+        subtitle="مراقبة الفاشيات والأمراض المعدية وإصدار التحذيرات."
+        action={
+          <AdminPrimaryButton active={showForm} onClick={() => setShowForm(!showForm)}>
+            {showForm ? 'إلغاء' : '+ تسجيل فاشية جديدة'}
+          </AdminPrimaryButton>
+        }
+      />
 
       {showForm && (
-        <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-6 border border-white shadow-[0_20px_40px_rgb(0,0,0,0.08)] animate-in slide-in-from-top-4 duration-300">
+        <div className="bg-white rounded-2xl border border-stone-200/80 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.1)] p-6 mb-6">
           <h3 className="text-lg font-bold text-stone-800 mb-5">تفاصيل الفاشية الجديدة</h3>
           <form onSubmit={handleCreate} className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
@@ -221,19 +224,20 @@ export default function AdminOutbreaksPage() {
         </div>
       )}
 
-      <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300">
-        <div className="flex flex-wrap items-center gap-4 mb-6">
-          <div className="flex items-center gap-3">
-            <label className="text-sm font-bold text-stone-600">تصفية حسب الحالة:</label>
-            <select value={status} onChange={(e) => setStatus(e.target.value)} className="border-none bg-stone-50 shadow-inner rounded-xl px-4 py-2.5 text-sm font-medium text-stone-700 outline-none focus:ring-2 focus:ring-[#2a5c2a]/20 transition-all cursor-pointer">
-              <option value="">الكل</option>
-              <option value="pending">قيد المراجعة ⏳</option>
-              <option value="active">نشطة 🔴</option>
-              <option value="resolved">محلولة ✅</option>
-              <option value="rejected">مرفوضة ❌</option>
-            </select>
-          </div>
-        </div>
+      <AdminPanel>
+        <AdminFilterBar>
+          <AdminSelect
+            label="تصفية حسب الحالة"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
+            <option value="">الكل</option>
+            <option value="pending">قيد المراجعة ⏳</option>
+            <option value="active">نشطة 🔴</option>
+            <option value="resolved">محلولة ✅</option>
+            <option value="rejected">مرفوضة ❌</option>
+          </AdminSelect>
+        </AdminFilterBar>
 
         <div className="space-y-3">
           {loading ? (
@@ -242,7 +246,7 @@ export default function AdminOutbreaksPage() {
             <div className="text-center py-10 text-stone-400 text-sm">لا توجد فاشيات مسجلة</div>
           ) : (
             outbreaks.map((r) => (
-              <div key={r._id} className="rounded-2xl border border-stone-200 bg-white overflow-hidden shadow-sm transition-all hover:shadow-md">
+              <div key={r._id} className="rounded-xl border border-stone-200 bg-white overflow-hidden shadow-sm transition-all hover:shadow-md hover:border-[#2a5c2a]/20">
                 {/* Row */}
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3 items-center px-5 py-4">
                   <div>
@@ -325,7 +329,7 @@ export default function AdminOutbreaksPage() {
             ))
           )}
         </div>
-      </div>
+      </AdminPanel>
     </div>
   );
 }

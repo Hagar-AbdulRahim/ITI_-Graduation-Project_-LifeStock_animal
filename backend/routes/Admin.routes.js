@@ -4,6 +4,7 @@ const { protect, authorize } = require("../middelwares/Auth.middleware");
 const {
   getDashboardStats,
   getUsers,
+  createUser,
   getUserById,
   toggleUser,
   deleteUser,
@@ -25,14 +26,19 @@ const {
   triggerOutbreakDetection,
   getNotifications,
   broadcastNotification,
+  getFarms,
+  getFarmById,
+  deleteFarm,
+  getAnimals,
 } = require("../controllers/Admin.controller");
 
-router.use(protect, authorize("admin"));
+router.use(protect, authorize("admin", "sub_admin"));
 
 router.get("/dashboard/stats", getDashboardStats);
 router.get("/stats", getDashboardStats);
 
 router.get("/users", getUsers);
+router.post("/users", createUser);
 router.get("/users/:id", getUserById);
 router.put("/users/:id/toggle", toggleUser);
 router.delete("/users/:id", deleteUser);
@@ -49,6 +55,12 @@ router.put("/outbreaks/:id/approve", approveOutbreak);
 router.put("/outbreaks/:id/reject", rejectOutbreak);
 
 router.get("/consultations", getConsultations);
+
+// Farms & Animals
+router.get("/farms", getFarms);
+router.get("/farms/:id", getFarmById);
+router.delete("/farms/:id", deleteFarm);
+router.get("/animals", getAnimals);
 
 router.get("/knowledge/stats", getKnowledgeBaseStats);
 router.post("/knowledge/rebuild", rebuildKnowledgeBase);

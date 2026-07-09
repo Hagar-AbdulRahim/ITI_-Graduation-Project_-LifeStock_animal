@@ -1,4 +1,5 @@
 const Review = require("../models/review");
+const { isStaff } = require("../utils/accessControl");
 
 // ── POST /api/reviews ────────────────────────────────────────────────────────
 const createReview = async (req, res) => {
@@ -100,7 +101,7 @@ const deleteReview = async (req, res) => {
     // فقط صاحب المراجعة أو الأدمن يقدر يحذف
     if (
       review.userId.toString() !== req.user._id.toString() &&
-      req.user.role !== "admin"
+      !isStaff(req.user)
     ) {
       return res.status(403).json({
         success: false,

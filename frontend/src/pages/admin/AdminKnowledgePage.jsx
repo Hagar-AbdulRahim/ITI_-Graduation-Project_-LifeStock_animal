@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import adminService from '../../services/adminService';
 import Button from '../../components/common/Button';
+import { AdminPageHeader, AdminPanel } from '../../components/admin/AdminUI';
 
 export default function AdminKnowledgePage() {
   const [stats, setStats] = useState(null);
@@ -37,29 +38,28 @@ export default function AdminKnowledgePage() {
   };
 
   return (
-    <div className="space-y-6 relative z-10">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-black text-stone-800 drop-shadow-sm">إدارة قاعدة المعرفة</h2>
-          <p className="text-sm text-stone-500 font-medium">إعادة بناء الـ RAG وقياس عدد الـ chunks المخزنة.</p>
-        </div>
-        <Button onClick={handleRebuild} className="w-auto px-6" disabled={rebuilding}>
-          {rebuilding ? 'جارٍ إعادة البناء...' : 'إعادة بناء الـ RAG'}
-        </Button>
-      </div>
-
-      <div className="bg-white/80 rounded-3xl p-6 border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+    <div>
+      <AdminPageHeader
+        title="إدارة قاعدة المعرفة"
+        subtitle="إعادة بناء الـ RAG وقياس عدد الـ chunks المخزنة."
+        action={
+          <Button onClick={handleRebuild} className="w-auto px-6" disabled={rebuilding}>
+            {rebuilding ? 'جارٍ إعادة البناء...' : 'إعادة بناء الـ RAG'}
+          </Button>
+        }
+      />
+      <AdminPanel>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="rounded-2xl border border-stone-100 bg-stone-50 p-5">
-            <p className="text-sm text-stone-500">عدد الـ chunks المخزنة</p>
-            <p className="text-3xl font-black text-[#2a5c2a] mt-2">{loading ? '...' : stats?.chunks_count ?? 0}</p>
+          <div className="rounded-xl border border-stone-200 bg-[#f6fbf4] p-5 hover:border-[#2a5c2a]/30 transition-colors">
+            <p className="text-sm text-stone-500 font-medium">عدد الـ chunks المخزنة</p>
+            <p className="text-3xl font-black text-[#1b4d2c] mt-2">{loading ? '...' : stats?.chunks_count ?? 0}</p>
           </div>
-          <div className="rounded-2xl border border-stone-100 bg-stone-50 p-5">
-            <p className="text-sm text-stone-500">الحالة</p>
+          <div className="rounded-xl border border-stone-200 bg-white p-5 hover:border-[#2a5c2a]/30 transition-colors">
+            <p className="text-sm text-stone-500 font-medium">الحالة</p>
             <p className="text-lg font-bold text-stone-700 mt-2">جاهز للاستخدام في الذكاء الاصطناعي</p>
           </div>
         </div>
-      </div>
+      </AdminPanel>
     </div>
   );
 }

@@ -1,121 +1,114 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { PawPrint, Trash2 } from 'lucide-react';
 import adminService from '../../services/adminService';
 import DataTable from '../../components/admin/DataTable';
-import { HEALTH_STATUS_LABELS, SPECIES_LABELS } from '../../constant/adminData';
-import toast from 'react-hot-toast';
-import { X, Eye } from 'lucide-react';
+import { canModifyLivestock } from '../../utils/roleRedirect';
+import {
+  AdminPageHeader,
+  AdminPanel,
+  AdminFilterBar,
+  AdminSearchInput,
+  AdminDetailBtn,
+} from '../../components/admin/AdminUI';
 
-export default function AdminAnimalsPage() {
+export default function AdminFarmsPage() {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const farmId = searchParams.get('farm_id') || '';
-  const farmName = searchParams.get('farm_name') || '';
-
-  const [animals, setAnimals] = useState([]);
+  const userRole = useSelector((state) => state.auth?.user?.role);
+  const canDeleteFarms = canModifyLivestock(userRole);
+  const [farms, setFarms] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [healthStatus, setHealthStatus] = useState('');
+  const [governorate, setGovernorate] = useState('');
 
-  const fetchAnimals = useCallback(async () => {
+  const fetchFarms = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await adminService.getAnimals({
-        page,
-        limit: 15,
-        health_status: healthStatus || undefined,
-        farm_id: farmId || undefined,
-      });
-      setAnimals(res.data.data);
+      const res = await adminService.getFarms({ page, limit: 15, governorate: governorate || undefined });
+      setFarms(res.data.data);
       setPagination(res.data.pagination);
     } catch {
-      toast.error('فشل تحميل الحيوانات');
+      toast.error('فشل تحميل المزارع');
     } finally {
       setLoading(false);
     }
-  }, [page, healthStatus, farmId]);
+  }, [page, governorate]);
 
-  useEffect(() => { fetchAnimals(); }, [fetchAnimals]);
-  useEffect(() => { setPage(1); }, [farmId]);
+  useEffect(() => { fetchFarms(); }, [fetchFarms]);
 
-  // يمسح فلتر المزرعة ويرجع لعرض كل الحيوانات
-  const clearFarmFilter = () => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.delete('farm_id');
-      next.delete('farm_name');
-      return next;
-    });
+  const handleDelete = async (id) => {
+    if (!window.confirm('حذف هذه المزرعة؟')) return;
+    try {
+      await adminService.deleteFarm(id);
+      toast.success('تم الحذف');
+      fetchFarms();
+    } catch {
+      toast.error('فشل الحذف');
+    }
+  };
+
+  const goToFarmAnimals = (farm) => {
+    navigate(`/admin/animals?farm_id=${farm._id}&farm_name=${encodeURIComponent(farm.name)}`);
   };
 
   const columns = [
-    { key: 'tag', label: 'رقم الوسم', render: (r) => <span className="font-bold text-stone-700">{r.tag_number}</span> },
-    { key: 'species', label: 'النوع', render: (r) => SPECIES_LABELS[r.species] || r.species },
-    { key: 'farm', label: 'المزرعة', render: (r) => r.farm_id?.name || '—' },
-    { key: 'gov', label: 'المحافظة', render: (r) => r.farm_id?.governorate || '—' },
+    { key: 'name', label: 'اسم المزرعة', render: (r) => <span className="font-bold text-stone-800">{r.name}</span> },
+    { key: 'governorate', label: 'المحافظة', render: (r) => <span className="text-stone-600">{r.governorate}</span> },
+    { key: 'owner', label: 'المالك', render: (r) => <span className="text-stone-500 font-medium">{r.user_id?.name || '—'}</span> },
     {
-      key: 'health',
-      label: 'الحالة الصحية',
+      key: 'total_animals',
+      label: 'عدد الحيوانات',
       render: (r) => (
-        <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
-          r.health_status === 'healthy' ? 'bg-green-50 text-[#2a5c2a] border border-green-200/50' :
-          r.health_status === 'critical' ? 'bg-red-50 text-red-600 border border-red-200/50' : 'bg-amber-50 text-amber-600 border border-amber-200/50'
-        }`}>
-          {HEALTH_STATUS_LABELS[r.health_status] || r.health_status}
-        </span>
+        <button
+          type="button"
+          onClick={() => goToFarmAnimals(r)}
+          className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#2a5c2a]/8 hover:bg-[#2a5c2a]/15 rounded-lg font-bold text-[#1b4d2c] transition-colors border border-[#2a5c2a]/15"
+          title="عرض حيوانات المزرعة"
+        >
+          {r.total_animals || 0}
+        </button>
       ),
     },
     {
       key: 'actions',
       label: 'إجراءات',
       render: (r) => (
-        <button
-          type="button"
-          onClick={() => navigate(`/animals/${r._id}`)}
-          className="flex items-center gap-1.5 text-stone-500 text-xs font-bold hover:text-[#2a5c2a] transition-colors"
-          title="عرض تفاصيل الحيوان"
-        >
-          <Eye className="w-3.5 h-3.5" />
-          عرض التفاصيل
-        </button>
+        <div className="flex items-center gap-2">
+          <AdminDetailBtn onClick={() => goToFarmAnimals(r)} label="عرض الحيوانات" />
+          {canDeleteFarms && (
+            <button
+              type="button"
+              onClick={() => handleDelete(r._id)}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-red-600 border border-red-100 rounded-lg hover:bg-red-50 transition-all"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              حذف
+            </button>
+          )}
+        </div>
       ),
     },
   ];
 
   return (
-    <div className="space-y-6 relative z-10">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-2xl font-black text-stone-800 drop-shadow-sm">سجل الحيوانات</h2>
-        <p className="text-sm text-stone-500 font-medium">إدارة ومتابعة الحيوانات المسجلة وحالاتها الصحية.</p>
-      </div>
-
-      <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300">
-        <div className="flex flex-wrap items-center gap-4 mb-6">
-          <div className="flex items-center gap-3">
-            <label className="text-sm font-bold text-stone-600">تصفية حسب الحالة:</label>
-            <select value={healthStatus} onChange={(e) => { setHealthStatus(e.target.value); setPage(1); }} className="border-none bg-stone-50 shadow-inner rounded-xl px-4 py-2.5 text-sm font-medium text-stone-700 outline-none focus:ring-2 focus:ring-[#2a5c2a]/20 transition-all cursor-pointer">
-              <option value="">جميع الحالات</option>
-              <option value="healthy">سليم</option>
-              <option value="sick">مريض</option>
-              <option value="critical">حرج</option>
-            </select>
-          </div>
-
-          {farmId && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-[#2a5c2a]/10 text-[#2a5c2a] rounded-full text-sm font-bold">
-              <span>مزرعة: {farmName || farmId}</span>
-              <button type="button" onClick={clearFarmFilter} className="hover:text-red-600 transition-colors">
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="overflow-hidden rounded-2xl border border-stone-100/80 bg-white/50">
-          <DataTable columns={columns} data={animals} loading={loading} pagination={pagination} onPageChange={setPage} />
-        </div>
-      </div>
+    <div>
+      <AdminPageHeader
+        title="إدارة المزارع"
+        subtitle="سجل يضم كافة المزارع المسجلة في المنصة."
+      />
+      <AdminPanel>
+        <AdminFilterBar>
+          <AdminSearchInput
+            value={governorate}
+            onChange={(e) => { setGovernorate(e.target.value); setPage(1); }}
+            placeholder="تصفية بالمحافظة..."
+          />
+        </AdminFilterBar>
+        <DataTable columns={columns} data={farms} loading={loading} pagination={pagination} onPageChange={setPage} />
+      </AdminPanel>
     </div>
   );
 }
