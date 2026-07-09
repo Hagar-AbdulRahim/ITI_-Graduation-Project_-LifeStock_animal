@@ -6,8 +6,10 @@ import { logoutUser } from '../redux/authSlice'
 import { playNotificationSound } from '../utils/audio'
 import { LogOut, Home, ArrowRight, Bell, MapPin, ChevronLeft } from 'lucide-react'
 
-export default function Topbar() {
-  const { farmId } = useParams()
+export default function Topbar({ farmIdProp, farmNameProp }) {
+  const params = useParams()
+  const activeFarmId = farmIdProp || params.farmId
+  
   const user = useSelector((state) => state.auth.user)
   const unreadCount = useSelector((state) => state.notifications.unread_count)
   const currentFarm = useSelector((state) => state.farm?.currentFarm)
@@ -16,8 +18,9 @@ export default function Topbar() {
   const navigate = useNavigate()
 
   const displayFarmName =
+    farmNameProp ||
     currentFarm?.name ||
-    farms.find((farm) => farm._id === farmId)?.name ||
+    farms.find((farm) => farm._id === activeFarmId)?.name ||
     'المزرعة'
 
   const goToFarmHome = () => {
@@ -74,25 +77,25 @@ export default function Topbar() {
             <span>الرئيسية</span>
           </button>
 
-          {farmId && (
+          {activeFarmId && (
             <>
               <ChevronLeft className="w-4 h-4 text-white/50" />
               <button
-                onClick={() => navigate(`/farms/${farmId}/animals`)}
+                onClick={() => navigate(`/farms/${activeFarmId}/animals`)}
                 className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-white/80 hover:text-white transition-colors"
-                title="عرض حيوانات المزرعة"
+                title="العودة للمزرعة"
               >
-                <span>الحيوانات</span>
+                <MapPin className="w-4 h-4" />
+                <span>{displayFarmName}</span>
               </button>
             </>
           )}
 
-          {farmId && (
+          {activeFarmId && (
             <>
               <ChevronLeft className="w-4 h-4 text-white/50" />
               <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold text-white">
-                <MapPin className="w-4 h-4" />
-                <span>{displayFarmName}</span>
+                <span>الحيوانات</span>
               </div>
             </>
           )}

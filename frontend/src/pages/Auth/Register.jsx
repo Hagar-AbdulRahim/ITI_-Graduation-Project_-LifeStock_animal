@@ -58,10 +58,17 @@ const Register = () => {
         />
         
         {/* Content over image */}
-        <div className="absolute inset-0 z-20 flex flex-col justify-center items-center p-8 lg:p-12">
+        <div className="absolute inset-0 z-20 flex flex-col p-8 lg:p-12 text-white">
           
+          {/* Logo */}
+          <div className="flex justify-start mb-auto">
+            <h2 className="text-5xl lg:text-6xl font-black tracking-tight drop-shadow-2xl">
+              رعاية
+            </h2>
+          </div>
+
           {/* Review Card */}
-          <div className="bg-[#2c5b36]/80 backdrop-blur-md rounded-2xl p-6 lg:p-8 max-w-md border border-white/10 text-white shadow-xl">
+          <div className="bg-[#2c5b36]/80 backdrop-blur-md rounded-2xl p-6 lg:p-8 max-w-md border border-white/10 text-white shadow-xl mb-4">
             <div className="flex gap-1 mb-4 text-yellow-400">
               {[1, 2, 3, 4, 5].map((star) => (
                 <svg key={star} className="w-5 h-5 fill-current" viewBox="0 0 20 20">
@@ -75,7 +82,7 @@ const Register = () => {
           </div>
 
           {/* Stats */}
-          <div className="absolute bottom-8 lg:bottom-12 w-full px-8 lg:px-12">
+          <div className="w-full mt-6">
             <div className="flex justify-around items-center border-t border-white/20 pt-6 lg:pt-8 text-white">
               <div className="text-center">
                 <p className="text-xl lg:text-2xl font-bold"><AnimatedCounter value="24/7" /></p>
@@ -113,12 +120,7 @@ const Register = () => {
           </div>
 
           <div className="relative z-20 text-right mb-6 md:mb-8">
-            <div className="hidden md:flex justify-start mb-3">
-              <h2 className="text-2xl font-extrabold text-[#1b4d2c] tracking-tight">
-                رعاية
-              </h2>
-            </div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white md:text-gray-900 mb-2">أنشئ حسابك الجديد</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-white md:text-gray-900 mb-4">أنشئ حسابك الجديد</h1>
             <p className="text-sm md:text-base text-gray-200 md:text-gray-600">ابدأ رحلتك في إدارة الثروة الحيوانية بالذكاء الاصطناعي اليوم.</p>
           </div>
 

@@ -90,7 +90,7 @@ const Login = () => {
 
         <div className="absolute inset-0 z-20 flex flex-col p-6 md:p-8 lg:p-12 text-white justify-between">
           <div className="flex justify-start">
-            <h2 className="text-2xl font-extrabold tracking-tight drop-shadow-lg">
+            <h2 className="text-5xl lg:text-6xl font-black tracking-tight drop-shadow-2xl">
               رعاية
             </h2>
           </div>
@@ -122,13 +122,8 @@ const Login = () => {
           </div>
           
           <div className="relative z-20 text-right mb-6 md:mb-8">
-            <div className="hidden md:flex justify-start mb-3">
-              <h2 className="text-2xl font-extrabold text-[#1b4d2c] tracking-tight">
-                رعاية
-              </h2>
-            </div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white md:text-gray-900 mb-2 text-center md:text-right">تسجيل الدخول</h1>
-            <p className="text-xs sm:text-sm md:text-base text-gray-200 md:text-gray-600 text-center md:text-right">مرحباً بك مجدداً! يرجى إدخال بياناتك للوصول إلى لوحة التحكم.</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-white md:text-gray-900 mb-4 text-center md:text-right">تسجيل الدخول</h1>
+            <p className="text-xs sm:text-sm md:text-base text-gray-200 md:text-gray-600 text-center md:text-right">مرحباً بك مجدداً يرجى إدخال بياناتك للوصول إلى لوحة التحكم.</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 relative z-20">

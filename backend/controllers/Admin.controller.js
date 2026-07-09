@@ -850,11 +850,10 @@ module.exports = {
   triggerOutbreakDetection,
   getNotifications,
   broadcastNotification,
-<<<<<<< Updated upstream
-  getUsersGrowth,
-  getHealthTrends,
-  getVaccinationAnalytics,
+  getHealthCases,
+  updateHealthCase,
+  getFarms,
+  getFarmById,
+  deleteFarm,
+  getAnimals,
 };
-=======
-};
->>>>>>> Stashed changes
