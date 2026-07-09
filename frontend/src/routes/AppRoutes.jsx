@@ -46,19 +46,10 @@ import AdminLayout from '../layout/AdminLayout'
 import AdminDashboardPage from '../pages/admin/AdminDashboardPage'
 import AdminUsersPage from '../pages/admin/AdminUsersPage'
 import AdminUserDetailPage from '../pages/admin/AdminUserDetailPage'
-import AdminFarmsPage from '../pages/admin/AdminFarmsPage'
-import AdminAnimalsPage from '../pages/admin/AdminAnimalsPage'
 import AdminConsultationsPage from '../pages/admin/AdminConsultationsPage'
 import AdminKnowledgePage from '../pages/admin/AdminKnowledgePage'
 import AdminOutbreaksPage from '../pages/admin/AdminOutbreaksPage'
-import AdminNotificationsPage from '../pages/admin/AdminNotificationsPage'
-
-// Doctor Portal
-import DoctorLayout from '../layout/DoctorLayout'
-import DoctorDashboardPage from '../pages/doctor/DoctorDashboardPage'
-import DoctorCasesPage from '../pages/doctor/DoctorCasesPage'
-import DoctorConsultationsPage from '../pages/doctor/DoctorConsultationsPage'
-import DoctorOutbreaksPage from '../pages/doctor/DoctorOutbreaksPage'
+import AdminOutbreakAnalyticsPage from '../pages/admin/AdminOutbreakAnalyticsPage'
 
 // Emergency
 import EmergencyPage from '../pages/EmergencyPage'
@@ -281,28 +272,10 @@ const AppRoutes = () => {
         <Route path="dashboard" element={<AdminDashboardPage />} />
         <Route path="users" element={<AdminUsersPage />} />
         <Route path="users/:id" element={<AdminUserDetailPage />} />
-        <Route path="farms" element={<AdminFarmsPage />} />
-        <Route path="animals" element={<AdminAnimalsPage />} />
         <Route path="consultations" element={<AdminConsultationsPage />} />
         <Route path="knowledge" element={<AdminKnowledgePage />} />
         <Route path="outbreaks" element={<AdminOutbreaksPage />} />
-        <Route path="notifications" element={<AdminNotificationsPage />} />
-      </Route>
-
-      {/* Doctor Portal */}
-      <Route
-        path="/doctor"
-        element={
-          <RoleRoute allowedRoles={['doctor', 'admin']}>
-            <DoctorLayout />
-          </RoleRoute>
-        }
-      >
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<DoctorDashboardPage />} />
-        <Route path="cases" element={<DoctorCasesPage />} />
-        <Route path="consultations" element={<DoctorConsultationsPage />} />
-        <Route path="outbreaks" element={<DoctorOutbreaksPage />} />
+        <Route path="outbreak-analytics" element={<AdminOutbreakAnalyticsPage />} />
       </Route>
 
       <Route path="/reviews" element={<ReviewsPage />} />

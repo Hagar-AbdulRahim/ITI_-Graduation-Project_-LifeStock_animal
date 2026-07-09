@@ -16,8 +16,7 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [growth, setGrowth] = useState([]);
-  const [healthTrends, setHealthTrends] = useState([]);
-  const [vaccinations, setVaccinations] = useState(null);
+
 
   useEffect(() => {
     const load = async () => {
@@ -43,27 +42,7 @@ export default function AdminDashboardPage() {
           console.error('Failed to load growth data:', err);
         }
 
-        // Fetch trends
-        try {
-          const trendsRes = await adminService.getHealthTrends();
-          setHealthTrends(
-            (trendsRes.data?.data || []).slice(0, 10).map((item, i) => ({
-              name: `${item._id.governorate?.slice(0, 8) || i}`,
-              count: item.count,
-              severity: item._id.severity,
-            }))
-          );
-        } catch (err) {
-          console.error('Failed to load health trends:', err);
-        }
 
-        // Fetch vaccinations
-        try {
-          const vacRes = await adminService.getVaccinationAnalytics();
-          setVaccinations(vacRes.data?.data || null);
-        } catch (err) {
-          console.error('Failed to load vaccination analytics:', err);
-        }
       } finally {
         setLoading(false);
       }
@@ -148,30 +127,7 @@ export default function AdminDashboardPage() {
           </ResponsiveContainer>
         </div>
 
-        {/* Health Trends Bar Chart */}
-        <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-bold text-lg text-stone-800">الحالات المرضية حسب المحافظة</h3>
-          </div>
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={healthTrends} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#4ade80" />
-                  <stop offset="100%" stopColor="#2a5c2a" />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#888' }} axisLine={false} tickLine={false} dy={10} />
-              <YAxis tick={{ fontSize: 12, fill: '#888' }} axisLine={false} tickLine={false} />
-              <Tooltip 
-                cursor={{ fill: '#f4f4f5' }}
-                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
-              />
-              <Bar dataKey="count" fill="url(#colorBar)" radius={[6, 6, 0, 0]} barSize={24} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+
 
         {/* Animals Pie Chart */}
         <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
@@ -209,30 +165,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Vaccinations Overview */}
-        <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col">
-          <h3 className="font-bold text-lg text-stone-800 mb-6">إحصائيات التطعيمات</h3>
-          
-          <div className="flex-1 grid grid-cols-2 gap-4">
-            <div className="relative overflow-hidden group bg-gradient-to-br from-red-50 to-red-100/50 rounded-2xl p-6 flex flex-col justify-center items-center border border-red-100 transition-all hover:scale-[1.02] cursor-default">
-              <div className="absolute -right-4 -top-4 w-20 h-20 bg-red-200/50 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-              <p className="text-4xl font-black text-red-600 mb-2 relative z-10">{vaccinations?.overdue ?? 0}</p>
-              <p className="text-sm font-semibold text-red-800/70 relative z-10">جرعات متأخرة</p>
-            </div>
-            
-            <div className="relative overflow-hidden group bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-2xl p-6 flex flex-col justify-center items-center border border-amber-100 transition-all hover:scale-[1.02] cursor-default">
-              <div className="absolute -left-4 -bottom-4 w-20 h-20 bg-amber-200/50 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-              <p className="text-4xl font-black text-amber-600 mb-2 relative z-10">{vaccinations?.upcoming ?? 0}</p>
-              <p className="text-sm font-semibold text-amber-800/70 relative z-10">قادمة (30 يوم)</p>
-            </div>
-          </div>
-          
-          <div className="mt-4 p-4 bg-stone-50/80 rounded-2xl border border-stone-100/80 text-center">
-             <p className="text-xs text-stone-500 font-medium leading-relaxed">
-               يُرجى متابعة التطعيمات المتأخرة لتجنب حدوث فاشيات جديدة والحفاظ على صحة القطيع.
-             </p>
-          </div>
-        </div>
+
       </div>
     </div>
   );

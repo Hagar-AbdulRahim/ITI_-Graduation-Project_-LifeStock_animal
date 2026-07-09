@@ -9,10 +9,7 @@ const emptyForm = {
   phone: '',
   password: '',
   governorate: 'القاهرة',
-  role: 'doctor',
-  specialization: '',
-  license_number: '',
-  assigned_governorates: [],
+  role: 'admin',
 };
 
 export default function UserFormModal({ open, onClose, onSubmit, initialData, loading }) {
@@ -25,7 +22,6 @@ export default function UserFormModal({ open, onClose, onSubmit, initialData, lo
         ...emptyForm,
         ...initialData,
         password: '',
-        assigned_governorates: initialData.assigned_governorates || [],
       });
     } else {
       setForm(emptyForm);
@@ -39,14 +35,7 @@ export default function UserFormModal({ open, onClose, onSubmit, initialData, lo
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const toggleGovernorate = (gov) => {
-    setForm((prev) => {
-      const list = prev.assigned_governorates.includes(gov)
-        ? prev.assigned_governorates.filter((g) => g !== gov)
-        : [...prev.assigned_governorates, gov];
-      return { ...prev, assigned_governorates: list };
-    });
-  };
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -82,33 +71,12 @@ export default function UserFormModal({ open, onClose, onSubmit, initialData, lo
           <div>
             <label className="block text-sm font-medium text-stone-700 mb-1">الدور</label>
             <select name="role" value={form.role} onChange={handleChange} className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-sm">
-              <option value="doctor">طبيب بيطري</option>
               <option value="admin">مدير</option>
               <option value="user">مزارع</option>
             </select>
           </div>
 
-          {form.role === 'doctor' && (
-            <>
-              <Input label="التخصص" name="specialization" value={form.specialization || ''} onChange={handleChange} />
-              <Input label="رقم الترخيص" name="license_number" value={form.license_number || ''} onChange={handleChange} />
-              <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">المحافظات المخصصة (فارغ = الكل)</label>
-                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
-                  {EGYPTIAN_GOVERNORATES.map((g) => (
-                    <button
-                      key={g}
-                      type="button"
-                      onClick={() => toggleGovernorate(g)}
-                      className={`text-xs px-2 py-1 rounded-lg border ${form.assigned_governorates.includes(g) ? 'bg-[#2d5a1b] text-white border-[#2d5a1b]' : 'border-stone-200 text-stone-600'}`}
-                    >
-                      {g}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
+
 
           {isEdit && (
             <div>

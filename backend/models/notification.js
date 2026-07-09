@@ -19,7 +19,7 @@ const notificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["vaccination_reminder", "outbreak_alert", "health_case", "general"],
+      enum: ["vaccination_reminder", "outbreak_alert", "health_case", "general", "admin_broadcast", "admin_outbreak_approval"],
       default: "general",
     },
     title: { type: String, required: true },

@@ -1,8 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
 import { fetchNotifications } from '../redux/notificationSlice'
 import { logoutUser } from '../redux/authSlice'
+import { playNotificationSound } from '../utils/audio'
 import { LogOut, Home, ArrowRight, Bell, MapPin, ChevronLeft } from 'lucide-react'
 
 export default function Topbar() {
@@ -28,6 +29,16 @@ export default function Topbar() {
       navigate('/login')
     })
   }
+
+
+  // Play sound when unread count increases
+  const prevUnreadRef = useRef(unreadCount)
+  useEffect(() => {
+    if (unreadCount > prevUnreadRef.current) {
+      playNotificationSound()
+    }
+    prevUnreadRef.current = unreadCount
+  }, [unreadCount])
 
   useEffect(() => {
     dispatch(fetchNotifications())

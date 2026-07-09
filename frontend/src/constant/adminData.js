@@ -36,21 +36,12 @@ export const ADMIN_SIDEBAR_LINKS = [
     icon: 'dashboard',
   },
   { id: 'users', label: 'المستخدمون', path: '/admin/users', icon: 'users' },
-  { id: 'farms', label: 'المزارع', path: '/admin/farms', icon: 'farm' },
-  {
-    id: 'animals',
-    label: 'الحيوانات',
-    path: '/admin/animals',
-    icon: 'animals',
-  },
- 
   {
     id: 'consultations',
     label: 'الاستشارات',
     path: '/admin/consultations',
     icon: 'ai',
   },
-  
   {
     id: 'knowledge',
     label: 'قاعدة المعرفة',
@@ -64,38 +55,16 @@ export const ADMIN_SIDEBAR_LINKS = [
     icon: 'emergency',
   },
   {
-    id: 'notifications',
-    label: 'الإشعارات',
-    path: '/admin/notifications',
-    icon: 'notifications',
-  },
-]
-
-export const DOCTOR_SIDEBAR_LINKS = [
-  {
-    id: 'dashboard',
-    label: 'لوحة التحكم',
-    path: '/doctor/dashboard',
-    icon: 'dashboard',
-  },
- 
-  {
-    id: 'consultations',
-    label: 'الاستشارات',
-    path: '/doctor/consultations',
-    icon: 'ai',
-  },
-  {
-    id: 'outbreaks',
-    label: 'الفاشيات',
-    path: '/doctor/outbreaks',
+    id: 'outbreak-analytics',
+    label: 'تحليل الأوبئة',
+    path: '/admin/outbreak-analytics',
     icon: 'emergency',
   },
 ]
 
+
 export const ROLE_LABELS = {
   user: 'مزارع',
-  doctor: 'طبيب بيطري',
   admin: 'مدير',
 }
 
