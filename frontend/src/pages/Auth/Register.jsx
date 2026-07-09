@@ -113,7 +113,11 @@ const Register = () => {
           </div>
 
           <div className="relative z-20 text-right mb-6 md:mb-8">
-            <p className="text-sm font-extrabold text-[#4ade80] md:text-[#1b4d2c] mb-2 tracking-wide md:block hidden">رعاية</p>
+            <div className="hidden md:flex justify-start mb-3">
+              <h2 className="text-2xl font-extrabold text-[#1b4d2c] tracking-tight">
+                رعاية
+              </h2>
+            </div>
             <h1 className="text-2xl md:text-3xl font-bold text-white md:text-gray-900 mb-2">أنشئ حسابك الجديد</h1>
             <p className="text-sm md:text-base text-gray-200 md:text-gray-600">ابدأ رحلتك في إدارة الثروة الحيوانية بالذكاء الاصطناعي اليوم.</p>
           </div>

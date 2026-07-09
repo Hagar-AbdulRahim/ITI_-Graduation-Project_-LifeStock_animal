@@ -2,7 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
-import { ArrowRight, Save, X, Loader2, Syringe, Info } from 'lucide-react';
+import {
+  ArrowRight, Save, X, Loader2, Info, Syringe, Calendar, CheckCircle2
+} from 'lucide-react';
+import bgImage from '../../assets/images/cows-field-bg.jpg';
 import toast from 'react-hot-toast';
 import { fetchAnimalById, addVaccination } from '../../redux/animalSlice';
 
@@ -112,11 +115,11 @@ const AddVaccinationPage = () => {
   };
 
   const inputCls = (hasError) =>
-    `w-full px-4 py-2.5 border rounded-xl text-sm outline-none transition-all font-cairo bg-white
-     ${hasError
-       ? 'border-red-400 focus:ring-2 focus:ring-red-200'
-       : 'border-stone-200 focus:ring-2 focus:ring-[#2a5c2a]/20 focus:border-[#2a5c2a]'}`;
-  const labelCls = 'block text-[13px] font-bold text-stone-700 mb-2';
+    `w-full px-5 py-3.5 rounded-2xl text-[15px] bg-white border-2 outline-none transition-all font-cairo placeholder:text-gray-400 ` +
+    (hasError
+      ? 'border-red-300 focus:border-red-500 focus:shadow-[0_0_0_4px_rgba(239,68,68,0.15)] shadow-sm text-gray-900'
+      : 'border-transparent focus:border-[#154b23] focus:shadow-[0_0_0_4px_rgba(21,75,35,0.1)] shadow-sm text-gray-900');
+  const labelCls = 'text-[15px] font-bold text-[#154b23] flex items-center gap-1.5 mb-2 ml-1';
 
   if (loading.animal && !animal) {
     return (
@@ -127,31 +130,39 @@ const AddVaccinationPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f7f5] font-cairo" dir="rtl">
+    <div className="min-h-screen font-cairo relative" dir="rtl">
+      
+      {/* Background Image with Overlay */}
+      <div 
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-15"
+        style={{ backgroundImage: `url(${bgImage})` }}
+      />
+      <div className="fixed inset-0 z-0 bg-[#fbf9f6]/80 backdrop-blur-[2px]" />
 
-      {/* ── Sticky Header ─────────────────────────────────────────── */}
-      <div className="bg-white border-b border-stone-100 sticky top-0 z-20 shadow-sm">
+      <div className="relative z-10 flex flex-col min-h-screen">
+        {/* ── Sticky Header ─────────────────────────────────────────── */}
+      <div className="bg-[#1b4d2c] border-b border-[#154022] sticky top-0 z-20 shadow-md">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => navigate(`/animals/${id}`)}
-              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-50 text-stone-500 transition-colors"
+              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10 text-white transition-colors"
             >
               <ArrowRight className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-[17px] font-bold text-stone-900">تسجيل تطعيم جديد</h1>
-              <p className="text-[11px] text-stone-400 font-medium">
+              <h1 className="text-[17px] font-bold text-white">تسجيل تطعيم جديد</h1>
+              <p className="text-[11px] text-white/60 font-medium">
               إضافة تطعيم للحيوان:{' '}
-              <span className="font-semibold text-[#2a5c2a]">
+              <span className="font-semibold text-white">
                 #{animal?.tag_number || '...'}
               </span>
             </p>
             </div>
           </div>
-          <span className="text-[12px] text-emerald-700 font-bold bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full flex items-center gap-1.5">
-            <Syringe className="w-3.5 h-3.5 text-[#2a5c2a]" />
+          <span className="text-[12px] text-white font-bold bg-white/15 border border-white/20 px-3 py-1.5 rounded-full flex items-center gap-1.5">
+            <Syringe className="w-3.5 h-3.5 text-white" />
             تطعيم جديد
           </span>
         </div>
@@ -160,45 +171,66 @@ const AddVaccinationPage = () => {
       <main className="max-w-3xl mx-auto px-6 py-8">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
-          {/* ── TYPE TOGGLE ──────────────────────────────────────── */}
-          <div className="bg-white rounded-[20px] border border-stone-200 shadow-sm p-6">
-            <h2 className="text-[14px] font-bold text-stone-900 mb-4 pb-3 border-b border-stone-100 flex items-center gap-2">
-              <Syringe className="w-4 h-4 text-[#2a5c2a]" />
-              نوع التطعيم أو اللقاح
-            </h2>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setValue('vaccine_type', 'recurring')}
-                className={`py-3.5 px-4 rounded-xl border font-bold text-sm transition-all flex flex-col items-center justify-center gap-1 ${
-                  vaccineType === 'recurring'
-                    ? 'bg-emerald-50 border-[#2a5c2a] text-[#2a5c2a] shadow-xs'
-                    : 'bg-white border-stone-200 text-stone-500 hover:bg-stone-50'
-                }`}
-              >
-                <span>متكرر (دوري)</span>
-                <span className="text-[10px] font-medium opacity-80">مثل لقاحات الحمى القلاعية، الجمرة الخبيثة</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setValue('vaccine_type', 'one_time')}
-                className={`py-3.5 px-4 rounded-xl border font-bold text-sm transition-all flex flex-col items-center justify-center gap-1 ${
-                  vaccineType === 'one_time'
-                    ? 'bg-purple-50 border-purple-500 text-purple-700 shadow-xs'
-                    : 'bg-white border-stone-200 text-stone-500 hover:bg-stone-50'
-                }`}
-              >
-                <span>لمرة واحدة (طارئ)</span>
-                <span className="text-[10px] font-medium opacity-80">مثل لقاحات الشراء أو الحالات الطارئة</span>
-              </button>
+          <div className="bg-[#f2f8f3] rounded-[32px] shadow-sm border border-[#154b23]/10 overflow-hidden">
+            {/* Header Area */}
+            <div className="relative bg-[#154b23] px-8 py-10 text-white">
+              <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+              <div className="absolute -left-10 -bottom-10 w-48 h-48 rounded-full bg-white/5 blur-2xl" />
+              <div className="relative z-10 flex items-center gap-6">
+                <div className="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-inner">
+                  <Syringe className="w-10 h-10 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-[28px] font-bold mb-2">بيانات التطعيم</h2>
+                  <p className="text-white/80 text-[15px] leading-relaxed">
+                    أدخل تفاصيل التطعيم أو اللقاح للحفاظ على السجل الطبي لحيوانك بدقة.
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* ── BASIC INFO ───────────────────────────────────────── */}
-          <div className="bg-white rounded-[20px] border border-stone-200 shadow-sm p-6 space-y-5">
-            <h2 className="text-[14px] font-bold text-stone-900 mb-2 pb-3 border-b border-stone-100">
-              تفاصيل التطعيم الأساسية
-            </h2>
+            <div className="p-8 sm:p-10 space-y-10">
+              
+              {/* ── TYPE TOGGLE ──────────────────────────────────────── */}
+              <div>
+                <h2 className="text-[16px] font-bold text-[#1b4d2c] mb-4 pb-3 border-b border-[#154b23]/10 flex items-center gap-2">
+                  <Syringe className="w-5 h-5" />
+                  نوع التطعيم أو اللقاح
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setValue('vaccine_type', 'recurring')}
+                    className={`py-5 px-4 rounded-2xl border-2 font-bold text-[16px] transition-all flex flex-col items-center justify-center gap-1.5 ${
+                      vaccineType === 'recurring'
+                        ? 'bg-[#1b4d2c] border-[#1b4d2c] text-white shadow-lg shadow-[#1b4d2c]/20'
+                        : 'bg-white border-transparent text-gray-500 hover:bg-gray-50 shadow-sm'
+                    }`}
+                  >
+                    <span>متكرر (دوري)</span>
+                    <span className={`text-[12px] font-medium ${vaccineType === 'recurring' ? 'text-white/80' : 'text-gray-400'}`}>مثل لقاحات الحمى القلاعية، الجمرة الخبيثة</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setValue('vaccine_type', 'one_time')}
+                    className={`py-5 px-4 rounded-2xl border-2 font-bold text-[16px] transition-all flex flex-col items-center justify-center gap-1.5 ${
+                      vaccineType === 'one_time'
+                        ? 'bg-[#1b4d2c] border-[#1b4d2c] text-white shadow-lg shadow-[#1b4d2c]/20'
+                        : 'bg-white border-transparent text-gray-500 hover:bg-gray-50 shadow-sm'
+                    }`}
+                  >
+                    <span>لمرة واحدة (طارئ)</span>
+                    <span className={`text-[12px] font-medium ${vaccineType === 'one_time' ? 'text-white/80' : 'text-gray-400'}`}>مثل لقاحات الشراء أو الحالات الطارئة</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* ── BASIC INFO ───────────────────────────────────────── */}
+              <div className="space-y-6">
+                <h2 className="text-[16px] font-bold text-[#1b4d2c] mb-2 pb-3 border-b border-[#154b23]/10 flex items-center gap-2">
+                  <Calendar className="w-5 h-5" />
+                  تفاصيل التطعيم الأساسية
+                </h2>
 
             {/* اسم اللقاح */}
             <div>
@@ -242,8 +274,8 @@ const AddVaccinationPage = () => {
                   {errors.administration_date && (
                     <p className="text-[11px] text-rose-500 mt-1">{errors.administration_date.message}</p>
                   )}
-                  <span className="text-[11px] text-stone-400 block mt-1.5 flex items-center gap-1">
-                    <Info className="w-3.5 h-3.5" />
+                  <span className="text-[12px] text-gray-500 block mt-1.5 flex items-center gap-1 font-medium">
+                    <Info className="w-4 h-4 text-[#1b4d2c]" />
                     موعد الجرعة القادمة سيُحسب تلقائياً من هذا التاريخ.
                   </span>
                 </div>
@@ -269,8 +301,8 @@ const AddVaccinationPage = () => {
                     <p className="text-[11px] text-rose-500 mt-1">{errors.repeat_every_months.message}</p>
                   )}
                   {intervalHint && (
-                    <p className="text-[11px] text-emerald-700 mt-1 flex items-center gap-1">
-                      <Info className="w-3.5 h-3.5" />
+                    <p className="text-[12px] text-[#1b4d2c] mt-1.5 flex items-center gap-1 font-bold">
+                      <Info className="w-4 h-4" />
                       {intervalHint}
                     </p>
                   )}
@@ -320,8 +352,8 @@ const AddVaccinationPage = () => {
                   {errors.scheduled_date && (
                     <p className="text-[11px] text-rose-500 mt-1">{errors.scheduled_date.message}</p>
                   )}
-                  <span className="text-[11px] text-stone-400 block mt-1.5 flex items-center gap-1">
-                    <Info className="w-3.5 h-3.5" />
+                  <span className="text-[12px] text-gray-500 block mt-1.5 flex items-center gap-1 font-medium">
+                    <Info className="w-4 h-4 text-[#1b4d2c]" />
                     يجب أن يكون التاريخ غداً أو تاريخ مستقبلي أبعد.
                   </span>
                 </div>
@@ -363,31 +395,33 @@ const AddVaccinationPage = () => {
           </div>
 
           {/* ── ACTION BUTTONS ───────────────────────────────────── */}
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center justify-end gap-4 pt-4 mt-8 border-t border-[#154b23]/10">
             <button
               type="button"
               onClick={() => navigate(`/animals/${id}`)}
-              className="flex items-center gap-2 px-6 py-2.5 bg-white border border-stone-200 rounded-xl text-sm font-bold text-stone-600 hover:bg-stone-50 transition-colors"
+              className="px-8 py-3.5 rounded-2xl text-[15px] font-bold text-gray-600 hover:bg-white transition-colors"
             >
-              <X className="w-4 h-4" />
               إلغاء
             </button>
             <button
               type="submit"
               disabled={submitting || !isValid}
-              className={`flex items-center gap-2 px-8 py-2.5 text-white rounded-xl text-sm font-bold transition-all shadow-sm ${
+              className={`flex items-center gap-2 px-10 py-3.5 text-white rounded-2xl text-[15px] font-bold transition-all shadow-sm ${
                 isValid && !submitting
-                  ? 'bg-[#2a5c2a] hover:bg-[#1f451f] shadow-emerald-950/20'
-                  : 'bg-stone-300 cursor-not-allowed text-stone-500 shadow-none'
+                  ? 'bg-[#154b23] hover:bg-[#0f3619] shadow-lg shadow-[#154b23]/30 active:scale-95'
+                  : 'bg-gray-300 cursor-not-allowed text-gray-500 shadow-none'
               }`}
             >
-              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
               حفظ سجل التطعيم
             </button>
           </div>
 
+            </div>
+          </div>
         </form>
       </main>
+      </div>
     </div>
   );
 };
