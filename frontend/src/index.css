@@ -41,3 +41,7 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #2a5c2a;
 }
+
+.smooth-scroll {
+  scroll-behavior: smooth;
+}

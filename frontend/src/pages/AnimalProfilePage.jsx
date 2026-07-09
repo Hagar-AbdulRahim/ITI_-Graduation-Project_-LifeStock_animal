@@ -83,6 +83,8 @@ export default function AnimalProfilePage() {
   const dispatch = useDispatch()
 
   const { animal, loading, error } = useSelector((state) => state.animal)
+  const userRole = useSelector((state) => state.auth?.user?.role)
+  const canManageAnimal = userRole !== 'sub_admin'
   const fallbackAnimal = useSelector((state) =>
     state.farm?.farmAnimals?.find((a) => a._id === id),
   )
@@ -336,15 +338,15 @@ export default function AnimalProfilePage() {
             icon: AlertTriangle,
             color:
               'text-red-600 border-red-100 hover:bg-red-50 hover:border-red-300 hover:text-red-700',
-            action: () => navigate(farmIdForNavigation ? `/farms/${farmIdForNavigation}/emergencies` : '/emergencies'),
+            action: () => navigate(farmIdForNavigation ? `/farms/${farmIdForNavigation}/emergencies` : '/emergencies', { state: { fromAnimalId: id } }),
           },
-          {
+          ...(canManageAnimal ? [{
             label: 'تعديل البيانات',
             icon: Edit,
             color:
               'text-amber-600 border-amber-100 hover:bg-amber-50 hover:border-amber-300',
             action: () => navigate(`/animals/edit/${id}`),
-          },
+          }] : []),
         ].map(({ label, icon: Icon, color, action }) => (
           <button
             key={label}
@@ -453,6 +455,7 @@ export default function AnimalProfilePage() {
           </div>
 
           {/* Delete Action */}
+          {canManageAnimal && (
           <div className="pt-2">
             <button
               onClick={() => setShowDeleteModal(true)}
@@ -462,6 +465,7 @@ export default function AnimalProfilePage() {
               حذف الحيوان نهائياً
             </button>
           </div>
+          )}
         </div>
       </div>
 

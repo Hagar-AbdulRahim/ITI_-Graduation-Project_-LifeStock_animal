@@ -67,7 +67,8 @@ export const ADMIN_SIDEBAR_LINKS = [
 
 export const ROLE_LABELS = {
   user: 'مزارع',
-  admin: 'مدير',
+  admin: 'مدير النظام',
+  sub_admin: 'مدير',
 }
 
 export const SPECIES_LABELS = {

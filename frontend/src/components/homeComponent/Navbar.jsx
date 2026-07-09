@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { logout } from '../../redux/authSlice'
 import { fetchMyFarms } from '../../redux/farmSlice'
 import toast from 'react-hot-toast'
+import { isStaff } from '../../utils/roleRedirect'
 import logoImg from '../../assets/images/logo.jpg'
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IconGrid        = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>;
@@ -40,7 +41,7 @@ const Navbar = () => {
   const { user, isAuthenticated } = useSelector((state) => state.auth)
   const { farms } = useSelector((state) => state.farm || { farms: [] })
   const firstFarmId = farms && farms.length > 0 ? farms[0]._id : null
-  const isAdmin = user?.role === 'admin'
+  const isAdmin = isStaff(user?.role)
 
   useEffect(() => {
     if (isAuthenticated && (!farms || farms.length === 0)) {

@@ -1,12 +1,23 @@
 import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { PawPrint, Trash2 } from 'lucide-react';
 import adminService from '../../services/adminService';
 import DataTable from '../../components/admin/DataTable';
+import { canModifyLivestock } from '../../utils/roleRedirect';
+import {
+  AdminPageHeader,
+  AdminPanel,
+  AdminFilterBar,
+  AdminSearchInput,
+  AdminDetailBtn,
+} from '../../components/admin/AdminUI';
 
 export default function AdminFarmsPage() {
   const navigate = useNavigate();
+  const userRole = useSelector((state) => state.auth?.user?.role);
+  const canDeleteFarms = canModifyLivestock(userRole);
   const [farms, setFarms] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -39,13 +50,12 @@ export default function AdminFarmsPage() {
     }
   };
 
-  // ينقل المستخدم لصفحة الحيوانات بالأدمن مع فلتر المزرعة في الرابط
   const goToFarmAnimals = (farm) => {
     navigate(`/admin/animals?farm_id=${farm._id}&farm_name=${encodeURIComponent(farm.name)}`);
   };
 
   const columns = [
-    { key: 'name', label: 'اسم المزرعة', render: (r) => <span className="font-bold text-stone-700">{r.name}</span> },
+    { key: 'name', label: 'اسم المزرعة', render: (r) => <span className="font-bold text-stone-800">{r.name}</span> },
     { key: 'governorate', label: 'المحافظة', render: (r) => <span className="text-stone-600">{r.governorate}</span> },
     { key: 'owner', label: 'المالك', render: (r) => <span className="text-stone-500 font-medium">{r.user_id?.name || '—'}</span> },
     {
@@ -55,7 +65,7 @@ export default function AdminFarmsPage() {
         <button
           type="button"
           onClick={() => goToFarmAnimals(r)}
-          className="flex items-center gap-1.5 px-2.5 py-1 bg-stone-100 hover:bg-[#2a5c2a]/10 rounded-md font-bold text-stone-600 hover:text-[#2a5c2a] transition-colors"
+          className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#2a5c2a]/8 hover:bg-[#2a5c2a]/15 rounded-lg font-bold text-[#1b4d2c] transition-colors border border-[#2a5c2a]/15"
           title="عرض حيوانات المزرعة"
         >
           {r.total_animals || 0}
@@ -66,53 +76,39 @@ export default function AdminFarmsPage() {
       key: 'actions',
       label: 'إجراءات',
       render: (r) => (
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => goToFarmAnimals(r)}
-            className="flex items-center gap-1 text-stone-500 text-xs font-bold hover:text-[#2a5c2a] transition-colors"
-            title="عرض الحيوانات"
-          >
-            <PawPrint className="w-3.5 h-3.5" />
-            عرض الحيوانات
-          </button>
-          <button
-            type="button"
-            onClick={() => handleDelete(r._id)}
-            className="flex items-center gap-1 text-red-500 text-xs font-bold hover:text-red-700 transition-colors"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            حذف
-          </button>
+        <div className="flex items-center gap-2">
+          <AdminDetailBtn onClick={() => goToFarmAnimals(r)} label="عرض الحيوانات" />
+          {canDeleteFarms && (
+            <button
+              type="button"
+              onClick={() => handleDelete(r._id)}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-red-600 border border-red-100 rounded-lg hover:bg-red-50 transition-all"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              حذف
+            </button>
+          )}
         </div>
       ),
     },
   ];
 
   return (
-    <div className="space-y-6 relative z-10">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-2xl font-black text-stone-800 drop-shadow-sm">إدارة المزارع</h2>
-        <p className="text-sm text-stone-500 font-medium">سجل يضم كافة المزارع المسجلة في المنصة.</p>
-      </div>
-
-      <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300">
-        <div className="flex flex-wrap items-center gap-4 mb-6">
-          <div className="flex items-center gap-3 flex-1 min-w-[250px]">
-            <input
-              type="text"
-              placeholder="تصفية بالمحافظة..."
-              value={governorate}
-              onChange={(e) => { setGovernorate(e.target.value); setPage(1); }}
-              className="w-full max-w-sm border-none bg-stone-50 shadow-inner rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2a5c2a]/20 transition-all placeholder:text-stone-400"
-            />
-          </div>
-        </div>
-
-        <div className="overflow-hidden rounded-2xl border border-stone-100/80 bg-white/50">
-          <DataTable columns={columns} data={farms} loading={loading} pagination={pagination} onPageChange={setPage} />
-        </div>
-      </div>
+    <div>
+      <AdminPageHeader
+        title="إدارة المزارع"
+        subtitle="سجل يضم كافة المزارع المسجلة في المنصة."
+      />
+      <AdminPanel>
+        <AdminFilterBar>
+          <AdminSearchInput
+            value={governorate}
+            onChange={(e) => { setGovernorate(e.target.value); setPage(1); }}
+            placeholder="تصفية بالمحافظة..."
+          />
+        </AdminFilterBar>
+        <DataTable columns={columns} data={farms} loading={loading} pagination={pagination} onPageChange={setPage} />
+      </AdminPanel>
     </div>
   );
 }

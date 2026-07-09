@@ -265,7 +265,7 @@ const AppRoutes = () => {
       <Route
         path="/admin"
         element={
-          <RoleRoute allowedRoles={['admin']}>
+          <RoleRoute allowedRoles={['admin', 'sub_admin']}>
             <AdminLayout />
           </RoleRoute>
         }

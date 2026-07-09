@@ -208,11 +208,11 @@ export default function AdminOutbreakAnalyticsPage() {
       )}
 
       {/* Header */}
-      <div className="relative overflow-hidden bg-gradient-to-l from-red-700 to-rose-500 rounded-3xl p-8 shadow-xl text-white">
+      <div className="relative overflow-hidden bg-gradient-to-l from-[#1b4d2c] to-[#2a5c2a] rounded-2xl p-8 shadow-[0_4px_24px_-4px_rgba(27,77,44,0.35)] text-white border border-[#2a5c2a]/30">
         <div className="relative z-10 flex items-center justify-between flex-wrap gap-4">
           <div>
             <h2 className="text-3xl font-black mb-2 drop-shadow-sm">تحليل الأوبئة الذكي</h2>
-            <p className="text-red-100 text-sm max-w-xl leading-relaxed">
+            <p className="text-green-50/90 text-sm max-w-xl leading-relaxed">
               مراقبة الأعراض والأمراض المتكررة في الوقت الفعلي واكتشاف الأوبئة قبل انتشارها.
               الحد الحالي: <strong>{meta?.threshold ?? '...'} حالة</strong> خلال <strong>{meta?.window_hours ?? '...'} ساعة</strong>.
             </p>
@@ -241,7 +241,7 @@ export default function AdminOutbreakAnalyticsPage() {
           { label: 'منخفض', value: low.length, color: 'green', emoji: '🟢' },
           { label: 'أعراض مرصودة', value: symptoms.length, color: 'blue', emoji: '🩺' },
         ].map(({ label, value, color, emoji }) => (
-          <div key={label} className="bg-white/80 backdrop-blur-md rounded-2xl p-5 border border-white shadow-sm text-center">
+          <div key={label} className="bg-white rounded-2xl p-5 border border-stone-200/80 shadow-sm text-center hover:border-[#2a5c2a]/25 transition-colors">
             <div className="text-2xl mb-1">{emoji}</div>
             <div className={`text-3xl font-black text-${color}-600`}>{loading ? '...' : value}</div>
             <div className="text-xs text-stone-500 font-medium mt-1">{label}</div>

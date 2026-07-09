@@ -1,7 +1,7 @@
 // pages/EmergencyPage.jsx
 // صفحة الطوارئ البيطرية — تجيب العيادات القريبة عبر GPS أو المحافظة
 import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   AlertTriangle,
@@ -50,6 +50,8 @@ function renderFormattedText(text) {
 
 export default function EmergencyPage() {
   const navigate = useNavigate()
+  const locationState = useLocation().state
+  const fromAnimalId = locationState?.fromAnimalId
   // ── الموقع ────────────────────────────────────────────────
   const [location, setLocation] = useState(null)       // { lat, lng }
   const [locStatus, setLocStatus] = useState('idle')     // idle | loading | granted | denied
@@ -215,7 +217,13 @@ export default function EmergencyPage() {
             </p>
           </div>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              if (fromAnimalId) {
+                navigate(`/animals/${fromAnimalId}`)
+              } else {
+                navigate(-1)
+              }
+            }}
             className="px-4 py-2 rounded-xl bg-white text-[#1b4d2c] hover:bg-green-50 text-xs font-bold transition-all border border-white/20 shadow-md hover:shadow-lg hover:scale-105 active:scale-95 self-start md:self-auto"
           >
             رجوع
