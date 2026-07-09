@@ -36,6 +36,8 @@ export const ADMIN_SIDEBAR_LINKS = [
     icon: 'dashboard',
   },
   { id: 'users', label: 'المستخدمون', path: '/admin/users', icon: 'users' },
+  { id: 'farms', label: 'المزارع', path: '/admin/farms', icon: 'farms' },
+  { id: 'animals', label: 'الحيوانات', path: '/admin/animals', icon: 'animals' },
   {
     id: 'consultations',
     label: 'الاستشارات',

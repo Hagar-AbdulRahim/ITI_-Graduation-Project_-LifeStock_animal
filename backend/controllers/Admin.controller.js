@@ -116,6 +116,59 @@ const getUsers = async (req, res) => {
   }
 };
 
+const createUser = async (req, res) => {
+  try {
+    const { name, email, phone, password, governorate, role } = req.body;
+
+    if (!name?.trim() || !email?.trim() || !password || !governorate?.trim()) {
+      return res.status(400).json({ success: false, message: "الاسم والبريد وكلمة المرور والمحافظة مطلوبة" });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ success: false, message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" });
+    }
+
+    const allowedRoles = ["user", "admin"];
+    const assignedRole = allowedRoles.includes(role) ? role : "user";
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const existing = await User.findOne({ email: normalizedEmail });
+    if (existing) {
+      return res.status(409).json({ success: false, message: "البريد الإلكتروني مسجل بالفعل" });
+    }
+
+    const user = new User({
+      name: name.trim(),
+      email: normalizedEmail,
+      phone: phone?.trim() || null,
+      password,
+      governorate: governorate.trim(),
+      role: assignedRole,
+      auth_provider: "local",
+      is_email_verified: true,
+      is_active: true,
+    });
+
+    await user.save();
+
+    console.log(`[AUDIT] Admin ${req.user._id} created user ${user._id} with role ${assignedRole}`);
+
+    const safeUser = await User.findById(user._id).select("-password -email_verification_token -password_reset_otp");
+
+    res.status(201).json({
+      success: true,
+      message: "تم إنشاء المستخدم بنجاح",
+      data: safeUser,
+    });
+  } catch (err) {
+    console.error("createUser error:", err);
+    if (err.code === 11000) {
+      return res.status(409).json({ success: false, message: "البريد الإلكتروني مسجل بالفعل" });
+    }
+    res.status(500).json({ success: false, message: "خطأ في الخادم" });
+  }
+};
+
 const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select("-password -email_verification_token -password_reset_otp");
@@ -168,7 +221,7 @@ const deleteUser = async (req, res) => {
 };
 
 
-  const getFarms = async (req, res) => {
+const getFarms = async (req, res) => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
     const filter = { is_active: true };
@@ -180,7 +233,19 @@ const deleteUser = async (req, res) => {
       Farm.countDocuments(filter),
     ]);
 
-    paginatedResponse(res, farms, total, page, limit);
+    // أضف عدد الحيوانات لكل مزرعة
+    const farmIds = farms.map((f) => f._id);
+    const animalCounts = await Animal.aggregate([
+      { $match: { farm_id: { $in: farmIds }, is_active: true } },
+      { $group: { _id: "$farm_id", count: { $sum: 1 } } },
+    ]);
+    const countMap = Object.fromEntries(animalCounts.map((a) => [a._id.toString(), a.count]));
+    const farmsWithCount = farms.map((f) => ({
+      ...f.toObject(),
+      total_animals: countMap[f._id.toString()] || 0,
+    }));
+
+    paginatedResponse(res, farmsWithCount, total, page, limit);
   } catch (err) {
     console.error("getFarms error:", err);
     res.status(500).json({ success: false, message: "خطأ في الخادم" });
@@ -829,6 +894,7 @@ const broadcastNotification = async (req, res) => {
 module.exports = {
   getDashboardStats,
   getUsers,
+  createUser,
   getUserById,
   toggleUser,
   deleteUser,
@@ -850,11 +916,11 @@ module.exports = {
   triggerOutbreakDetection,
   getNotifications,
   broadcastNotification,
-<<<<<<< Updated upstream
-  getUsersGrowth,
-  getHealthTrends,
-  getVaccinationAnalytics,
+  getFarms,
+  getFarmById,
+  deleteFarm,
+  getAnimals,
+  getHealthCases,
+  updateHealthCase,
 };
-=======
-};
->>>>>>> Stashed changes
+

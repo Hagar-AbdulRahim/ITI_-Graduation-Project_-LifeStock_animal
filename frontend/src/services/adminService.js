@@ -3,9 +3,16 @@ import api from './api';
 const adminService = {
   getDashboardStats: () => api.get('/api/admin/dashboard/stats'),
   getUsers: (params) => api.get('/api/admin/users', { params }),
+  createUser: (data) => api.post('/api/admin/users', data),
   getUserById: (id) => api.get(`/api/admin/users/${id}`),
   toggleUser: (id) => api.put(`/api/admin/users/${id}/toggle`),
   deleteUser: (id) => api.delete(`/api/admin/users/${id}`),
+  // Farms
+  getFarms: (params) => api.get('/api/admin/farms', { params }),
+  getFarmById: (id) => api.get(`/api/admin/farms/${id}`),
+  deleteFarm: (id) => api.delete(`/api/admin/farms/${id}`),
+  // Animals
+  getAnimals: (params) => api.get('/api/admin/animals', { params }),
   getConsultations: (params) => api.get('/api/admin/consultations', { params }),
   getClinics: (params) => api.get('/api/admin/clinics', { params }),
   createClinic: (data) => api.post('/api/admin/clinics', data),
