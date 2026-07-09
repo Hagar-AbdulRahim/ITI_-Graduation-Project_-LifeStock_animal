@@ -98,7 +98,14 @@ const getAnimalsByFarm = async (req, res) => {
     const { farmId } = req.params;
     const { species, health_status, gender } = req.query;
 
-    const farm = await userOwnsFarm(farmId, req.user._id);
+    // الأدمن يقدر يشوف حيوانات أي مزرعة بدون التحقق من الملكية
+    let farm;
+    if (req.user.role === "admin") {
+      farm = await Farm.findOne({ _id: farmId, is_active: true });
+    } else {
+      farm = await userOwnsFarm(farmId, req.user._id);
+    }
+
     if (!farm) {
       return res.status(404).json({ success: false, message: "المزرعة غير موجودة أو غير مصرح بدخولها" });
     }
@@ -123,28 +130,25 @@ const getAnimalsByFarm = async (req, res) => {
   }
 };
 // ── Get Single Animal ─────────────────────────────────────────────────────────
-const getAnimalById = async (req, res) => {
+ const getAnimalById = async (req, res) => {
   try {
-    const animal = await Animal.findOne({ _id: req.params.id, is_active: true }).populate(
-      "farm_id",
-      "name governorate user_id"
-    );
+    let animal;
 
-    if (!animal) {
-      return res.status(404).json({ success: false, message: "الحيوان غير موجود" });
+    if (req.user.role === "admin") {
+      // الأدمن يقدر يشوف أي حيوان بدون قيد المزرعة
+      animal = await Animal.findById(req.params.id);
+    } else {
+      const userFarmIds = await Farm.find({ user_id: req.user._id }).distinct("_id");
+      animal = await Animal.findOne({ _id: req.params.id, farm_id: { $in: userFarmIds } });
     }
 
-    if (animal.farm_id.user_id.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ success: false, message: "غير مصرح" });
-    }
+    if (!animal) return res.status(404).json({ success: false, message: "الحيوان غير موجود" });
 
-    return res.status(200).json({ success: true, data: animal });
+    res.json({ success: true, data: animal });
   } catch (err) {
-    console.error("getAnimalById error:", err);
-    return res.status(500).json({ success: false, message: "خطأ في الخادم" });
+    res.status(500).json({ success: false, message: "خطأ في الخادم" });
   }
 };
-
 // ── Update Animal ─────────────────────────────────────────────────────────────
 const updateAnimal = async (req, res) => {
   try {
@@ -157,7 +161,11 @@ const updateAnimal = async (req, res) => {
       return res.status(404).json({ success: false, message: "الحيوان غير موجود" });
     }
 
-    if (existing.farm_id.user_id.toString() !== req.user._id.toString()) {
+    // الأدمن يقدر يعدل أي حيوان، غير كده لازم يكون صاحب المزرعة
+    const isAdmin = req.user.role === "admin";
+    const isOwner = existing.farm_id.user_id.toString() === req.user._id.toString();
+
+    if (!isAdmin && !isOwner) {
       return res.status(403).json({ success: false, message: "غير مصرح" });
     }
 
@@ -175,6 +183,10 @@ const updateAnimal = async (req, res) => {
       { $set: updates },
       { new: true, runValidators: true }
     );
+
+    if (isAdmin && !isOwner) {
+      console.log(`[AUDIT] Admin ${req.user._id} updated animal ${animal._id}`);
+    }
 
     return res.status(200).json({
       success: true,
@@ -202,7 +214,11 @@ const deleteAnimal = async (req, res) => {
       return res.status(404).json({ success: false, message: "الحيوان غير موجود" });
     }
 
-    if (existing.farm_id.user_id.toString() !== req.user._id.toString()) {
+    // الأدمن يقدر يحذف أي حيوان، غير كده لازم يكون صاحب المزرعة
+    const isAdmin = req.user.role === "admin";
+    const isOwner = existing.farm_id.user_id.toString() === req.user._id.toString();
+
+    if (!isAdmin && !isOwner) {
       return res.status(403).json({ success: false, message: "غير مصرح" });
     }
 
@@ -216,6 +232,10 @@ const deleteAnimal = async (req, res) => {
       { _id: existing.farm_id._id, total_animals: { $lt: 0 } },
       { $set: { total_animals: 0 } }
     );
+
+    if (isAdmin && !isOwner) {
+      console.log(`[AUDIT] Admin ${req.user._id} deleted animal ${existing._id}`);
+    }
 
     return res.status(200).json({
       success: true,

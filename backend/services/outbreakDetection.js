@@ -164,7 +164,7 @@ const upsertOutbreakReport = async (diagnosis, governorate, casesCount) => {
   const existing = await OutbreakReport.findOne({
     disease_name: diagnosis,
     governorate,
-    status: "active",
+    status: { $in: ["active", "pending"] },
   });
 
   if (existing) {
@@ -178,33 +178,28 @@ const upsertOutbreakReport = async (diagnosis, governorate, casesCount) => {
     disease_name: diagnosis,
     governorate,
     cases_count: casesCount,
-    status: "active",
+    status: "pending", // الفاشية المكتشفة آلياً تكون قيد المراجعة أولاً
     ai_warning_message,
   });
 
   return { report, isNewOutbreak: true };
 };
 
-// إشعار مستخدمي المحافظة المتأثرة بس
-const broadcastOutbreakAlert = async (report) => {
-  const allUsers = await User.find({ 
-    is_active: { $ne: false },
-    notifications_enabled: true,
-    governorate: report.governorate,
-  }).select("+push_subscription");
+// إشعار الأدمن بالفاشية قيد المراجعة
+const notifyAdminOfPendingOutbreak = async (report) => {
+  const admins = await User.find({ role: "admin" }).select("+push_subscription");
 
   let sentCount = 0;
-  for (const user of allUsers) {
+  for (const admin of admins) {
     await sendNotification({
-      user,
-      type:  "outbreak_alert",
-      title: `⚠️ تحذير: انتشار ${report.disease_name} في ${report.governorate}`,
-      body:  report.ai_warning_message,
+      user: admin,
+      type: "admin_outbreak_approval",
+      title: `🚨 فاشية محتملة: ${report.disease_name}`,
+      body: `اكتشف النظام ${report.cases_count} حالة من ${report.disease_name} في محافظة ${report.governorate}. يرجى مراجعتها وتأكيدها.`,
       data: {
         outbreak_report_id: report._id.toString(),
-        governorate:        report.governorate,
-        disease_name:       report.disease_name,
-        cases_count:        report.cases_count.toString(),
+        governorate: report.governorate,
+        disease_name: report.disease_name,
       },
     });
     sentCount++;
@@ -230,8 +225,8 @@ const runOutbreakDetection = async () => {
       );
       console.log(`${isNewOutbreak ? "🆕 وباء جديد" : "🔁 تحديث"}: ${candidate.diagnosis} | ${candidate.governorate} | ${candidate.cases_count} حالة`);
       if (isNewOutbreak) {
-        const sentCount = await broadcastOutbreakAlert(report);
-        console.log(`✅ إشعار أُرسل لـ ${sentCount} مستخدم`);
+        const sentCount = await notifyAdminOfPendingOutbreak(report);
+        console.log(`✅ إشعار للأدمن أُرسل لـ ${sentCount} مدير`);
       }
     }
   } catch (err) {

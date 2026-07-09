@@ -19,7 +19,7 @@ const outbreakReportSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["active", "resolved", "monitoring"],
+      enum: ["active", "resolved", "monitoring", "pending", "rejected"],
       default: "active",
     },
     ai_warning_message: {
@@ -33,6 +33,22 @@ const outbreakReportSchema = new mongoose.Schema(
     resolved_at: {
       type: Date,
       default: null,
+    },
+    symptoms: {
+      type: [String],
+      default: [],
+    },
+    treatment: {
+      type: String,
+      default: null,
+    },
+    prevention: {
+      type: String,
+      default: null,
+    },
+    available_vaccines: {
+      type: [String],
+      default: [],
     },
   },
   {

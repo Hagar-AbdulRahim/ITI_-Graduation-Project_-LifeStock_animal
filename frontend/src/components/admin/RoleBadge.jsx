@@ -2,7 +2,6 @@ import { ROLE_LABELS } from '../../constant/adminData';
 
 const styles = {
   user: 'bg-blue-50 text-blue-700',
-  doctor: 'bg-purple-50 text-purple-700',
   admin: 'bg-amber-50 text-amber-700',
 };
 

@@ -12,6 +12,7 @@ const { sendNotification } = require("../services/notificationService");
 const { parsePagination, paginatedResponse } = require("../utils/accessControl");
 const { embeddingModel } = require("../config/gemini");
 const { extractKnowledgeBaseChunks } = require("../scripts/ExtractJsonText");
+const { runOutbreakDetection, OUTBREAK_CASE_THRESHOLD, OUTBREAK_WINDOW_HOURS } = require("../services/outbreakDetection");
 
 // OutbreakReport — لأن ملف Outbreakreport.js الأساسي نسي المطور يعرّف فيه الـ Schema
 let OutbreakModel;
@@ -136,64 +137,6 @@ const getUserById = async (req, res) => {
   }
 };
 
-const createUser = async (req, res) => {
-  try {
-    const { name, email, phone, password, governorate, role, specialization, license_number, assigned_governorates } = req.body;
-
-    if (!["doctor", "admin"].includes(role)) {
-      return res.status(400).json({ success: false, message: "يمكن إنشاء حسابات طبيب أو مدير فقط من لوحة الإدارة" });
-    }
-
-    const existing = await User.findOne({ email });
-    if (existing) return res.status(409).json({ success: false, message: "البريد الإلكتروني مسجل بالفعل" });
-
-    const user = await User.create({
-      name,
-      email,
-      phone,
-      password,
-      governorate,
-      role,
-      specialization: specialization || null,
-      license_number: license_number || null,
-      assigned_governorates: assigned_governorates || [],
-      is_email_verified: true,
-      auth_provider: "local",
-    });
-
-    console.log(`[AUDIT] Admin ${req.user._id} created user ${user._id} with role ${role}`);
-
-    const safeUser = user.toObject();
-    delete safeUser.password;
-
-    res.status(201).json({ success: true, message: "تم إنشاء المستخدم بنجاح", data: safeUser });
-  } catch (err) {
-    console.error("createUser error:", err);
-    res.status(500).json({ success: false, message: "خطأ في الخادم", error: err.message });
-  }
-};
-
-const updateUser = async (req, res) => {
-  try {
-    const allowed = ["name", "phone", "governorate", "role", "is_active", "specialization", "license_number", "assigned_governorates"];
-    const updates = {};
-    allowed.forEach((f) => { if (req.body[f] !== undefined) updates[f] = req.body[f]; });
-
-    const user = await User.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true })
-      .select("-password -email_verification_token -password_reset_otp");
-
-    if (!user) return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
-
-    if (updates.role) {
-      console.log(`[AUDIT] Admin ${req.user._id} changed user ${user._id} role to ${updates.role}`);
-    }
-
-    res.json({ success: true, message: "تم تحديث المستخدم", data: user });
-  } catch (err) {
-    console.error("updateUser error:", err);
-    res.status(500).json({ success: false, message: "خطأ في الخادم" });
-  }
-};
 
 const toggleUser = async (req, res) => {
   try {
@@ -224,10 +167,8 @@ const deleteUser = async (req, res) => {
   }
 };
 
-// ════════════════════════════════════════════════════════════════════════════
-// Farms
-// ════════════════════════════════════════════════════════════════════════════
-const getFarms = async (req, res) => {
+
+  const getFarms = async (req, res) => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
     const filter = { is_active: true };
@@ -292,6 +233,9 @@ const getAnimals = async (req, res) => {
     const farmIds = await Farm.find(farmFilter).distinct("_id");
     const filter = { is_active: true, farm_id: { $in: farmIds } };
 
+    // فلترة بمزرعة معينة (لما اليوزر يضغط "عرض الحيوانات" من صفحة مزرعة بعينها)
+    if (req.query.farm_id) filter.farm_id = req.query.farm_id;
+
     if (req.query.species) filter.species = req.query.species;
     if (req.query.health_status) filter.health_status = req.query.health_status;
 
@@ -310,6 +254,7 @@ const getAnimals = async (req, res) => {
     res.status(500).json({ success: false, message: "خطأ في الخادم" });
   }
 };
+
 
 // ════════════════════════════════════════════════════════════════════════════
 // Health Cases
@@ -375,7 +320,7 @@ const getConsultations = async (req, res) => {
     if (req.query.governorate) filter.governorate = req.query.governorate;
 
     const [consultations, total] = await Promise.all([
-      Consultation.find(filter).populate("user_id", "name email phone").sort({ created_at: -1 }).skip(skip).limit(limit),
+      Consultation.find(filter).select("+ai_raw_response").populate("user_id", "name email phone").sort({ created_at: -1 }).skip(skip).limit(limit),
       Consultation.countDocuments(filter),
     ]);
 
@@ -411,7 +356,7 @@ const createOutbreak = async (req, res) => {
     const OutbreakModel = getOutbreakModel();
     if (!OutbreakModel) return res.status(503).json({ success: false, message: "نموذج الفاشية غير متوفر" });
 
-    const { disease_name, governorate, cases_count, ai_warning_message, status } = req.body;
+    const { disease_name, governorate, cases_count, ai_warning_message, status, symptoms, treatment, prevention, available_vaccines } = req.body;
 
     const existing = await OutbreakModel.findOne({ disease_name, governorate, status: "active" });
     if (existing) {
@@ -427,9 +372,39 @@ const createOutbreak = async (req, res) => {
       cases_count,
       ai_warning_message,
       status: status || "active",
+      symptoms: symptoms || [],
+      treatment: treatment || null,
+      prevention: prevention || null,
+      available_vaccines: available_vaccines || [],
     });
 
-    res.status(201).json({ success: true, message: "تم إنشاء تقرير الفاشية", data: outbreak });
+    // إرسال إشعار للمزارعين في المحافظة (أو الكل)
+    const userQuery = { is_active: { $ne: false }, notifications_enabled: true };
+    if (governorate !== "الكل") userQuery.governorate = governorate;
+
+    const allUsers = await User.find(userQuery).select("+push_subscription");
+
+    // بناء محتوى الإشعار المفصل
+    let detailedBody = ai_warning_message || `تم رصد ${cases_count} حالة من ${disease_name} في محافظتك. يرجى توخي الحذر.`;
+    
+    let sentCount = 0;
+    for (const user of allUsers) {
+      await sendNotification({
+        user,
+        type:  "outbreak_alert",
+        title: `⚠️ تحذير: انتشار ${disease_name} في ${governorate}`,
+        body:  detailedBody,
+        data: {
+          outbreak_report_id: outbreak._id.toString(),
+          governorate:        governorate,
+          disease_name:       disease_name,
+          cases_count:        cases_count.toString(),
+        },
+      });
+      sentCount++;
+    }
+
+    res.status(201).json({ success: true, message: `تم إنشاء التقرير وإرسال تحذير لـ ${sentCount} مزارع`, data: outbreak });
   } catch (err) {
     console.error("createOutbreak error:", err);
     res.status(500).json({ success: false, message: "خطأ في الخادم" });
@@ -441,16 +416,84 @@ const resolveOutbreak = async (req, res) => {
     const OutbreakModel = getOutbreakModel();
     if (!OutbreakModel) return res.status(503).json({ success: false, message: "نموذج الفاشية غير متوفر" });
 
-    const outbreak = await OutbreakModel.findByIdAndUpdate(
-      req.params.id,
-      { status: "resolved", resolved_at: new Date() },
-      { new: true }
-    );
-    if (!outbreak) return res.status(404).json({ success: false, message: "التقرير غير موجود" });
+    const outbreak = await OutbreakModel.findById(req.params.id);
+    if (!outbreak) return res.status(404).json({ success: false, message: "الفاشية غير موجودة" });
 
-    res.json({ success: true, message: "تم حل الفاشية", data: outbreak });
+    outbreak.status = "resolved";
+    outbreak.resolved_at = new Date();
+    await outbreak.save();
+
+    res.json({ success: true, message: "تم تحديث حالة الفاشية بنجاح", data: outbreak });
   } catch (err) {
     console.error("resolveOutbreak error:", err);
+    res.status(500).json({ success: false, message: "خطأ في الخادم" });
+  }
+};
+
+const approveOutbreak = async (req, res) => {
+  try {
+    const OutbreakModel = getOutbreakModel();
+    if (!OutbreakModel) return res.status(503).json({ success: false, message: "نموذج الفاشية غير متوفر" });
+
+    const outbreak = await OutbreakModel.findById(req.params.id);
+    if (!outbreak) return res.status(404).json({ success: false, message: "الفاشية غير موجودة" });
+
+    if (outbreak.status !== "pending") return res.status(400).json({ success: false, message: "هذه الفاشية ليست قيد المراجعة" });
+
+    outbreak.status = "active";
+    await outbreak.save();
+
+    // إرسال إشعار للمزارعين
+    const userQuery = { is_active: { $ne: false }, notifications_enabled: true };
+    if (outbreak.governorate !== "الكل") userQuery.governorate = outbreak.governorate;
+
+    const allUsers = await User.find(userQuery).select("+push_subscription");
+
+    let detailedBody = outbreak.ai_warning_message || `تم رصد ${outbreak.cases_count} حالة من ${outbreak.disease_name} في محافظتك. يرجى توخي الحذر.`;
+    if (outbreak.symptoms && outbreak.symptoms.length > 0) detailedBody += `\nالأعراض: ${outbreak.symptoms.join('، ')}`;
+    if (outbreak.treatment) detailedBody += `\nالعلاج: ${outbreak.treatment}`;
+    if (outbreak.prevention) detailedBody += `\nالوقاية: ${outbreak.prevention}`;
+    if (outbreak.available_vaccines && outbreak.available_vaccines.length > 0) detailedBody += `\nاللقاحات المتاحة: ${outbreak.available_vaccines.join('، ')}`;
+
+    let sentCount = 0;
+    for (const user of allUsers) {
+      await sendNotification({
+        user,
+        type:  "outbreak_alert",
+        title: `⚠️ تحذير: انتشار ${outbreak.disease_name} في ${outbreak.governorate}`,
+        body:  detailedBody,
+        data: {
+          outbreak_report_id: outbreak._id.toString(),
+          governorate:        outbreak.governorate,
+          disease_name:       outbreak.disease_name,
+        },
+      });
+      sentCount++;
+    }
+
+    res.json({ success: true, message: `تم تأكيد الفاشية ونشر التحذير لـ ${sentCount} مزارع`, data: outbreak });
+  } catch (err) {
+    console.error("approveOutbreak error:", err);
+    res.status(500).json({ success: false, message: "خطأ في الخادم" });
+  }
+};
+
+const rejectOutbreak = async (req, res) => {
+  try {
+    const OutbreakModel = getOutbreakModel();
+    if (!OutbreakModel) return res.status(503).json({ success: false, message: "نموذج الفاشية غير متوفر" });
+
+    const outbreak = await OutbreakModel.findById(req.params.id);
+    if (!outbreak) return res.status(404).json({ success: false, message: "الفاشية غير موجودة" });
+
+    if (outbreak.status !== "pending") return res.status(400).json({ success: false, message: "هذه الفاشية ليست قيد المراجعة" });
+
+    outbreak.status = "rejected";
+    await outbreak.save();
+
+    res.json({ success: true, message: "تم تجاهل الفاشية", data: outbreak });
+  } catch (err) {
+    console.error("rejectOutbreak error:", err);
     res.status(500).json({ success: false, message: "خطأ في الخادم" });
   }
 };
@@ -568,48 +611,6 @@ const getKnowledgeBaseStats = async (req, res) => {
   }
 };
 
-// ════════════════════════════════════════════════════════════════════════════
-// Notifications
-// ════════════════════════════════════════════════════════════════════════════
-const getNotifications = async (req, res) => {
-  try {
-    const { page, limit, skip } = parsePagination(req.query);
-    const [notifications, total] = await Promise.all([
-      Notification.find({}).populate("user_id", "name email").sort({ created_at: -1 }).skip(skip).limit(limit),
-      Notification.countDocuments({}),
-    ]);
-    paginatedResponse(res, notifications, total, page, limit);
-  } catch (err) {
-    console.error("getNotifications error:", err);
-    res.status(500).json({ success: false, message: "خطأ في الخادم" });
-  }
-};
-
-const broadcastNotification = async (req, res) => {
-  try {
-    const { title, body, governorate, type } = req.body;
-    if (!title || !body) {
-      return res.status(400).json({ success: false, message: "العنوان والمحتوى مطلوبان" });
-    }
-
-    const userFilter = { is_active: true, notifications_enabled: true };
-    if (governorate) userFilter.governorate = governorate;
-
-    const users = await User.find(userFilter);
-    let sent = 0;
-
-    for (const user of users) {
-      await sendNotification({ user, title, body, type: type || "general" });
-      sent++;
-    }
-
-    console.log(`[AUDIT] Admin ${req.user._id} broadcast notification to ${sent} users`);
-    res.json({ success: true, message: `تم إرسال الإشعار إلى ${sent} مستخدم`, sent_count: sent });
-  } catch (err) {
-    console.error("broadcastNotification error:", err);
-    res.status(500).json({ success: false, message: "خطأ في الخادم" });
-  }
-};
 
 // ════════════════════════════════════════════════════════════════════════════
 // Analytics
@@ -638,43 +639,189 @@ const getUsersGrowth = async (req, res) => {
   }
 };
 
-const getHealthTrends = async (req, res) => {
+// ════════════════════════════════════════════════════════════════════════════
+// Outbreak Analytics
+// ════════════════════════════════════════════════════════════════════════════
+
+// الأمراض المتكررة من HealthCases + Consultations بدون threshold filter
+const getOutbreakCandidates = async (req, res) => {
   try {
-    const trends = await HealthCase.aggregate([
-      { $match: { resolved: false, severity: { $in: ["yellow", "red"] } } },
-      { $group: { _id: { governorate: "$governorate", severity: "$severity" }, count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
+    const days = parseInt(req.query.days, 10) || 7;
+    const sinceDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const governorate = req.query.governorate;
+
+    const matchBase = { created_at: { $gte: sinceDate }, ai_diagnosis: { $ne: null, $nin: ["غير محدد", ""] }, governorate: { $ne: null } };
+    if (governorate) matchBase.governorate = governorate;
+
+    // HealthCase — group by diagnosis + governorate
+    const hcMatchFilter = { ...matchBase, is_historical: { $ne: true } };
+    const hcResults = await HealthCase.aggregate([
+      { $match: hcMatchFilter },
+      { $group: { _id: { diagnosis: "$ai_diagnosis", governorate: "$governorate" }, count: { $sum: 1 }, sample_symptoms: { $push: { $slice: ["$symptoms", 3] } } } },
+      { $project: { diagnosis: "$_id.diagnosis", governorate: "$_id.governorate", count: 1, source: { $literal: "health_case" }, sample_symptoms: { $slice: ["$sample_symptoms", 1] }, _id: 0 } },
     ]);
 
-    res.json({ success: true, data: trends });
+    // Consultation — group by diagnosis + governorate
+    const cResults = await Consultation.aggregate([
+      { $match: matchBase },
+      { $group: { _id: { diagnosis: "$ai_diagnosis", governorate: "$governorate" }, count: { $sum: 1 }, sample_symptoms: { $push: { $slice: ["$symptoms", 3] } } } },
+      { $project: { diagnosis: "$_id.diagnosis", governorate: "$_id.governorate", count: 1, source: { $literal: "consultation" }, sample_symptoms: { $slice: ["$sample_symptoms", 1] }, _id: 0 } },
+    ]);
+
+    // Merge results
+    const merged = new Map();
+    for (const r of [...hcResults, ...cResults]) {
+      const key = `${r.governorate}|||${r.diagnosis}`;
+      const existing = merged.get(key);
+      if (existing) {
+        existing.count += r.count;
+        existing.sources = [...new Set([...existing.sources, r.source])];
+      } else {
+        merged.set(key, { ...r, sources: [r.source] });
+      }
+    }
+
+    const candidates = Array.from(merged.values())
+      .sort((a, b) => b.count - a.count)
+      .map(c => ({
+        ...c,
+        threshold: OUTBREAK_CASE_THRESHOLD,
+        threshold_reached: c.count >= OUTBREAK_CASE_THRESHOLD,
+        percentage: Math.min(100, Math.round((c.count / OUTBREAK_CASE_THRESHOLD) * 100)),
+      }));
+
+    res.json({
+      success: true,
+      data: candidates,
+      meta: { days, threshold: OUTBREAK_CASE_THRESHOLD, window_hours: OUTBREAK_WINDOW_HOURS }
+    });
   } catch (err) {
-    console.error("getHealthTrends error:", err);
+    console.error("getOutbreakCandidates error:", err);
     res.status(500).json({ success: false, message: "خطأ في الخادم" });
   }
 };
 
-const getVaccinationAnalytics = async (req, res) => {
+// الأعراض الأكثر تكراراً من HealthCases + Consultations
+const getSymptomsStats = async (req, res) => {
   try {
-    const now = new Date();
-    const in30Days = new Date();
-    in30Days.setDate(in30Days.getDate() + 30);
+    const days = parseInt(req.query.days, 10) || 7;
+    const sinceDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const matchBase = { created_at: { $gte: sinceDate } };
+    if (req.query.governorate) matchBase.governorate = req.query.governorate;
 
-    const [overdue, upcoming] = await Promise.all([
-      Vaccination.countDocuments({
-        vaccine_type: "recurring",
-        next_due_date: { $lt: now },
-      }),
-      Vaccination.countDocuments({
-        $or: [
-          { vaccine_type: "recurring", next_due_date: { $gte: now, $lte: in30Days } },
-          { vaccine_type: "one_time", scheduled_date: { $gte: now, $lte: in30Days }, completed: false },
-        ],
-      }),
+    const [hcSymptoms, cSymptoms] = await Promise.all([
+      HealthCase.aggregate([
+        { $match: { ...matchBase, is_historical: { $ne: true } } },
+        { $unwind: "$symptoms" },
+        { $group: { _id: "$symptoms", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 30 },
+      ]),
+      Consultation.aggregate([
+        { $match: matchBase },
+        { $unwind: "$symptoms" },
+        { $group: { _id: "$symptoms", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 30 },
+      ]),
     ]);
 
-    res.json({ success: true, data: { overdue, upcoming } });
+    const merged = new Map();
+    for (const s of [...hcSymptoms, ...cSymptoms]) {
+      const existing = merged.get(s._id);
+      merged.set(s._id, { symptom: s._id, count: (existing?.count || 0) + s.count });
+    }
+
+    const symptoms = Array.from(merged.values()).sort((a, b) => b.count - a.count).slice(0, 25);
+    res.json({ success: true, data: symptoms, meta: { days } });
   } catch (err) {
-    console.error("getVaccinationAnalytics error:", err);
+    console.error("getSymptomsStats error:", err);
+    res.status(500).json({ success: false, message: "خطأ في الخادم" });
+  }
+};
+
+// تشغيل فحص الأوبئة يدوياً
+const triggerOutbreakDetection = async (req, res) => {
+  try {
+    console.log(`[AUDIT] Admin ${req.user._id} triggered manual outbreak detection`);
+    await runOutbreakDetection();
+    // عد الأوبئة النشطة بعد الفحص
+    const OutbreakModel = mongoose.model("OutbreakReport");
+    const activeCount = await OutbreakModel.countDocuments({ status: "active" });
+    res.json({ success: true, message: "تم تشغيل الفحص بنجاح", data: { active_outbreaks: activeCount } });
+  } catch (err) {
+    console.error("triggerOutbreakDetection error:", err);
+    res.status(500).json({ success: false, message: "خطأ في الخادم" });
+  }
+};
+
+
+// ════════════════════════════════════════════════════════════════════════════
+// Notifications
+// ════════════════════════════════════════════════════════════════════════════
+const getNotifications = async (req, res) => {
+  try {
+    const { page, limit, skip } = parsePagination(req.query);
+    
+    // تجميع الإشعارات بناءً على العنوان والمحتوى لتجنب التكرار في صفحة الأدمن
+    const pipeline = [
+      {
+        $group: {
+          _id: { title: "$title", body: "$body", type: "$type" },
+          created_at: { $max: "$created_at" },
+          users_count: { $sum: 1 },
+        }
+      },
+      { $sort: { created_at: -1 } }
+    ];
+
+    const allGrouped = await Notification.aggregate(pipeline);
+    const total = allGrouped.length;
+    
+    const paginated = allGrouped.slice(skip, skip + limit).map(n => ({
+      title: n._id.title,
+      body: n._id.body,
+      type: n._id.type,
+      created_at: n.created_at,
+      users_count: n.users_count,
+    }));
+
+    paginatedResponse(res, paginated, total, page, limit);
+  } catch (err) {
+    console.error("getNotifications error:", err);
+    res.status(500).json({ success: false, message: "خطأ في الخادم" });
+  }
+};
+
+const broadcastNotification = async (req, res) => {
+  try {
+    const { title, body, governorate, role } = req.body;
+
+    const filter = { is_active: { $ne: false }, notifications_enabled: true };
+    if (governorate) filter.governorate = governorate;
+    if (role) filter.role = role;
+
+    const users = await User.find(filter).select("+push_subscription");
+
+    if (users.length === 0) {
+      return res.status(404).json({ success: false, message: "لا يوجد مستخدمين متطابقين" });
+    }
+
+    let sentCount = 0;
+    for (const user of users) {
+      await sendNotification({
+        user,
+        type: "admin_broadcast",
+        title,
+        body,
+        data: { broadcast: "true" },
+      });
+      sentCount++;
+    }
+
+    res.json({ success: true, message: `تم إرسال الإشعار لـ ${sentCount} مستخدم` });
+  } catch (err) {
+    console.error("broadcastNotification error:", err);
     res.status(500).json({ success: false, message: "خطأ في الخادم" });
   }
 };
@@ -683,29 +830,31 @@ module.exports = {
   getDashboardStats,
   getUsers,
   getUserById,
-  createUser,
-  updateUser,
   toggleUser,
   deleteUser,
-  getFarms,
-  getFarmById,
-  deleteFarm,
-  getAnimals,
-  getHealthCases,
-  updateHealthCase,
-  getConsultations,
-  getOutbreaks,
-  createOutbreak,
-  resolveOutbreak,
   getClinics,
   createClinic,
   updateClinic,
   deleteClinic,
+  getOutbreaks,
+  createOutbreak,
+  resolveOutbreak,
+  approveOutbreak,
+  rejectOutbreak,
+  getConsultations,
   getKnowledgeBaseStats,
   rebuildKnowledgeBase,
+  getUsersGrowth,
+  getOutbreakCandidates,
+  getSymptomsStats,
+  triggerOutbreakDetection,
   getNotifications,
   broadcastNotification,
+<<<<<<< Updated upstream
   getUsersGrowth,
   getHealthTrends,
   getVaccinationAnalytics,
 };
+=======
+};
+>>>>>>> Stashed changes

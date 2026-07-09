@@ -53,15 +53,12 @@ const userSchema = new mongoose.Schema(
       type: String, enum: ["local", "google"], default: "local",
     },
 
-    // ── Role-Based Access ─────────────────────────────────────────────────
+    // ── Role-Based Access ─────────────────────────────────────────────────────
     role: {
       type: String,
-      enum: ["user", "doctor", "admin"],
+      enum: ["user", "admin"],
       default: "user",
     },
-    specialization:     { type: String, default: null },
-    license_number:     { type: String, default: null },
-    assigned_governorates: [{ type: String }],
 
     // ── Notifications ─────────────────────────────────────────────────────
    notifications_enabled: { type: Boolean, default: true },
