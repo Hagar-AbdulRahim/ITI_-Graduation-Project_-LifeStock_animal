@@ -3,6 +3,9 @@ import toast from 'react-hot-toast';
 import { Send } from 'lucide-react';
 import adminService from '../../services/adminService';
 import DataTable from '../../components/admin/DataTable';
+<<<<<<< HEAD
+import { EGYPTIAN_GOVERNORATES } from '../../constant/adminData';
+=======
 import {
   AdminPageHeader,
   AdminPanel,
@@ -12,21 +15,21 @@ import {
   adminSelectClass,
   adminLabelClass,
 } from '../../components/admin/AdminUI';
+>>>>>>> 9de9327912debe8f230bc38f3c34eb746a023fa8
 
 export default function AdminNotificationsPage() {
   const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ title: '', body: '', governorate: '', role: '' });
-  const [broadcasting, setBroadcasting] = useState(false);
+  const [broadcast, setBroadcast] = useState({ title: '', body: '', governorate: '', type: 'general' });
+  const [sending, setSending] = useState(false);
 
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
     try {
       const res = await adminService.getNotifications({ page, limit: 15 });
-      setNotifications(res.data.data || []);
+      setNotifications(res.data.data);
       setPagination(res.data.pagination);
     } catch {
       toast.error('فشل تحميل الإشعارات');
@@ -39,21 +42,35 @@ export default function AdminNotificationsPage() {
 
   const handleBroadcast = async (e) => {
     e.preventDefault();
-    setBroadcasting(true);
+    if (!broadcast.title || !broadcast.body) {
+      toast.error('العنوان والمحتوى مطلوبان');
+      return;
+    }
+    setSending(true);
     try {
-      const res = await adminService.broadcastNotification(form);
-      toast.success(res.data.message || 'تم إرسال الإشعار بنجاح');
-      setShowForm(false);
-      setForm({ title: '', body: '', governorate: '', role: '' });
+      const res = await adminService.broadcastNotification({
+        title: broadcast.title,
+        body: broadcast.body,
+        governorate: broadcast.governorate || undefined,
+        type: broadcast.type,
+      });
+      toast.success(res.data.message || 'تم الإرسال');
+      setBroadcast({ title: '', body: '', governorate: '', type: 'general' });
       fetchNotifications();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'فشل إرسال الإشعار');
+    } catch {
+      toast.error('فشل إرسال الإشعار');
     } finally {
-      setBroadcasting(false);
+      setSending(false);
     }
   };
 
   const columns = [
+<<<<<<< HEAD
+    { key: 'title', label: 'العنوان' },
+    { key: 'type', label: 'النوع' },
+    { key: 'read', label: 'مقروء', render: (r) => (r.is_read ? 'نعم' : 'لا') },
+    { key: 'date', label: 'التاريخ', render: (r) => new Date(r.created_at).toLocaleDateString('ar-EG') },
+=======
     {
       key: 'title',
       label: 'العنوان',
@@ -102,11 +119,51 @@ export default function AdminNotificationsPage() {
         </span>
       ),
     },
+>>>>>>> 9de9327912debe8f230bc38f3c34eb746a023fa8
   ];
 
-  const fieldClass = `${adminInputClass} hover:shadow-sm`;
-
   return (
+<<<<<<< HEAD
+    <div className="space-y-6">
+      <h2 className="text-xl font-black text-stone-800">الإشعارات</h2>
+
+      <form onSubmit={handleBroadcast} className="bg-white rounded-2xl p-5 border border-stone-100 space-y-4">
+        <h3 className="font-bold text-stone-700">إرسال إشعار</h3>
+        <input
+          required
+          placeholder="عنوان الإشعار"
+          value={broadcast.title}
+          onChange={(e) => setBroadcast({ ...broadcast, title: e.target.value })}
+          className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm"
+        />
+        <textarea
+          required
+          rows={3}
+          placeholder="محتوى الإشعار"
+          value={broadcast.body}
+          onChange={(e) => setBroadcast({ ...broadcast, body: e.target.value })}
+          className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm"
+        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <select
+            value={broadcast.governorate}
+            onChange={(e) => setBroadcast({ ...broadcast, governorate: e.target.value })}
+            className="border border-stone-200 rounded-xl px-3 py-2 text-sm"
+          >
+            <option value="">كل المحافظات</option>
+            {EGYPTIAN_GOVERNORATES.map((g) => <option key={g} value={g}>{g}</option>)}
+          </select>
+          <select
+            value={broadcast.type}
+            onChange={(e) => setBroadcast({ ...broadcast, type: e.target.value })}
+            className="border border-stone-200 rounded-xl px-3 py-2 text-sm"
+          >
+            <option value="general">عام</option>
+            <option value="outbreak_alert">تنبيه فاشية</option>
+            <option value="vaccination_reminder">تذكير تطعيم</option>
+            <option value="health_case">حالة مرضية</option>
+          </select>
+=======
     <div dir="rtl">
       <AdminPageHeader
         title="إدارة الإشعارات"
@@ -193,12 +250,21 @@ export default function AdminNotificationsPage() {
               </button>
             </div>
           </form>
+>>>>>>> 9de9327912debe8f230bc38f3c34eb746a023fa8
         </div>
-      )}
+        <button
+          type="submit"
+          disabled={sending}
+          className="px-6 py-2 bg-[#2d5a1b] text-white rounded-xl font-bold disabled:opacity-50"
+        >
+          {sending ? 'جاري الإرسال...' : 'إرسال'}
+        </button>
+      </form>
 
-      <AdminPanel>
+      <div>
+        <h3 className="font-bold text-stone-700 mb-3">سجل الإشعارات</h3>
         <DataTable columns={columns} data={notifications} loading={loading} pagination={pagination} onPageChange={setPage} />
-      </AdminPanel>
+      </div>
     </div>
   );
 }

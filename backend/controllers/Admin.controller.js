@@ -199,8 +199,14 @@ const toggleUser = async (req, res) => {
 };
 
 const deleteUser = async (req, res) => {
+  const session = await mongoose.startSession();
   try {
     const user = await User.findById(req.params.id);
+<<<<<<< HEAD
+    if (!user) {
+      await session.endSession();
+      return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
+=======
     if (!user) return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
 
     if (user._id.toString() === req.user._id.toString()) {
@@ -209,18 +215,76 @@ const deleteUser = async (req, res) => {
 
     if (req.user.role === "sub_admin" && user.role === "admin") {
       return res.status(403).json({ success: false, message: "ليس لديك صلاحية تعطيل حساب مدير النظام" });
+>>>>>>> 9de9327912debe8f230bc38f3c34eb746a023fa8
     }
 
-    await User.findByIdAndUpdate(req.params.id, { is_active: false }, { new: true });
+    if (req.user.role === "sub_admin" && user.role === "admin") {
+      await session.endSession();
+      return res.status(403).json({ success: false, message: "ليس لديك صلاحية حذف حساب مدير النظام" });
+    }
 
-    console.log(`[AUDIT] Admin ${req.user._id} deactivated user ${user._id}`);
-    res.json({ success: true, message: "تم تعطيل المستخدم" });
+    if (req.user._id.toString() === user._id.toString()) {
+      await session.endSession();
+      return res.status(400).json({ success: false, message: "لا يمكنك حذف حسابك الخاص" });
+    }
+
+    await session.withTransaction(async () => {
+      const farmIds = await Farm.find({ user_id: user._id }).distinct("_id").session(session);
+      const animalIds = await Animal.find({ farm_id: { $in: farmIds } }).distinct("_id").session(session);
+
+      await Vaccination.deleteMany({ animal_id: { $in: animalIds } }).session(session);
+      await HealthCase.deleteMany({ $or: [{ animal_id: { $in: animalIds } }, { user_id: user._id }] }).session(session);
+      await Animal.deleteMany({ farm_id: { $in: farmIds } }).session(session);
+      await Farm.deleteMany({ user_id: user._id }).session(session);
+      await Consultation.deleteMany({ user_id: user._id }).session(session);
+      await Notification.deleteMany({ user_id: user._id }).session(session);
+
+      await User.findByIdAndDelete(user._id).session(session);
+    });
+
+    console.log(`[AUDIT] Admin ${req.user._id} permanently deleted user ${user._id} and all related data`);
+    res.json({ success: true, message: "تم حذف المستخدم وكل بياناته المرتبطة نهائيًا" });
   } catch (err) {
     console.error("deleteUser error:", err);
+    res.status(500).json({ success: false, message: "خطأ في الخادم أثناء الحذف" });
+  } finally {
+    await session.endSession();
+  }
+};
+const broadcastNotification = async (req, res) => {
+  try {
+    const { title, body, governorate, role, type } = req.body;
+
+    const filter = { is_active: { $ne: false }, notifications_enabled: true };
+    if (governorate) filter.governorate = governorate;
+    if (role) filter.role = role;
+
+    const users = await User.find(filter).select("+push_subscription");
+
+    if (users.length === 0) {
+      return res.status(404).json({ success: false, message: "لا يوجد مستخدمين متطابقين" });
+    }
+
+    const notificationType = type || "admin_broadcast";
+
+    let sentCount = 0;
+    for (const user of users) {
+      await sendNotification({
+        user,
+        type: notificationType,
+        title,
+        body,
+        data: { broadcast: "true" },
+      });
+      sentCount++;
+    }
+
+    res.json({ success: true, message: `تم إرسال الإشعار لـ ${sentCount} مستخدم` });
+  } catch (err) {
+    console.error("broadcastNotification error:", err);
     res.status(500).json({ success: false, message: "خطأ في الخادم" });
   }
 };
-
 const getFarms = async (req, res) => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
@@ -862,39 +926,6 @@ const getNotifications = async (req, res) => {
     paginatedResponse(res, paginated, total, page, limit);
   } catch (err) {
     console.error("getNotifications error:", err);
-    res.status(500).json({ success: false, message: "خطأ في الخادم" });
-  }
-};
-
-const broadcastNotification = async (req, res) => {
-  try {
-    const { title, body, governorate, role } = req.body;
-
-    const filter = { is_active: { $ne: false }, notifications_enabled: true };
-    if (governorate) filter.governorate = governorate;
-    if (role) filter.role = role;
-
-    const users = await User.find(filter).select("+push_subscription");
-
-    if (users.length === 0) {
-      return res.status(404).json({ success: false, message: "لا يوجد مستخدمين متطابقين" });
-    }
-
-    let sentCount = 0;
-    for (const user of users) {
-      await sendNotification({
-        user,
-        type: "admin_broadcast",
-        title,
-        body,
-        data: { broadcast: "true" },
-      });
-      sentCount++;
-    }
-
-    res.json({ success: true, message: `تم إرسال الإشعار لـ ${sentCount} مستخدم` });
-  } catch (err) {
-    console.error("broadcastNotification error:", err);
     res.status(500).json({ success: false, message: "خطأ في الخادم" });
   }
 };

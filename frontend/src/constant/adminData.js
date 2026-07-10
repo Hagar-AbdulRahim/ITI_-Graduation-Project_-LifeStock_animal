@@ -55,6 +55,11 @@ export const ADMIN_SIDEBAR_LINKS = [
     label: 'الفاشيات',
     path: '/admin/outbreaks',
     icon: 'emergency',
+  },{
+    id: 'notifications',
+    label: 'الإشعارات',
+    path: '/admin/notifications',
+    icon: 'notifications',
   },
   {
     id: 'outbreak-analytics',

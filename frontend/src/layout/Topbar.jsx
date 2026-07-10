@@ -9,7 +9,7 @@ import { LogOut, Home, ArrowRight, Bell, MapPin, ChevronLeft, Menu, X } from 'lu
 export default function Topbar({ farmIdProp, farmNameProp }) {
   const params = useParams()
   const activeFarmId = farmIdProp || params.farmId
-  
+
   const user = useSelector((state) => state.auth.user)
   const unreadCount = useSelector((state) => state.notifications.unread_count)
   const currentFarm = useSelector((state) => state.farm?.currentFarm)
@@ -105,7 +105,11 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
                 <ChevronLeft className="w-4 h-4 text-white/50" />
                 <button
                   onClick={() => navigate(`/farms/${activeFarmId}/animals`)}
+<<<<<<< HEAD
+                  className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-stone-600 hover:text-[#2d5a1b] transition-colors"
+=======
                   className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-white/90 hover:text-white hover:bg-white/10 transition-colors"
+>>>>>>> 9de9327912debe8f230bc38f3c34eb746a023fa8
                   title="عرض حيوانات المزرعة"
                 >
                   <span>الحيوانات</span>
