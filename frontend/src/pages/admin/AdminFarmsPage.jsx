@@ -6,11 +6,13 @@ import { PawPrint, Trash2 } from 'lucide-react';
 import adminService from '../../services/adminService';
 import DataTable from '../../components/admin/DataTable';
 import { canModifyLivestock } from '../../utils/roleRedirect';
+import ConfirmModal from '../../components/admin/ConfirmModal';
+import { EGYPTIAN_GOVERNORATES } from '../../constant/adminData';
 import {
   AdminPageHeader,
   AdminPanel,
   AdminFilterBar,
-  AdminSearchInput,
+  AdminSelect,
   AdminDetailBtn,
 } from '../../components/admin/AdminUI';
 
@@ -23,6 +25,8 @@ export default function AdminFarmsPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [governorate, setGovernorate] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmData, setConfirmData] = useState(null);
 
   const fetchFarms = useCallback(async () => {
     setLoading(true);
@@ -39,15 +43,22 @@ export default function AdminFarmsPage() {
 
   useEffect(() => { fetchFarms(); }, [fetchFarms]);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('حذف هذه المزرعة؟')) return;
-    try {
-      await adminService.deleteFarm(id);
-      toast.success('تم الحذف');
-      fetchFarms();
-    } catch {
-      toast.error('فشل الحذف');
-    }
+  const handleDelete = (id) => {
+    setConfirmData({
+      title: 'حذف المزرعة',
+      message: 'هل أنت متأكد من حذف هذه المزرعة نهائياً؟',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await adminService.deleteFarm(id);
+          toast.success('تم الحذف');
+          fetchFarms();
+        } catch {
+          toast.error('فشل الحذف');
+        }
+      }
+    });
+    setConfirmOpen(true);
   };
 
   const goToFarmAnimals = (farm) => {
@@ -55,19 +66,46 @@ export default function AdminFarmsPage() {
   };
 
   const columns = [
-    { key: 'name', label: 'اسم المزرعة', render: (r) => <span className="font-bold text-stone-800">{r.name}</span> },
-    { key: 'governorate', label: 'المحافظة', render: (r) => <span className="text-stone-600">{r.governorate}</span> },
-    { key: 'owner', label: 'المالك', render: (r) => <span className="text-stone-500 font-medium">{r.user_id?.name || '—'}</span> },
+    {
+      key: 'name',
+      label: 'اسم المزرعة',
+      render: (r) => (
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-[#f0f8f2] border border-[#2a5c2a]/20 flex items-center justify-center shrink-0">
+            <PawPrint className="w-4 h-4 text-[#1b4d2c]" />
+          </div>
+          <span className="font-bold text-stone-800 text-sm">{r.name}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'governorate',
+      label: 'المحافظة',
+      render: (r) => (
+        <span className="inline-flex items-center gap-1.5 text-stone-600 text-sm font-medium">
+          <span className="w-1.5 h-1.5 rounded-full bg-stone-300" />
+          {r.governorate}
+        </span>
+      ),
+    },
+    {
+      key: 'owner',
+      label: 'المالك',
+      render: (r) => (
+        <span className="text-stone-500 font-medium text-sm">{r.user_id?.name || '—'}</span>
+      ),
+    },
     {
       key: 'total_animals',
-      label: 'عدد الحيوانات',
+      label: 'الحيوانات',
       render: (r) => (
         <button
           type="button"
           onClick={() => goToFarmAnimals(r)}
-          className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#2a5c2a]/8 hover:bg-[#2a5c2a]/15 rounded-lg font-bold text-[#1b4d2c] transition-colors border border-[#2a5c2a]/15"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#f0f8f2] hover:bg-[#1b4d2c] hover:text-white text-[#1b4d2c] rounded-xl font-black text-sm transition-all duration-200 border border-[#2a5c2a]/20 shadow-sm"
           title="عرض حيوانات المزرعة"
         >
+          <PawPrint className="w-3.5 h-3.5" />
           {r.total_animals || 0}
         </button>
       ),
@@ -82,7 +120,7 @@ export default function AdminFarmsPage() {
             <button
               type="button"
               onClick={() => handleDelete(r._id)}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-red-600 border border-red-100 rounded-lg hover:bg-red-50 transition-all"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-600 border border-red-100 bg-red-50/50 rounded-lg hover:bg-red-100 hover:border-red-200 transition-all duration-200 shadow-sm"
             >
               <Trash2 className="w-3.5 h-3.5" />
               حذف
@@ -101,14 +139,28 @@ export default function AdminFarmsPage() {
       />
       <AdminPanel>
         <AdminFilterBar>
-          <AdminSearchInput
+          <AdminSelect
+            label="تصفية بالمحافظة"
             value={governorate}
             onChange={(e) => { setGovernorate(e.target.value); setPage(1); }}
-            placeholder="تصفية بالمحافظة..."
-          />
+          >
+            <option value="">كل المحافظات</option>
+            {EGYPTIAN_GOVERNORATES.map((g) => (
+              <option key={g} value={g}>{g}</option>
+            ))}
+          </AdminSelect>
         </AdminFilterBar>
         <DataTable columns={columns} data={farms} loading={loading} pagination={pagination} onPageChange={setPage} />
       </AdminPanel>
+
+      <ConfirmModal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={confirmData?.onConfirm}
+        title={confirmData?.title}
+        message={confirmData?.message}
+        type={confirmData?.type}
+      />
     </div>
   );
 }

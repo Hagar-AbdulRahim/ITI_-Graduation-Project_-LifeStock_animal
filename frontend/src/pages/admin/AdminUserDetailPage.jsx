@@ -19,57 +19,117 @@ export default function AdminUserDetailPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <div className="flex justify-center py-20"><Loader size="lg" color="#2a5c2a" /></div>;
-  if (!data) return <p className="text-stone-500">المستخدم غير موجود</p>;
+  if (loading) return (
+    <div className="flex justify-center py-20">
+      <Loader size="lg" color="#2a5c2a" />
+    </div>
+  );
+  if (!data) return (
+    <div className="flex flex-col items-center justify-center py-20 gap-3">
+      <div className="text-4xl">👤</div>
+      <p className="text-stone-400 font-medium">المستخدم غير موجود</p>
+    </div>
+  );
 
   const { user, farms_count, animals_count } = data;
   const statsCards = [
-    { label: 'المزارع', value: farms_count },
-    { label: 'الحيوانات', value: animals_count },
-    { label: 'الاستشارات', value: data.consultations_count ?? 0 },
-    { label: 'التطعيمات', value: data.vaccinations_count ?? 0 },
+    { label: 'المزارع', value: farms_count, icon: '🏡', color: 'green' },
+    { label: 'الحيوانات', value: animals_count, icon: '🐄', color: 'green' },
+    { label: 'الاستشارات', value: data.consultations_count ?? 0, icon: '💬', color: 'blue' },
+    { label: 'التطعيمات', value: data.vaccinations_count ?? 0, icon: '💉', color: 'purple' },
   ];
+
+  const colorMap = {
+    green:  'bg-[#f0f8f2] text-[#1b4d2c] border-[#2a5c2a]/20',
+    blue:   'bg-blue-50 text-blue-700 border-blue-200',
+    purple: 'bg-violet-50 text-violet-700 border-violet-200',
+  };
 
   return (
     <div className="space-y-5">
-      <Link to="/admin/users" className="inline-flex items-center gap-1 text-sm text-[#1b4d2c] font-bold hover:underline">
-        ← العودة للمستخدمين
+      {/* Back Link */}
+      <Link
+        to="/admin/users"
+        className="inline-flex items-center gap-2 text-sm font-bold text-[#1b4d2c] hover:text-[#2a5c2a] transition-colors group"
+      >
+        <div className="w-7 h-7 rounded-lg border border-[#2a5c2a]/20 bg-[#f0f8f2] flex items-center justify-center group-hover:bg-[#1b4d2c] group-hover:text-white transition-all duration-200">
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+        العودة للمستخدمين
       </Link>
+
+      {/* Profile Header Card */}
       <AdminPanel>
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <AdminUserAvatar name={user.name} />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-stone-100">
+          <div className="flex items-center gap-4">
+            {/* Large Avatar */}
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#1b4d2c]/15 to-[#2a5c2a]/10 border border-[#2a5c2a]/20 flex items-center justify-center text-2xl font-black text-[#1b4d2c] shadow-sm">
+              {user.name?.charAt(0) || 'م'}
+            </div>
             <div>
-              <h2 className="text-2xl font-black text-stone-800">{user.name}</h2>
-              <p className="text-stone-500 mt-0.5 text-sm">{user.email}</p>
+              <h2 className="text-xl font-black text-stone-800">{user.name}</h2>
+              <p className="text-stone-400 text-sm font-medium mt-0.5">{user.email}</p>
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <AdminStatusBadge active={user.is_active} />
+                <RoleBadge role={user.role} />
+              </div>
             </div>
           </div>
-          <RoleBadge role={user.role} />
         </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <AdminStatusBadge active={user.is_active} />
-          <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wide border bg-[#2a5c2a]/8 text-[#1b4d2c] border-[#2a5c2a]/20">
-            {ROLE_LABELS[user.role] || user.role}
-          </span>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-          <div className="rounded-xl border border-stone-200 bg-stone-50/80 p-4"><p className="text-xs text-stone-500 font-medium">المحافظة</p><p className="font-bold text-stone-800 mt-1">{user.governorate || '—'}</p></div>
-          <div className="rounded-xl border border-stone-200 bg-stone-50/80 p-4"><p className="text-xs text-stone-500 font-medium">الهاتف</p><p className="font-bold text-stone-800 mt-1">{user.phone || '—'}</p></div>
-          <div className="rounded-xl border border-stone-200 bg-stone-50/80 p-4"><p className="text-xs text-stone-500 font-medium">المزارع</p><p className="font-bold text-stone-800 mt-1">{farms_count}</p></div>
-          <div className="rounded-xl border border-stone-200 bg-stone-50/80 p-4"><p className="text-xs text-stone-500 font-medium">الحيوانات</p><p className="font-bold text-stone-800 mt-1">{animals_count}</p></div>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-          {statsCards.map((card) => (
-            <div key={card.label} className="rounded-xl p-4 border border-[#2a5c2a]/15 bg-[#f6fbf4]">
-              <p className="text-xs text-stone-500 font-medium">{card.label}</p>
-              <p className="font-black text-[#1b4d2c] mt-1 text-lg">{card.value}</p>
+
+        {/* Info Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5">
+          {[
+            { label: 'المحافظة', value: user.governorate || '—', icon: '📍' },
+            { label: 'الهاتف', value: user.phone || '—', icon: '📞' },
+            { label: 'المزارع', value: farms_count, icon: '🏡' },
+            { label: 'الحيوانات', value: animals_count, icon: '🐄' },
+          ].map(({ label, value, icon }) => (
+            <div
+              key={label}
+              className="rounded-xl border border-stone-200 bg-stone-50/60 p-4 hover:border-[#2a5c2a]/25 hover:bg-[#f6fbf4] transition-all duration-200"
+            >
+              <p className="text-[11px] font-black text-stone-400 uppercase tracking-wider mb-1">
+                {icon} {label}
+              </p>
+              <p className="font-bold text-stone-800">{value}</p>
             </div>
           ))}
         </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+          {statsCards.map((card) => (
+            <div
+              key={card.label}
+              className={`rounded-xl p-4 border transition-all duration-200 hover:shadow-sm ${colorMap[card.color] || colorMap.green}`}
+            >
+              <p className="text-[11px] font-black uppercase tracking-wider mb-2 opacity-70">
+                {card.icon} {card.label}
+              </p>
+              <p className="font-black text-2xl leading-none">{card.value}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Doctor Info */}
         {user.role === 'doctor' && (
-          <div className="mt-5 p-4 rounded-xl border border-stone-200 bg-stone-50/50 text-sm text-stone-600 space-y-1">
-            <p>التخصص: {user.specialization || '—'}</p>
-            <p>رقم الترخيص: {user.license_number || '—'}</p>
+          <div className="mt-5 p-5 rounded-xl border border-blue-100 bg-blue-50/50 space-y-2">
+            <p className="text-[11px] font-black text-blue-400 uppercase tracking-wider mb-3">
+              🩺 معلومات الطبيب
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <p className="text-[11px] text-blue-400 font-bold uppercase tracking-wide">التخصص</p>
+                <p className="text-sm font-bold text-blue-800 mt-0.5">{user.specialization || '—'}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-blue-400 font-bold uppercase tracking-wide">رقم الترخيص</p>
+                <p className="text-sm font-bold text-blue-800 mt-0.5">{user.license_number || '—'}</p>
+              </div>
+            </div>
           </div>
         )}
       </AdminPanel>

@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import SidebarIcon from '../components/SidebarIcon';
 import { logout } from '../redux/authSlice';
 import toast from 'react-hot-toast';
+import logoImg from '../assets/images/logo.jpg';
 
 export default function PortalSidebar({ links, title, subtitle }) {
   const dispatch = useDispatch();
@@ -19,11 +20,16 @@ export default function PortalSidebar({ links, title, subtitle }) {
 
   const sidebarContent = (
     <>
-      <div className="px-4 pt-6 pb-6 bg-gradient-to-br from-[#2d5a1b] to-[#3d6b47] rounded-b-2xl shadow-md">
-        <p className="text-sm font-bold text-white">{title}</p>
-        <p className="text-[10px] text-green-100">{subtitle}</p>
+      <div className="px-4 pt-6 pb-5 bg-gradient-to-br from-[#1b4d2c] via-[#245c36] to-[#2a5c2a] rounded-b-3xl shadow-md">
+        <div className="flex items-center gap-3 mb-3">
+          <img src={logoImg} alt="Logo" className="w-10 h-10 rounded-xl object-cover border border-white/20 shadow-sm" />
+          <span className="text-2xl font-black tracking-wider text-white drop-shadow-sm font-['Cairo']">رعاية</span>
+        </div>
+        <p className="text-[11px] text-green-100 font-bold uppercase tracking-wider">{title}</p>
         {user && (
-          <p className="text-xs text-green-50 mt-2 truncate">{user.name}</p>
+          <p className="bg-white rounded-lg px-2 py-0.5 text-lg text-green-900 mt-2 truncate font-semibold">
+            {user.name}
+          </p>
         )}
       </div>
 
@@ -35,10 +41,9 @@ export default function PortalSidebar({ links, title, subtitle }) {
             end={link.id === 'dashboard'}
             onClick={() => setMobileOpen(false)}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all ${
-                isActive
-                  ? 'bg-gradient-to-r from-[#2d5a1b] to-[#3d6b47] text-white font-semibold shadow-lg'
-                  : 'text-[#2d5a1b] hover:bg-white/50'
+              `flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all ${isActive
+                ? 'bg-gradient-to-r from-[#2d5a1b] to-[#3d6b47] text-white font-semibold shadow-lg'
+                : 'text-[#2d5a1b] hover:bg-white/50'
               }`
             }
           >

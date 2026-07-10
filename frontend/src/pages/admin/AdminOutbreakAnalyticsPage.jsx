@@ -38,7 +38,7 @@ function CandidateCard({ candidate, onConfirm, threshold }) {
     : 'border-stone-200 bg-white';
 
   return (
-    <div className={`rounded-2xl border p-5 shadow-sm transition-all hover:shadow-md ${dangerClass}`}>
+    <div className={`rounded-2xl border p-5 shadow-sm transition-all duration-200 hover:shadow-md ${dangerClass}`}>
       <div className="flex items-start justify-between gap-3 mb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -181,25 +181,31 @@ export default function AdminOutbreakAnalyticsPage() {
     <div className="space-y-8 pb-10 relative" dir="rtl">
       {/* Confirm Modal */}
       {confirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" style={{ animation: 'fadeInBackdrop 0.2s ease' }}>
+          <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl admin-modal-enter">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4 text-3xl">⚠️</div>
+              <div className="w-16 h-16 rounded-2xl bg-red-100 flex items-center justify-center mx-auto mb-4 text-3xl">⚠️</div>
               <h3 className="text-xl font-black text-stone-800 mb-2">تأكيد تسجيل وباء</h3>
-              <p className="text-stone-600 text-sm leading-relaxed">
-                هل تريد تسجيل <strong>{confirmModal.diagnosis}</strong> في <strong>{confirmModal.governorate}</strong> كوباء رسمي؟<br/>
+              <p className="text-stone-500 text-sm leading-relaxed">
+                هل تريد تسجيل <strong>{confirmModal.diagnosis}</strong> في <strong>{confirmModal.governorate}</strong> كوباء رسمي؟<br />
                 سيتم إرسال إشعار تحذيري لجميع مزارعي المحافظة.
               </p>
             </div>
-            <div className="bg-red-50 rounded-2xl p-4 mb-6 text-center">
+            <div className="bg-red-50 rounded-2xl p-4 mb-6 text-center border border-red-100">
               <div className="text-3xl font-black text-red-600">{confirmModal.count} حالة</div>
-              <div className="text-xs text-red-500 font-medium">خلال آخر {days} أيام</div>
+              <div className="text-xs text-red-400 font-medium mt-1">خلال آخر {days} أيام</div>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setConfirmModal(null)} className="flex-1 py-3 border border-stone-200 rounded-xl text-stone-700 font-bold hover:bg-stone-50 transition-all">
+              <button
+                onClick={() => setConfirmModal(null)}
+                className="flex-1 py-3 border border-stone-200 rounded-xl text-stone-700 font-bold hover:bg-stone-50 transition-all duration-200"
+              >
                 إلغاء
               </button>
-              <button onClick={doConfirmOutbreak} className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all shadow-md">
+              <button
+                onClick={doConfirmOutbreak}
+                className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all duration-200 shadow-md"
+              >
                 تأكيد وإرسال التحذير
               </button>
             </div>
@@ -207,20 +213,24 @@ export default function AdminOutbreakAnalyticsPage() {
         </div>
       )}
 
-      {/* Header */}
-      <div className="relative overflow-hidden bg-gradient-to-l from-[#1b4d2c] to-[#2a5c2a] rounded-2xl p-8 shadow-[0_4px_24px_-4px_rgba(27,77,44,0.35)] text-white border border-[#2a5c2a]/30">
+      {/* Header Banner */}
+      <div className="relative overflow-hidden bg-gradient-to-l from-[#1b4d2c] via-[#1e5530] to-[#2a5c2a] rounded-2xl px-8 py-9 shadow-[0_8px_32px_-4px_rgba(27,77,44,0.40)] text-white border border-[#2a5c2a]/20">
         <div className="relative z-10 flex items-center justify-between flex-wrap gap-4">
           <div>
+            <span className="px-3 py-1 bg-white/15 border border-white/20 rounded-full text-[11px] font-black uppercase tracking-widest mb-3 inline-block">
+              تحليل ذكي
+            </span>
             <h2 className="text-3xl font-black mb-2 drop-shadow-sm">تحليل الأوبئة الذكي</h2>
-            <p className="text-green-50/90 text-sm max-w-xl leading-relaxed">
-              مراقبة الأعراض والأمراض المتكررة في الوقت الفعلي واكتشاف الأوبئة قبل انتشارها.
-              الحد الحالي: <strong>{meta?.threshold ?? '...'} حالة</strong> خلال <strong>{meta?.window_hours ?? '...'} ساعة</strong>.
+            <p className="text-green-50/80 text-sm max-w-xl leading-relaxed">
+              مراقبة الأعراض والأمراض المتكررة في الوقت الفعلي. الحد الحالي:{' '}
+              <strong>{meta?.threshold ?? '...'} حالة</strong> خلال{' '}
+              <strong>{meta?.window_hours ?? '...'} ساعة</strong>.
             </p>
           </div>
           <button
             onClick={handleDetect}
             disabled={detecting}
-            className="px-6 py-3 bg-white/20 hover:bg-white/30 border border-white/30 rounded-2xl text-white font-black text-sm transition-all shadow-lg hover:shadow-xl disabled:opacity-60 flex items-center gap-2 backdrop-blur-sm"
+            className="px-6 py-3 bg-white/15 hover:bg-white/25 border border-white/25 rounded-2xl text-white font-black text-sm transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-60 flex items-center gap-2 backdrop-blur-sm"
           >
             {detecting ? (
               <><span className="animate-spin text-lg">⟳</span> جاري الفحص...</>
@@ -229,67 +239,88 @@ export default function AdminOutbreakAnalyticsPage() {
             )}
           </button>
         </div>
-        <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-white/10 rounded-full blur-2xl" />
-        <div className="absolute -top-10 right-20 w-32 h-32 bg-red-300/20 rounded-full blur-xl" />
+        <div className="absolute -bottom-10 -left-10 w-52 h-52 bg-white/8 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-8 right-16 w-36 h-36 bg-red-300/15 rounded-full blur-2xl pointer-events-none" />
       </div>
 
       {/* KPI Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'وصل الحد', value: thresholdReached.length, color: 'red', emoji: '🔴' },
-          { label: 'قرب الحد (≥50%)', value: nearThreshold.length, color: 'amber', emoji: '🟡' },
-          { label: 'منخفض', value: low.length, color: 'green', emoji: '🟢' },
-          { label: 'أعراض مرصودة', value: symptoms.length, color: 'blue', emoji: '🩺' },
-        ].map(({ label, value, color, emoji }) => (
-          <div key={label} className="bg-white rounded-2xl p-5 border border-stone-200/80 shadow-sm text-center hover:border-[#2a5c2a]/25 transition-colors">
-            <div className="text-2xl mb-1">{emoji}</div>
-            <div className={`text-3xl font-black text-${color}-600`}>{loading ? '...' : value}</div>
-            <div className="text-xs text-stone-500 font-medium mt-1">{label}</div>
+          { label: 'وصل الحد', value: thresholdReached.length, color: 'red', emoji: '🔴', cls: 'text-red-600 border-red-200 bg-red-50' },
+          { label: 'قرب الحد (≥50%)', value: nearThreshold.length, color: 'amber', emoji: '🟡', cls: 'text-amber-600 border-amber-200 bg-amber-50' },
+          { label: 'منخفض', value: low.length, color: 'green', emoji: '🟢', cls: 'text-emerald-600 border-emerald-200 bg-emerald-50' },
+          { label: 'أعراض مرصودة', value: symptoms.length, color: 'blue', emoji: '🩺', cls: 'text-blue-600 border-blue-200 bg-blue-50' },
+        ].map(({ label, value, emoji, cls }) => (
+          <div
+            key={label}
+            className={`rounded-2xl p-5 border shadow-sm text-center hover:shadow-md transition-all duration-200 ${cls}`}
+          >
+            <div className="text-2xl mb-2">{emoji}</div>
+            <div className="text-3xl font-black leading-none mb-1">{loading ? '...' : value}</div>
+            <div className="text-xs font-bold opacity-70 mt-1">{label}</div>
           </div>
         ))}
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-center">
+      <div className="flex flex-wrap gap-3 items-center bg-white rounded-2xl border border-stone-200/80 p-4 shadow-sm">
         <div className="flex gap-2">
           {PERIOD_OPTIONS.map(opt => (
             <button
               key={opt.value}
               onClick={() => setDays(opt.value)}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${days === opt.value ? 'bg-[#2a5c2a] text-white shadow-md' : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'}`}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 ${
+                days === opt.value
+                  ? 'bg-[#1b4d2c] text-white shadow-md shadow-[#1b4d2c]/20'
+                  : 'bg-stone-50 text-stone-600 border border-stone-200 hover:bg-stone-100'
+              }`}
             >
               {opt.label}
             </button>
           ))}
         </div>
-        <select
-          value={governorate}
-          onChange={e => setGovernorate(e.target.value)}
-          className="border-none bg-white shadow-sm rounded-xl px-4 py-2.5 text-sm font-medium text-stone-700 outline-none border border-stone-200"
-        >
-          <option value="">كل المحافظات</option>
-          {EGYPTIAN_GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
-        </select>
+        <div className="relative min-w-[180px]">
+          <select
+            value={governorate}
+            onChange={e => setGovernorate(e.target.value)}
+            className="w-full bg-white border border-stone-200 rounded-xl px-4 py-2.5 text-sm font-medium text-stone-700 outline-none appearance-none cursor-pointer hover:border-[#1b4d2c]/30 focus:border-[#1b4d2c] focus:ring-2 focus:ring-[#1b4d2c]/10 transition-all"
+          >
+            <option value="">كل المحافظات</option>
+            {EGYPTIAN_GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
+          </select>
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Symptoms Bar Chart */}
-        <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-          <h3 className="font-black text-stone-800 text-lg mb-5">
-            📊 الأعراض الأكثر تكراراً
-            <span className="text-xs text-stone-400 font-medium mr-2">آخر {days} أيام</span>
-          </h3>
+        <div className="bg-white rounded-2xl p-6 border border-stone-200/80 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.08)] hover:shadow-[0_6px_30px_-4px_rgba(27,77,44,0.12)] transition-all duration-300">
+          <div className="mb-5">
+            <h3 className="font-black text-stone-800 text-base leading-tight">
+              📊 الأعراض الأكثر تكراراً
+            </h3>
+            <p className="text-xs text-stone-400 font-medium mt-1">آخر {days} أيام</p>
+          </div>
           {loading ? (
-            <div className="h-64 flex items-center justify-center text-stone-400 text-sm">جاري التحميل...</div>
+            <div className="h-64 flex items-center justify-center text-stone-400 text-sm">
+              <div className="space-y-2 w-full">
+                {[1, 2, 3, 4].map(i => <div key={i} className="h-8 bg-stone-100 rounded-xl animate-pulse" />)}
+              </div>
+            </div>
           ) : symptoms.length === 0 ? (
-            <div className="h-64 flex items-center justify-center text-stone-400 text-sm">لا توجد بيانات</div>
+            <div className="h-64 flex flex-col items-center justify-center gap-2 text-stone-400 text-sm">
+              <span className="text-3xl">📊</span>
+              <span>لا توجد بيانات</span>
+            </div>
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
                 <XAxis type="number" tick={{ fontSize: 11, fill: '#888' }} axisLine={false} tickLine={false} />
                 <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#555', fontFamily: 'Cairo' }} axisLine={false} tickLine={false} width={80} />
                 <Tooltip
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontFamily: 'Cairo' }}
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', fontFamily: 'Cairo' }}
                 />
                 <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={18}>
                   {chartData.map((entry, i) => {
@@ -304,14 +335,22 @@ export default function AdminOutbreakAnalyticsPage() {
         </div>
 
         {/* Full Symptoms List */}
-        <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-          <h3 className="font-black text-stone-800 text-lg mb-5">🩺 قائمة الأعراض التفصيلية</h3>
+        <div className="bg-white rounded-2xl p-6 border border-stone-200/80 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.08)] hover:shadow-[0_6px_30px_-4px_rgba(27,77,44,0.12)] transition-all duration-300">
+          <div className="mb-5">
+            <h3 className="font-black text-stone-800 text-base leading-tight">🩺 قائمة الأعراض التفصيلية</h3>
+            <p className="text-xs text-stone-400 font-medium mt-1">مرتبة حسب التكرار</p>
+          </div>
           {loading ? (
-            <div className="space-y-2">{[1,2,3,4,5].map(i => <div key={i} className="h-8 bg-stone-100 rounded-xl animate-pulse" />)}</div>
+            <div className="space-y-2">
+              {[1, 2, 3, 4, 5].map(i => <div key={i} className="h-8 bg-stone-100 rounded-xl animate-pulse" />)}
+            </div>
           ) : symptoms.length === 0 ? (
-            <div className="text-center text-stone-400 text-sm py-12">لا توجد بيانات</div>
+            <div className="flex flex-col items-center justify-center py-12 gap-2 text-stone-400 text-sm">
+              <span className="text-3xl">🩺</span>
+              <span>لا توجد بيانات</span>
+            </div>
           ) : (
-            <div className="space-y-1 max-h-[320px] overflow-y-auto custom-scrollbar">
+            <div className="space-y-1 max-h-[320px] overflow-y-auto admin-scrollbar">
               {symptoms.map((s, i) => (
                 <SymptomBar key={i} symptom={s.symptom} count={s.count} maxCount={maxSymptomCount} />
               ))}
@@ -321,16 +360,18 @@ export default function AdminOutbreakAnalyticsPage() {
       </div>
 
       {/* Candidates */}
-      <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+      <div className="bg-white rounded-2xl p-6 border border-stone-200/80 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.08)]">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-          <h3 className="font-black text-stone-800 text-lg">
-            🔴 مرشحو الأوبئة
-            <span className="text-xs text-stone-400 font-medium mr-2">
-              (حد الكشف: {meta?.threshold ?? '...'} حالة)
-            </span>
-          </h3>
+          <div>
+            <h3 className="font-black text-stone-800 text-base leading-tight">
+              🔴 مرشحو الأوبئة
+            </h3>
+            <p className="text-xs text-stone-400 font-medium mt-1">
+              حد الكشف: {meta?.threshold ?? '...'} حالة
+            </p>
+          </div>
           {thresholdReached.length > 0 && (
-            <span className="px-3 py-1.5 bg-red-100 text-red-700 border border-red-200 rounded-full text-xs font-black animate-pulse">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-700 border border-red-200 rounded-full text-xs font-black animate-pulse">
               ⚠️ {thresholdReached.length} مرض تجاوز الحد
             </span>
           )}
@@ -338,11 +379,11 @@ export default function AdminOutbreakAnalyticsPage() {
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {[1,2,3].map(i => <div key={i} className="h-40 bg-stone-100 rounded-2xl animate-pulse" />)}
+            {[1, 2, 3].map(i => <div key={i} className="h-40 bg-stone-100 rounded-2xl animate-pulse" />)}
           </div>
         ) : candidates.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-4xl mb-3">✅</div>
+            <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto mb-4 text-2xl">✅</div>
             <p className="text-stone-500 font-bold">لا توجد حالات مثيرة للقلق في هذه الفترة</p>
             <p className="text-xs text-stone-400 mt-1">جرب تغيير الفترة الزمنية أو المحافظة</p>
           </div>
