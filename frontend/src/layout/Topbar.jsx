@@ -69,14 +69,14 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
       {/* ── Main Topbar Row ── */}
       <div
         className="flex items-center justify-between gap-4 px-4 sm:px-6 py-3
-                   bg-white/80 backdrop-blur-xl border-b border-stone-200/60 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]"
+                   bg-[#1b4d2c] text-white shadow-[0_4px_20px_-10px_rgba(0,0,0,0.15)]"
       >
         {/* Right Section: Hamburger (mobile) + Back + Breadcrumbs */}
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Hamburger button — visible only on mobile */}
           <button
             onClick={() => setMobileMenuOpen((v) => !v)}
-            className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 hover:text-[#2d5a1b] transition-all shadow-sm"
+            className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-all shadow-sm"
             aria-label="القائمة"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -84,28 +84,28 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
 
           <button
             onClick={() => navigate('/farms')}
-            className="hidden sm:flex items-center justify-center w-10 h-10 rounded-full border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 hover:text-[#2d5a1b] transition-all shadow-sm"
+            className="hidden sm:flex items-center justify-center w-10 h-10 rounded-full border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-all shadow-sm"
             title="العودة إلى صفحة المزارع"
           >
             <ArrowRight className="w-5 h-5" />
           </button>
 
-          <div className="hidden md:flex items-center gap-2 bg-stone-100/70 p-1.5 rounded-full border border-stone-200/50">
+          <div className="hidden md:flex items-center gap-2 bg-[#143a21] p-1.5 rounded-full border border-[#2a5c2a]">
             <button
               onClick={goToFarmHome}
-              className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-stone-700 hover:text-[#2d5a1b] shadow-sm transition-colors"
+              className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-sm font-semibold text-white hover:bg-white/20 shadow-sm transition-colors"
               title="الرئيسية"
             >
-              <Home className="w-4 h-4 text-[#2d5a1b]" />
+              <Home className="w-4 h-4 text-white/90" />
               <span>الرئيسية</span>
             </button>
 
-            {farmId && (
+            {activeFarmId && (
               <>
-                <ChevronLeft className="w-4 h-4 text-stone-400" />
+                <ChevronLeft className="w-4 h-4 text-white/50" />
                 <button
-                  onClick={() => navigate(`/farms/${farmId}/animals`)}
-                  className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-stone-600 hover:text-[#2d5a1b] transition-colors"
+                  onClick={() => navigate(`/farms/${activeFarmId}/animals`)}
+                  className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-white/90 hover:text-white hover:bg-white/10 transition-colors"
                   title="عرض حيوانات المزرعة"
                 >
                   <span>الحيوانات</span>
@@ -113,10 +113,10 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
               </>
             )}
 
-            {farmId && (
+            {activeFarmId && (
               <>
-                <ChevronLeft className="w-4 h-4 text-stone-400" />
-                <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold text-[#2d5a1b]">
+                <ChevronLeft className="w-4 h-4 text-white/50" />
+                <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold text-white">
                   <MapPin className="w-4 h-4" />
                   <span>{displayFarmName}</span>
                 </div>
@@ -130,34 +130,34 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
           {/* Notifications */}
           <button
             onClick={() => { navigate('/notifications'); setMobileMenuOpen(false) }}
-            className="relative p-2 rounded-full border border-stone-200 bg-white hover:bg-stone-50 text-stone-600 transition-all shadow-sm"
+            className="relative p-2 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white transition-all shadow-sm"
             title="الإشعارات"
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-red-500 text-white text-[11px] font-black rounded-full flex items-center justify-center shadow-sm border-2 border-white">
+              <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-red-500 text-white text-[11px] font-black rounded-full flex items-center justify-center shadow-sm border-2 border-[#1b4d2c]">
                 {unreadCount > 99 ? '99+' : unreadCount}
               </span>
             )}
           </button>
 
           {/* User Profile Info — hidden on mobile */}
-          <div className="hidden md:flex items-center gap-3 pl-4 border-l border-stone-200">
-            <div className="flex items-center gap-3 bg-stone-50 border border-stone-100 rounded-full pr-1 pl-3 py-1">
+          <div className="hidden md:flex items-center gap-3 pl-4 border-l border-white/20">
+            <div className="flex items-center gap-3 bg-[#143a21] border border-[#2a5c2a] rounded-full pr-1 pl-3 py-1">
               {user?.avatar ? (
                 <img
                   src={user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000${user.avatar}`}
                   alt={user.name}
-                  className="w-8 h-8 rounded-full object-cover shadow-sm border border-white"
+                  className="w-8 h-8 rounded-full object-cover shadow-sm border border-[#1b4d2c]"
                 />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2d5a1b] to-[#3d7a25] text-white flex items-center justify-center text-sm font-bold shadow-sm border border-white">
+                <div className="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center text-sm font-bold shadow-sm border border-[#1b4d2c]">
                   {user?.name?.charAt(0) || 'م'}
                 </div>
               )}
               <div className="leading-tight hidden sm:block text-right">
-                <p className="text-[11px] text-stone-500 font-medium">مرحباً بك،</p>
-                <p className="text-sm font-bold text-stone-800 truncate max-w-[120px]">
+                <p className="text-[11px] text-white/70 font-medium">مرحباً بك،</p>
+                <p className="text-sm font-bold text-white truncate max-w-[120px]">
                   {user?.name?.split(' ')[0] || 'المستخدم'}
                 </p>
               </div>
@@ -167,7 +167,7 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
           {/* Logout Button — hidden on mobile */}
           <button
             onClick={handleLogout}
-            className="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition-all border border-red-100 shadow-sm"
+            className="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl bg-red-500/20 text-red-100 hover:bg-red-500 hover:text-white transition-all border border-red-500/30 shadow-sm"
             title="تسجيل الخروج"
           >
             <span className="text-sm font-bold hidden md:block">خروج</span>
@@ -222,9 +222,9 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
               <span>الرئيسية</span>
             </button>
 
-            {farmId && (
+            {activeFarmId && (
               <button
-                onClick={() => { navigate(`/farms/${farmId}/animals`); setMobileMenuOpen(false) }}
+                onClick={() => { navigate(`/farms/${activeFarmId}/animals`); setMobileMenuOpen(false) }}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-stone-700 hover:bg-stone-50 transition-colors"
               >
                 <MapPin className="w-4 h-4 text-[#2d5a1b]" />

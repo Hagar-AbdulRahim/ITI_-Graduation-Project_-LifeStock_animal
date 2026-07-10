@@ -2,8 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import adminService from '../../services/adminService';
 import DataTable from '../../components/admin/DataTable';
 import toast from 'react-hot-toast';
-import { EGYPTIAN_GOVERNORATES } from '../../constant/adminData';
-import { AdminPageHeader, AdminPanel, AdminFilterBar, AdminSelect } from '../../components/admin/AdminUI';
+import { AdminPageHeader, AdminPanel, AdminFilterBar, AdminGovernorateDropdown } from '../../components/admin/AdminUI';
 
 export default function AdminConsultationsPage() {
   const [items, setItems] = useState([]);
@@ -149,14 +148,11 @@ export default function AdminConsultationsPage() {
       />
       <AdminPanel>
         <AdminFilterBar>
-          <AdminSelect
+          <AdminGovernorateDropdown
             label="تصفية بالمحافظة"
             value={governorate}
             onChange={(e) => { setGovernorate(e.target.value); setPage(1); }}
-          >
-            <option value="">كل المحافظات</option>
-            {EGYPTIAN_GOVERNORATES.map((g) => <option key={g} value={g}>{g}</option>)}
-          </AdminSelect>
+          />
         </AdminFilterBar>
         <DataTable columns={columns} data={items} loading={loading} pagination={pagination} onPageChange={setPage} />
       </AdminPanel>

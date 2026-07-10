@@ -3,11 +3,11 @@ import toast from 'react-hot-toast';
 import { Send } from 'lucide-react';
 import adminService from '../../services/adminService';
 import DataTable from '../../components/admin/DataTable';
-import { EGYPTIAN_GOVERNORATES } from '../../constant/adminData';
 import {
   AdminPageHeader,
   AdminPanel,
   AdminPrimaryButton,
+  AdminGovernorateDropdown,
   adminInputClass,
   adminSelectClass,
   adminLabelClass,
@@ -157,20 +157,12 @@ export default function AdminNotificationsPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <label className={adminLabelClass}>استهداف محافظة (اختياري)</label>
-              <div className="relative">
-                <select
-                  value={form.governorate}
-                  onChange={(e) => setForm({ ...form, governorate: e.target.value })}
-                  className={adminSelectClass}
-                >
-                  <option value="">الجميع (كل المحافظات)</option>
-                  {EGYPTIAN_GOVERNORATES.map((g) => <option key={g} value={g}>{g}</option>)}
-                </select>
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
+              <AdminGovernorateDropdown
+                label="استهداف محافظة (اختياري)"
+                value={form.governorate}
+                onChange={(e) => setForm({ ...form, governorate: e.target.value })}
+                allLabel="الجميع (كل المحافظات)"
+              />
             </div>
             <div className="space-y-1.5">
               <label className={adminLabelClass}>استهداف دور معين (اختياري)</label>

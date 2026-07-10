@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import adminService from '../../services/adminService';
-import { EGYPTIAN_GOVERNORATES } from '../../constant/adminData';
+import { AdminGovernorateDropdown } from '../../components/admin/AdminUI';
 import toast from 'react-hot-toast';
 
 const PERIOD_OPTIONS = [
@@ -279,19 +279,10 @@ export default function AdminOutbreakAnalyticsPage() {
             </button>
           ))}
         </div>
-        <div className="relative min-w-[180px]">
-          <select
-            value={governorate}
-            onChange={e => setGovernorate(e.target.value)}
-            className="w-full bg-white border border-stone-200 rounded-xl px-4 py-2.5 text-sm font-medium text-stone-700 outline-none appearance-none cursor-pointer hover:border-[#1b4d2c]/30 focus:border-[#1b4d2c] focus:ring-2 focus:ring-[#1b4d2c]/10 transition-all"
-          >
-            <option value="">كل المحافظات</option>
-            {EGYPTIAN_GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
-          </select>
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
+        <AdminGovernorateDropdown
+          value={governorate}
+          onChange={(e) => setGovernorate(e.target.value)}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

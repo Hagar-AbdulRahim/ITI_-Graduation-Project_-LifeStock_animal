@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { X, UserPlus, Lock, Mail, Phone, MapPin, ShieldCheck } from 'lucide-react';
+import { X, UserPlus, Lock, Mail, Phone, ShieldCheck } from 'lucide-react';
 import Button from '../common/Button';
-import { EGYPTIAN_GOVERNORATES } from '../../constant/adminData';
-import { adminInputClass, adminSelectClass, adminLabelClass } from './AdminUI';
+import { adminInputClass, adminLabelClass, AdminGovernorateDropdown } from './AdminUI';
 
 const emptyForm = {
   name: '',
@@ -176,27 +175,12 @@ export default function UserFormModal({ open, onClose, onSubmit, initialData, lo
 
             {/* Governorate */}
             <div className="space-y-1.5">
-              <label className={adminLabelClass}>
-                <span className="flex items-center gap-1.5">
-                  <MapPin className="w-3 h-3" />
-                  المحافظة
-                </span>
-              </label>
-              <div className="relative">
-                <select
-                  name="governorate"
-                  value={form.governorate}
-                  onChange={handleChange}
-                  className={adminSelectClass}
-                >
-                  {EGYPTIAN_GOVERNORATES.map((g) => (
-                    <option key={g} value={g}>{g}</option>
-                  ))}
-                </select>
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
+              <AdminGovernorateDropdown
+                label="المحافظة"
+                value={form.governorate}
+                onChange={(e) => setForm((p) => ({ ...p, governorate: e.target.value }))}
+                allLabel="اختر المحافظة"
+              />
             </div>
 
             {/* Role / Status */}

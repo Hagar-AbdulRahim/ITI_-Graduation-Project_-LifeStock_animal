@@ -25,8 +25,8 @@ import {
   AdminStatusBadge,
   AdminUserAvatar,
   AdminSelect,
+  AdminGovernorateDropdown,
 } from '../../components/admin/AdminUI';
-import { EGYPTIAN_GOVERNORATES } from '../../constant/adminData';
 
 export default function AdminUsersPage() {
 
@@ -326,16 +326,11 @@ export default function AdminUsersPage() {
             <option value="false">معطل</option>
           </AdminSelect>
 
-          <AdminSelect
+          <AdminGovernorateDropdown
             label="المحافظة (للمزارع)"
             value={governorate}
             onChange={(e) => { setGovernorate(e.target.value); setPage(1); }}
-          >
-            <option value="">كل المحافظات</option>
-            {EGYPTIAN_GOVERNORATES.map((g) => (
-              <option key={g} value={g}>{g}</option>
-            ))}
-          </AdminSelect>
+          />
 
         </AdminFilterBar>
 

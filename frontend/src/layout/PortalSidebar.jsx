@@ -5,6 +5,7 @@ import SidebarIcon from '../components/SidebarIcon';
 import { logout } from '../redux/authSlice';
 import toast from 'react-hot-toast';
 import logoImg from '../assets/images/logo.jpg';
+import { Menu } from 'lucide-react';
 
 export default function PortalSidebar({ links, title, subtitle }) {
   const dispatch = useDispatch();
@@ -74,10 +75,14 @@ export default function PortalSidebar({ links, title, subtitle }) {
     <>
       <button
         type="button"
-        className="lg:hidden fixed top-4 right-4 z-50 bg-[#2d5a1b] text-white px-3 py-2 rounded-lg text-sm"
+        className={`lg:hidden fixed top-3 right-4 z-50 p-2.5 rounded-xl border transition-all duration-300 shadow-sm ${
+          mobileOpen 
+            ? 'opacity-0 pointer-events-none' 
+            : 'bg-white text-[#1b4d2c] border-stone-200 hover:bg-stone-50 opacity-100'
+        }`}
         onClick={() => setMobileOpen(true)}
       >
-        القائمة
+        <Menu className="w-5 h-5" />
       </button>
 
       <aside className="hidden lg:flex fixed right-0 top-0 h-screen w-56 flex-col bg-gradient-to-b from-[#f0f4f0] via-[#f8f9f7] to-[#f0f4f0] text-[#2d5a1b] z-40 shadow-lg border-l-4 border-[#2d5a1b]/30">

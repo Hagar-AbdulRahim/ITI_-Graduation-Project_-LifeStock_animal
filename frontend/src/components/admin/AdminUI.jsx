@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, ChevronDown } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Search, ChevronDown, MapPin } from 'lucide-react';
+import { EGYPTIAN_GOVERNORATES } from '../../constant/adminData';
 
 /* ── Shared class tokens ── */
 export const adminInputClass =
@@ -20,7 +21,7 @@ export const adminPanelClass =
   'hover:shadow-[0_4px_28px_-4px_rgba(27,77,44,0.12)]';
 
 export const adminFilterPanelClass =
-  'bg-[#1b4d2c] rounded-2xl border border-[#2a5c2a]/30 shadow-md p-5 mb-5 green-filter-bar';
+  'bg-white rounded-2xl border border-stone-200/80 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)] p-4 md:p-5 mb-5';
 
 
 /* ── Page Header ── */
@@ -147,5 +148,101 @@ export function AdminUserAvatar({ name }) {
     <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-[#1b4d2c]/15 to-[#2a5c2a]/10 text-[#1b4d2c] text-sm font-black border border-[#2a5c2a]/20 shrink-0 shadow-sm">
       {initial}
     </span>
+  );
+}
+
+/* ── Governorate Dropdown ── */
+export function AdminGovernorateDropdown({ value, onChange, label, allLabel = 'كل المحافظات', className = '' }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const handleSelect = useCallback((gov) => {
+    onChange({ target: { value: gov } });
+    setOpen(false);
+  }, [onChange]);
+
+  const selectedLabel = value || allLabel;
+
+  return (
+    <div ref={ref} className={`relative min-w-[200px] ${className}`} dir="rtl">
+      {label && <label className={adminLabelClass}>{label}</label>}
+
+      {/* Trigger button */}
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={
+          `w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl border text-sm font-bold transition-all duration-200 shadow-sm bg-white ` +
+          (open
+            ? 'border-[#1b4d2c] ring-2 ring-[#1b4d2c]/15 text-[#1b4d2c]'
+            : 'border-stone-200 text-[#1b4d2c] hover:border-[#1b4d2c]/40')
+        }
+      >
+        <div className="flex items-center gap-2">
+          <MapPin className="w-3.5 h-3.5 text-[#1b4d2c]/60" />
+          <span className="truncate">{selectedLabel}</span>
+        </div>
+        <ChevronDown
+          className={`w-4 h-4 text-[#1b4d2c]/60 transition-transform duration-200 shrink-0 ${
+            open ? 'rotate-180' : ''
+          }`}
+        />
+      </button>
+
+      {/* Dropdown panel — opens BELOW */}
+      {open && (
+        <div
+          className="absolute top-full right-0 min-w-[320px] sm:min-w-[420px] max-w-[90vw] mt-2 z-50
+                     bg-white rounded-2xl border border-[#1b4d2c]/20
+                     shadow-[0_12px_40px_-8px_rgba(27,77,44,0.25)]
+                     overflow-hidden origin-top-right"
+        >
+          {/* "All" option */}
+          <button
+            type="button"
+            onClick={() => handleSelect('')}
+            className={
+              `w-full text-right px-4 py-3 text-sm font-bold transition-all duration-150 border-b border-stone-100 ` +
+              (!value
+                ? 'bg-[#1b4d2c] text-white'
+                : 'text-stone-600 hover:bg-[#1b4d2c] hover:text-white')
+            }
+          >
+            {allLabel}
+          </button>
+
+          {/* Governorates grid — 3 cols on mobile, 4 cols on md+ */}
+          <div className="p-3.5 grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-[300px] overflow-y-auto custom-scrollbar">
+            {EGYPTIAN_GOVERNORATES.map((gov) => (
+              <button
+                key={gov}
+                type="button"
+                onClick={() => handleSelect(gov)}
+                title={gov}
+                className={
+                  `flex items-center justify-center px-1.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 border whitespace-nowrap overflow-hidden text-ellipsis ` +
+                  `shadow-sm ` +
+                  (value === gov
+                    ? 'bg-[#1b4d2c] text-white border-[#1b4d2c] shadow-md shadow-[#1b4d2c]/20 scale-105 z-10'
+                    : 'bg-white text-stone-700 border-stone-200 hover:bg-[#1b4d2c] hover:text-white hover:border-[#1b4d2c] hover:shadow-md hover:shadow-[#1b4d2c]/20 hover:-translate-y-0.5')
+                }
+              >
+                {gov}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
