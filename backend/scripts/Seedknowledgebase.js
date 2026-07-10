@@ -1,27 +1,24 @@
 /**
  * سكريبت بناء قاعدة المعرفة (Knowledge Base) للـ RAG
  * ──────────────────────────────────────────────────────
- * بيقرأ diseases.json (وvaccines.json لو موجود)
+ * بيقرأ diseases.json و vaccines.json
  * بيحول كل عنصر لنص ثم لـ embedding عبر Google text-embedding-004
  * بيخزنهم في MongoDB في collection اسمها knowledge_base
- *
- * يشتغل مرة واحدة (أو كل ما تتغير ملفات الـ JSON)
- * تشغيل: node scripts/Seedknowledgebase.js
  */
 
 require("dotenv").config();
 const mongoose = require("mongoose");
 
-const { embeddingModel }           = require("../config/gemini");
+const { embeddingModel } = require("../config/gemini");
 const { extractKnowledgeBaseChunks } = require("./ExtractJsonText");
 
 const EMBEDDING_DIMENSIONS = 768;
 
 const knowledgeBaseSchema = new mongoose.Schema({
-  text:      String,
+  text:       String,
   embedding: [Number],
   metadata: {
-    type:   { type: String },
+    type:    { type: String },
     source: String,
   },
 });
@@ -32,12 +29,28 @@ const KnowledgeBase = mongoose.model(
   "knowledge_base"
 );
 
-const generateEmbedding = async (text) =>
-  embeddingModel.embedQuery(text.trim());
-
+// إعدادات التحكم في سرعة الإرسال (Rate Limiting)
 const BATCH_SIZE = 5;
-const DELAY_MS   = 1200;
+const DELAY_MS   = 2000; // زيادة التأخير لضمان عدم تجاوز حد الـ API
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// دالة توليد الـ Embedding مع ميزة إعادة المحاولة (Retry Logic)
+const generateEmbeddingWithRetry = async (text, retries = 3) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await embeddingModel.embedQuery(text.trim());
+    } catch (err) {
+      // إذا كان الخطأ هو 429 (تجاوز الحد) سننتظر ثم نحاول مجدداً
+      if (err.status === 429 && i < retries - 1) {
+        const waitTime = (i + 1) * 3000; 
+        console.log(`⚠️ تجاوزت حد الـ API، إعادة المحاولة بعد ${waitTime / 1000} ثواني...`);
+        await sleep(waitTime);
+      } else {
+        throw err;
+      }
+    }
+  }
+};
 
 const seedKnowledgeBase = async () => {
   try {
@@ -58,7 +71,7 @@ const seedKnowledgeBase = async () => {
 
       const docs = await Promise.all(
         batch.map(async (chunk) => {
-          const embedding = await generateEmbedding(chunk.text);
+          const embedding = await generateEmbeddingWithRetry(chunk.text);
           return {
             text:      chunk.text,
             embedding,
@@ -71,18 +84,17 @@ const seedKnowledgeBase = async () => {
       processed += docs.length;
       console.log(`  [${processed}/${chunks.length}] تمت معالجة دفعة...`);
 
+      // تأخير بسيط بين كل دفعة وأخرى
       if (i + BATCH_SIZE < chunks.length) await sleep(DELAY_MS);
     }
 
     console.log("\n✅ تم بناء قاعدة المعرفة بنجاح!");
     console.log(`📊 الإجمالي: ${processed} chunk مخزن مع embeddings`);
-    console.log(`📐 أبعاد كل embedding: ${EMBEDDING_DIMENSIONS}`);
-    console.log("\n⚠️  تأكد من إنشاء Vector Search Index باسم 'vector_index' في Atlas");
-    console.log(`   collection: knowledge_base — path: embedding — dimensions: ${EMBEDDING_DIMENSIONS} — similarity: cosine`);
   } catch (err) {
-    console.error("❌ خطأ:", err.message);
+    console.error("❌ خطأ فادح أثناء التغذية:", err.message);
   } finally {
     await mongoose.disconnect();
+    console.log("✓ تم إغلاق الاتصال بقاعدة البيانات.");
   }
 };
 

@@ -6,6 +6,8 @@ import adminService from '../../services/adminService';
 import DataTable from '../../components/admin/DataTable';
 import RoleBadge from '../../components/admin/RoleBadge';
 import UserFormModal from '../../components/admin/UserFormModal';
+import ConfirmModal from '../../components/admin/ConfirmModal';
+
 import {
   AdminPageHeader,
   AdminPanel,
@@ -15,6 +17,8 @@ import {
   AdminDetailBtn,
   AdminStatusBadge,
   AdminUserAvatar,
+  AdminSelect,
+  AdminGovernorateDropdown,
 } from '../../components/admin/AdminUI';
 
 export default function AdminUsersPage() {
@@ -25,14 +29,31 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+
+  const [role, setRole] = useState('');
+
+  const [status, setStatus] = useState('');
+
+  const [governorate, setGovernorate] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const [confirmData, setConfirmData] = useState(null);
+
+
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await adminService.getUsers({ page, limit: 15, search: search || undefined });
+      const res = await adminService.getUsers({
+        page,
+        limit: 15,
+        search: search || undefined,
+        role: role || undefined,
+        is_active: status !== '' ? status : undefined,
+        governorate: governorate || undefined,
+      });
       setUsers(res.data.data);
       setPagination(res.data.pagination);
     } catch {
@@ -40,12 +61,17 @@ export default function AdminUsersPage() {
     } finally {
       setLoading(false);
     }
+
   }, [page, search]);
+
+
 
   useEffect(() => {
     const t = setTimeout(fetchUsers, search ? 400 : 0);
     return () => clearTimeout(t);
   }, [fetchUsers, search]);
+
+
 
   const handleSave = async (form) => {
     setSaving(true);
@@ -64,60 +90,63 @@ export default function AdminUsersPage() {
   const canManageUser = (targetUser) =>
     currentUserRole !== 'sub_admin' || targetUser.role !== 'admin';
 
+
+
   const handleToggleStatus = async (r) => {
+
     if (!canManageUser(r)) {
       toast.error('ليس لديك صلاحية تعديل حساب مدير النظام');
       return;
     }
     const confirmMsg = r.is_active ? 'هل تريد تعطيل هذا المستخدم؟' : 'هل تريد تنشيط هذا المستخدم؟';
-    if (!window.confirm(confirmMsg)) return;
-    try {
-      await adminService.toggleUser(r._id);
-      toast.success(r.is_active ? 'تم تعطيل المستخدم' : 'تم تنشيط المستخدم');
-      fetchUsers();
-    } catch {
-      toast.error('فشل تحديث الحالة');
-    }
+
+    setConfirmData({
+      title: r.is_active ? 'تعطيل المستخدم' : 'تنشيط المستخدم',
+      message: confirmMsg,
+      type: r.is_active ? 'danger' : 'success',
+      onConfirm: async () => {
+        try {
+          await adminService.toggleUser(r._id);
+          toast.success(r.is_active ? 'تم تعطيل المستخدم' : 'تم تنشيط المستخدم');
+          fetchUsers();
+        } catch {
+          toast.error('فشل تحديث الحالة');
+        }
+      }
+    });
+
+    setConfirmOpen(true);
+
   };
 
-  const handleDelete = async (r) => {
-    if (!canManageUser(r)) {
-      toast.error('ليس لديك صلاحية حذف حساب مدير النظام');
-      return;
-    }
-    if (currentUserId && r._id === currentUserId) {
-      toast.error('لا يمكنك حذف حسابك الخاص');
-      return;
-    }
-    const confirmMsg = `هل أنت متأكد من حذف المستخدم "${r.name}"؟ لا يمكن التراجع عن هذا الإجراء.`;
-    if (!window.confirm(confirmMsg)) return;
 
-    setDeletingId(r._id);
-    try {
-      await adminService.deleteUser(r._id);
-      toast.success('تم حذف المستخدم');
-      fetchUsers();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'فشل حذف المستخدم');
-    } finally {
-      setDeletingId(null);
-    }
-  };
 
   const columns = [
     {
       key: 'name',
-      label: 'الاسم',
+      label: 'المستخدم',
       render: (r) => (
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 ">
           <AdminUserAvatar name={r.name} />
-          <span className="font-bold text-stone-800">{r.name}</span>
+          <div>
+            <span className="font-bold text-stone-800 text-sm block">{r.name}</span>
+            <span className="text-[11px] text-stone-400 font-medium">{r.email}</span>
+          </div>
         </div>
       ),
     },
+
     { key: 'email', label: 'البريد', render: (r) => <span className="text-stone-500">{r.email}</span> },
+
     { key: 'role', label: 'الدور', render: (r) => <RoleBadge role={r.role} /> },
-    { key: 'governorate', label: 'المحافظة', render: (r) => <span className="text-stone-600">{r.governorate || '—'}</span> },
+    {
+      key: 'governorate', label: 'المحافظة', render: (r) => (
+        <span className="inline-flex items-center gap-1 text-stone-600 text-sm">
+          <span className="w-1.5 h-1.5 rounded-full bg-stone-300 inline-block" />
+          {r.governorate || '—'}
+        </span>
+      )
+    },
     {
       key: 'is_active',
       label: 'الحالة',
@@ -135,11 +164,15 @@ export default function AdminUsersPage() {
             <button
               type="button"
               onClick={() => handleToggleStatus(r)}
-              className={`text-xs font-bold px-2 py-1 rounded-lg border transition-all ${
-                r.is_active
-                  ? 'text-red-600 border-red-100 hover:bg-red-50'
-                  : 'text-[#2a5c2a] border-green-100 hover:bg-green-50'
-              }`}
+
+              className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all duration-200 shadow-sm ${r.is_active
+
+                ? 'text-red-600 border-red-100 bg-red-50/50 hover:bg-red-100 hover:border-red-200'
+
+                : 'text-[#1b4d2c] border-green-100 bg-green-50/50 hover:bg-green-100 hover:border-[#1b4d2c]/20'
+
+                }`}
+
             >
               {r.is_active ? 'تعطيل' : 'تنشيط'}
             </button>
@@ -164,7 +197,18 @@ export default function AdminUsersPage() {
       <AdminPageHeader
         title="إدارة المستخدمين"
         subtitle="سجل بجميع المزارعين والأطباء والمديرين."
-        action={<AdminPrimaryButton onClick={() => setModalOpen(true)}>+اضافة مستخدم جديد</AdminPrimaryButton>}
+
+        action={
+          <AdminPrimaryButton onClick={() => setModalOpen(true)}>
+            <span className="flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+              </svg>
+              مدير جديد
+            </span>
+          </AdminPrimaryButton>
+        }
+
       />
 
       <AdminPanel>
@@ -172,13 +216,51 @@ export default function AdminUsersPage() {
           <AdminSearchInput
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            placeholder="بحث بالاسم أو البريد..."
+            placeholder="بحث بالاسم أو البريد الإلكتروني..."
+          />
+
+          <AdminSelect
+            label="الدور"
+            value={role}
+            onChange={(e) => { setRole(e.target.value); setPage(1); }}
+          >
+            <option value="">كل الأدوار</option>
+            <option value="user">مزارع</option>
+            <option value="doctor">طبيب</option>
+            <option value="sub_admin">مدير فرعي</option>
+            <option value="admin">مدير نظام</option>
+          </AdminSelect>
+
+          <AdminSelect
+            label="الحالة"
+            value={status}
+            onChange={(e) => { setStatus(e.target.value); setPage(1); }}
+          >
+            <option value="">كل الحالات</option>
+            <option value="true">نشط</option>
+            <option value="false">معطل</option>
+          </AdminSelect>
+
+          <AdminGovernorateDropdown
+            label="المحافظة (للمزارع)"
+            value={governorate}
+            onChange={(e) => { setGovernorate(e.target.value); setPage(1); }}
           />
         </AdminFilterBar>
         <DataTable columns={columns} data={users} loading={loading} pagination={pagination} onPageChange={setPage} />
       </AdminPanel>
 
       <UserFormModal open={modalOpen} onClose={() => setModalOpen(false)} onSubmit={handleSave} initialData={null} loading={saving} />
+      <ConfirmModal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={confirmData?.onConfirm}
+        title={confirmData?.title}
+        message={confirmData?.message}
+        type={confirmData?.type}
+      />
+
     </div>
   );
 }
+
