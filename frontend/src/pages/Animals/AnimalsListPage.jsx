@@ -6,7 +6,7 @@ import {
   Search, Plus, ArrowRight,
   ChevronRight, ChevronLeft, ChevronDown, Loader2, MoreVertical,
   PawPrint, Syringe, AlertTriangle, CheckCircle,
-  CalendarDays, Weight, Dna, HeartPulse, X
+  CalendarDays, Weight, User, HeartPulse, X
 } from 'lucide-react';
 
 import cowImg from '../../assets/images/Profile/cow.png';
@@ -159,7 +159,7 @@ const AnimalCard = ({ animal, onClick, index, onEdit, onDelete }) => {
           {[
             { Icon: Weight, label: 'الوزن', value: animal?.weight_kg != null ? `${animal.weight_kg} كجم` : '—' },
             { Icon: CalendarDays, label: 'العمر', value: ageLabel },
-            { Icon: Dna, label: 'الجنس', value: genderLabel, colored: true, gender: animal?.gender },
+            { Icon: User, label: 'الجنس', value: genderLabel, colored: true, gender: animal?.gender },
           ].map(({ Icon, label, value, colored, gender }) => (
             <div key={label} className="bg-gray-50 rounded-xl p-2.5 text-center border border-gray-100 hover:bg-gray-100 transition-colors">
               <Icon className="w-3.5 h-3.5 text-[#2a5c2a] mx-auto mb-1" />
@@ -176,7 +176,6 @@ const AnimalCard = ({ animal, onClick, index, onEdit, onDelete }) => {
           className="w-full py-2.5 rounded-xl text-[13px] font-bold bg-[#2a5c2a] text-white hover:bg-[#1e4520] hover:shadow-md active:scale-[0.98] flex items-center justify-center gap-2 transition-all duration-200 mt-auto"
           onClick={(e) => { e.stopPropagation(); onClick && onClick(); }}
         >
-          <HeartPulse className="w-4 h-4" />
           انتقل إلى تفاصيل الحيوان
         </button>
       </div>

@@ -2,8 +2,9 @@ import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
-import { ArrowRight, Save, X, Loader2 } from 'lucide-react';
+import { ArrowRight, Save, X, Loader2, Edit3, Settings } from 'lucide-react';
 import { fetchAnimalById, updateExistingAnimal } from '../../redux/animalSlice';
+import bgImage from '../../assets/images/cows-field-bg.jpg';
 
 // ─── Backend Animal Model ─────────────────────────────────────────────────────
 // ["weight_kg", "health_status", "notes", "breed", "tag_number", "gender", "age_value", "age_unit", "image"]
@@ -68,12 +69,12 @@ const EditAnimalPage = () => {
 
 
   const inputCls = (hasError) =>
-    `w-full px-4 py-2.5 border rounded-xl text-sm outline-none transition-all font-cairo
-     ${hasError
-      ? 'border-red-400 focus:ring-2 focus:ring-red-200'
-      : 'border-gray-200 focus:ring-2 focus:ring-[#2a5c2a]/20 focus:border-[#2a5c2a]'}`;
+    `w-full px-5 py-3.5 rounded-2xl text-[15px] bg-white border-2 outline-none transition-all font-cairo placeholder:text-gray-400 ` +
+    (hasError
+      ? 'border-red-300 focus:border-red-500 focus:shadow-[0_0_0_4px_rgba(239,68,68,0.15)] shadow-sm text-gray-900'
+      : 'border-transparent focus:border-[#154b23] focus:shadow-[0_0_0_4px_rgba(21,75,35,0.1)] shadow-sm text-gray-900');
 
-  const labelCls = 'block text-[13px] font-bold text-gray-700 mb-2';
+  const labelCls = 'text-[15px] font-bold text-[#154b23] flex items-center gap-1.5 mb-2 ml-1';
 
   if (loading.animal && !animal) {
     return (
@@ -84,28 +85,38 @@ const EditAnimalPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f7f5] font-cairo" dir="rtl">
-      {/* ── Sticky Header ─────────────────────────────────────────── */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-20 shadow-sm">
-        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 transition-colors"
-            >
-              <ArrowRight className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="text-[17px] font-bold text-gray-900">تعديل بيانات الحيوان</h1>
-              <p className="text-[11px] text-gray-400 font-medium">تحديث معلومات: #{animal?.tag_number || '---'}</p>
+    <div className="min-h-screen font-cairo relative" dir="rtl">
+      
+      {/* Background Image with Overlay */}
+      <div 
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-15"
+        style={{ backgroundImage: `url(${bgImage})` }}
+      />
+      <div className="fixed inset-0 z-0 bg-[#fbf9f6]/80 backdrop-blur-[2px]" />
+
+      <div className="relative z-10 flex flex-col min-h-screen">
+        {/* ── Sticky Header ─────────────────────────────────────────── */}
+        <div className="bg-[#1b4d2c] border-b border-[#154022] sticky top-0 z-20 shadow-md">
+          <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10 text-white transition-colors"
+              >
+                <ArrowRight className="w-5 h-5" />
+              </button>
+              <div>
+                <h1 className="text-[17px] font-bold text-white">تعديل بيانات الحيوان</h1>
+                <p className="text-[11px] text-white/60 font-medium">تحديث معلومات: <span className="text-white">#{animal?.tag_number || '---'}</span></p>
+              </div>
             </div>
+            <span className="text-[12px] text-white font-bold bg-white/15 border border-white/20 px-3 py-1.5 rounded-full flex items-center gap-1.5">
+              <Edit3 className="w-3.5 h-3.5 text-white" />
+              تعديل بيانات
+            </span>
           </div>
-          <span className="text-[12px] text-gray-400 font-medium bg-gray-50 border border-gray-200 px-3 py-1 rounded-full">
-            تعديل بيانات
-          </span>
         </div>
-      </div>
 
       <main className="max-w-3xl mx-auto px-6 py-8">
         {error?.saving && (
@@ -115,19 +126,39 @@ const EditAnimalPage = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
-          {/* ── Section 2: Basic Info ──────────────────────────────── */}
-          <div className="bg-white rounded-[20px] border border-gray-200 shadow-sm p-6">
-            <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-100">
-              <h2 className="text-[14px] font-bold text-gray-900">المعلومات الأساسية</h2>
-              {/* Species and Farm are not editable, show them as info */}
-              <div className="text-[11px] text-gray-500 font-medium bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
-                النوع: {animal?.species} • المزرعة: {animal?.farm_id?.name || '---'}
+          {/* ── Unified Unified Card ──────────────────────────────── */}
+          <div className="bg-[#f2f8f3] rounded-[32px] shadow-sm border border-[#154b23]/10 overflow-hidden">
+            {/* Header Area */}
+            <div className="relative bg-[#154b23] px-8 py-10 text-white">
+              <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+              <div className="absolute -left-10 -bottom-10 w-48 h-48 rounded-full bg-white/5 blur-2xl" />
+              <div className="relative z-10 flex items-center gap-6">
+                <div className="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-inner">
+                  <Settings className="w-10 h-10 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-[28px] font-bold mb-2">تحديث السجل</h2>
+                  <p className="text-white/80 text-[15px] leading-relaxed">
+                    قم بتعديل المعلومات الأساسية للحيوان لضمان دقة سجلات القطيع.
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="p-8 sm:p-10 space-y-10">
+
+              <div className="space-y-6">
+                <div className="flex justify-between items-center mb-4 pb-3 border-b border-[#154b23]/10">
+                  <h2 className="text-[16px] font-bold text-[#1b4d2c] flex items-center gap-2">المعلومات الأساسية</h2>
+                  {/* Species and Farm are not editable, show them as info */}
+                  <div className="text-[12px] text-gray-600 font-bold bg-[#1b4d2c]/5 px-3 py-1.5 rounded-full border border-[#1b4d2c]/10">
+                    النوع: {animal?.species} • المزرعة: {animal?.farm_id?.name || '---'}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Age */}
               <div className="flex gap-2">
                 <div className="flex-1">
@@ -221,38 +252,45 @@ const EditAnimalPage = () => {
           </div>
 
           {/* ── Section 3: Notes ──────────────────────────────────── */}
-          <div className="bg-white rounded-[20px] border border-gray-200 shadow-sm p-6">
-            <h2 className="text-[14px] font-bold text-gray-900 mb-4 pb-3 border-b border-gray-100">ملاحظات إضافية</h2>
-            <textarea
-              {...register('notes', { maxLength: { value: 1000, message: 'الملاحظات طويلة جداً' } })}
-              rows={4}
-              className={`${inputCls(errors.notes)} resize-none`}
-            />
-            {errors.notes && <p className="text-[11px] text-red-500 mt-1">{errors.notes.message}</p>}
-          </div>
+          <div className="space-y-4">
+                <h2 className="text-[16px] font-bold text-[#1b4d2c] mb-4 pb-3 border-b border-[#154b23]/10">ملاحظات إضافية</h2>
+                <textarea
+                  {...register('notes', { maxLength: { value: 1000, message: 'الملاحظات طويلة جداً' } })}
+                  rows={4}
+                  className={`${inputCls(errors.notes)} resize-none`}
+                />
+                {errors.notes && <p className="text-[11px] text-red-500 mt-1">{errors.notes.message}</p>}
+              </div>
 
-          {/* ── Action Buttons ────────────────────────────────────── */}
-          <div className="flex items-center justify-between pt-2">
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="flex items-center gap-2 px-6 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
-            >
-              <X className="w-4 h-4" />
-              إلغاء
-            </button>
-            <button
-              type="submit"
-              disabled={loading.saving || !isDirty}
-              className="flex items-center gap-2 px-8 py-2.5 bg-[#2a5c2a] text-white rounded-xl text-sm font-bold hover:bg-[#1e4520] transition-colors shadow-sm shadow-green-900/20 disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-              {loading.saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              تحديث البيانات
-            </button>
+              {/* ── Action Buttons ────────────────────────────────────── */}
+              <div className="flex items-center justify-end gap-4 pt-4 mt-8 border-t border-[#154b23]/10">
+                <button
+                  type="button"
+                  onClick={() => navigate(-1)}
+                  className="px-8 py-3.5 rounded-2xl text-[15px] font-bold text-gray-600 hover:bg-white transition-colors"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading.saving || !isDirty}
+                  className={`flex items-center gap-2 px-10 py-3.5 text-white rounded-2xl text-[15px] font-bold transition-all shadow-sm ${
+                    isDirty && !loading.saving
+                      ? 'bg-[#154b23] hover:bg-[#0f3619] shadow-lg shadow-[#154b23]/30 active:scale-95'
+                      : 'bg-gray-300 cursor-not-allowed text-gray-500 shadow-none'
+                  }`}
+                >
+                  {loading.saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                  تحديث البيانات
+                </button>
+              </div>
+
+            </div>
           </div>
 
         </form>
       </main>
+      </div>
     </div>
   );
 };

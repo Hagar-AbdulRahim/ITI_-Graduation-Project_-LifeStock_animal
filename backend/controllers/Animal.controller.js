@@ -137,10 +137,10 @@ const getAnimalsByFarm = async (req, res) => {
 
     if (isStaff(req.user)) {
       // الأدمن يقدر يشوف أي حيوان بدون قيد المزرعة
-      animal = await Animal.findById(req.params.id);
+      animal = await Animal.findById(req.params.id).populate("farm_id");
     } else {
       const userFarmIds = await Farm.find({ user_id: req.user._id }).distinct("_id");
-      animal = await Animal.findOne({ _id: req.params.id, farm_id: { $in: userFarmIds } });
+      animal = await Animal.findOne({ _id: req.params.id, farm_id: { $in: userFarmIds } }).populate("farm_id");
     }
 
     if (!animal) return res.status(404).json({ success: false, message: "الحيوان غير موجود" });

@@ -22,7 +22,8 @@ import {
   Activity,
   Home,
   StickyNote,
-  Bot,
+  Stethoscope,
+  ClipboardList,
   ArrowRight,
 } from 'lucide-react'
 import {
@@ -32,6 +33,12 @@ import {
   clearAnimalState,
   deleteExistingAnimal,
 } from '../redux/animalSlice'
+import Topbar from '../layout/Topbar'
+import cowImg from '../assets/images/Profile/cow.png'
+import goatImg from '../assets/images/Profile/goat.png'
+import sheepImg from '../assets/images/Profile/sheep.png'
+
+const SPECIES_IMAGE = { cattle: cowImg, sheep: sheepImg, goat: goatImg }
 
 const BASE_URL = 'http://localhost:5000'
 
@@ -66,13 +73,15 @@ const HEALTH_STATUS_MAP = {
 
 function InfoRow({ label, value, mono = false }) {
   return (
-    <div className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
-      <span className="text-sm text-gray-500 font-medium">{label}</span>
-      <span
-        className={`text-sm font-bold text-gray-800 ${mono ? 'font-mono' : ''}`}
-      >
-        {value || '—'}
-      </span>
+    <div className="flex items-center gap-4 py-2.5 px-4 rounded-2xl bg-[#f8f9fa] border border-stone-100 transition-all hover:bg-white hover:border-[#1b4d2c]/30 hover:shadow-sm group">
+      <div className="flex-1">
+        <span className="block text-xs font-bold text-stone-500 mb-1">{label}</span>
+        <span
+          className={`block text-[15px] font-black text-stone-800 ${mono ? 'font-mono text-[#1b4d2c] tracking-wider text-base' : ''}`}
+        >
+          {value || '—'}
+        </span>
+      </div>
     </div>
   )
 }
@@ -128,7 +137,7 @@ export default function AnimalProfilePage() {
   // ── Loading ──
   if (loading.animal && !a) {
     return (
-      <div className="min-h-screen flex items-center justify-center font-cairo">
+      <div className="min-h-screen flex items-center justify-center font-cairo bg-[#f5f2eb]">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-10 h-10 text-[#2d5a1b] animate-spin" />
           <p className="text-sm text-gray-500 font-medium">
@@ -144,7 +153,7 @@ export default function AnimalProfilePage() {
     return (
       <div
         dir="rtl"
-        className="min-h-screen flex flex-col items-center justify-center gap-4 font-cairo text-center px-4"
+        className="min-h-screen flex flex-col items-center justify-center gap-4 font-cairo text-center px-4 bg-[#f5f2eb]"
       >
         <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
           <AlertTriangle className="w-8 h-8 text-red-500" />
@@ -169,7 +178,7 @@ export default function AnimalProfilePage() {
   const species = SPECIES_MAP[a.species] || { label: a.species, emoji: '🐾' }
   const healthStatus =
     HEALTH_STATUS_MAP[a.health_status] || HEALTH_STATUS_MAP.healthy
-  const farmName = a.farm_id?.name || '—'
+  const farmName = a.farm_id?.name || null
   const governorate = a.farm_id?.governorate || null
   const imageUrl = a.image ? `${BASE_URL}${a.image}` : null
   const gender = a.gender === 'female' ? 'أنثى' : 'ذكر'
@@ -189,34 +198,13 @@ export default function AnimalProfilePage() {
     : '—'
 
   return (
-    <div
-      dir="rtl"
-      className="max-w-5xl mx-auto px-4 py-6 font-cairo pb-20 space-y-6"
-    >
-      {/* ── BACK BUTTON ── */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-stone-600 hover:text-[#1b4d2c] font-bold text-sm transition-colors mb-2 group"
-      >
-        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-        رجوع
-      </button>
-
-      {/* ── BREADCRUMB ── */}
-      <nav className="flex items-center gap-1.5 text-xs text-gray-400">
-        <Link
-          to={
-            farmIdForNavigation
-              ? `/farms/${farmIdForNavigation}/animals`
-              : '/farms'
-          }
-          className="hover:text-[#2d5a1b] font-semibold transition-colors"
-        >
-          الحيوانات
-        </Link>
-        <ChevronRight className="w-3 h-3" />
-        <span className="text-gray-700 font-bold">{a.tag_number}</span>
-      </nav>
+    <div dir="rtl" className="flex min-h-screen bg-[#f5f2eb] font-['Cairo',sans-serif]">
+      <div className="flex-1 flex flex-col min-h-screen w-full">
+        <Topbar farmIdProp={farmIdForNavigation} farmNameProp={farmName} />
+        <main className="flex-1 p-4 sm:p-6 overflow-auto bg-[#f5f2eb]">
+          <div className="bg-white rounded-[32px] border border-stone-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden min-h-[calc(100vh-140px)] flex flex-col">
+            
+            <div className="max-w-5xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
 
       {/* ── HERO PROFILE CARD ── */}
       <div className="relative overflow-hidden rounded-3xl shadow-lg border border-[#2d5a1b]/15">
@@ -230,14 +218,13 @@ export default function AnimalProfilePage() {
               </h1>
               {(farmName || governorate) && (
                 <p className="text-[#c4e8be] text-sm mt-1.5 flex items-center gap-1.5">
-                  <Home className="w-3.5 h-3.5" />
                   {farmName}
-                  {governorate ? ` — ${governorate}` : ''}
+                  {governorate ? ` (${governorate})` : ''}
                 </p>
               )}
             </div>
 
-            {/* Animal image / emoji */}
+            {/* Animal image */}
             <div className="relative flex-shrink-0">
               {imageUrl ? (
                 <img
@@ -249,8 +236,10 @@ export default function AnimalProfilePage() {
                   }}
                 />
               ) : (
-                <div className="w-20 h-20 rounded-2xl bg-white/15 border border-white/30 flex items-center justify-center text-5xl shadow-inner">
-                  {species.emoji}
+                <div className="w-20 h-20 rounded-2xl bg-white flex items-center justify-center shadow-lg border-2 border-white/60 p-1">
+                  {SPECIES_IMAGE[a.species]
+                    ? <img src={SPECIES_IMAGE[a.species]} alt={species.label} className="w-full h-full object-contain select-none" />
+                    : <span className="text-5xl select-none">{species.emoji}</span>}
                 </div>
               )}
               {/* Active indicator */}
@@ -309,28 +298,21 @@ export default function AnimalProfilePage() {
         </div>
       </div>
 
-      {/* ── ACTION BUTTONS ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {[
           {
-            label: 'المساعد الذكي',
-            icon: Bot,
-            color:
-              'text-violet-600 border-violet-100 hover:bg-violet-50 hover:border-violet-300',
+            label: 'استشارة بيطرية',
+            icon: Stethoscope,
             action: () => navigate(aiAssistantPath),
           },
           {
             label: 'السجل الطبي',
-            icon: Heart,
-            color:
-              'text-red-500 border-red-100 hover:bg-red-50 hover:border-red-300',
+            icon: ClipboardList,
             action: () => navigate(`/animals/${id}/medical-records`),
           },
           {
             label: 'التطعيمات',
             icon: Syringe,
-            color:
-              'text-blue-500 border-blue-100 hover:bg-blue-50 hover:border-blue-300',
             action: () => navigate(`/animals/${id}/vaccinations`),
           },
           {
@@ -343,18 +325,18 @@ export default function AnimalProfilePage() {
           ...(canManageAnimal ? [{
             label: 'تعديل البيانات',
             icon: Edit,
-            color:
-              'text-amber-600 border-amber-100 hover:bg-amber-50 hover:border-amber-300',
             action: () => navigate(`/animals/edit/${id}`),
           }] : []),
         ].map(({ label, icon: Icon, color, action }) => (
           <button
             key={label}
             onClick={action}
-            className={`flex flex-col items-center gap-2 p-4 bg-white border-2 rounded-2xl transition-all shadow-sm font-cairo ${color}`}
+            className="group relative flex flex-col items-center justify-center gap-3 p-5 bg-white border border-stone-200 border-t-4 border-t-[#2d5a1b] rounded-2xl transition-all duration-300 hover:shadow-lg hover:-translate-y-1 font-cairo"
           >
-            <Icon className="w-5 h-5" />
-            <span className="text-xs font-bold text-gray-700 text-center leading-tight">
+            <div className="w-12 h-12 rounded-full bg-[#f8f9fa] border border-stone-100 flex items-center justify-center transition-all duration-300 group-hover:bg-[#1b4d2c]">
+              <Icon className="w-5 h-5 text-[#1b4d2c] transition-colors duration-300 group-hover:text-white" />
+            </div>
+            <span className="text-[13px] font-bold text-stone-700 transition-colors duration-300 group-hover:text-[#1b4d2c]">
               {label}
             </span>
           </button>
@@ -367,43 +349,40 @@ export default function AnimalProfilePage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             {/* Card header */}
-            <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-50 bg-[#2d5a1b]/3">
-              <div className="w-8 h-8 rounded-xl bg-[#2d5a1b]/10 flex items-center justify-center">
-                <Activity className="w-4 h-4 text-[#2d5a1b]" />
+            <div className="flex items-center gap-3 px-6 py-4 bg-gradient-to-l from-[#2d5a1b] to-[#3d7a25] text-white">
+              <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center border border-white/20">
+                <Activity className="w-4 h-4 text-white" />
               </div>
-              <h2 className="text-sm font-black text-gray-800">
+              <h2 className="text-sm font-black text-white">
                 البيانات الأساسية
               </h2>
-              <span className="mr-auto text-[10px] text-gray-400 font-mono bg-gray-100 px-2 py-0.5 rounded-md">
+              <span className="mr-auto text-[10px] text-white/90 font-mono bg-black/15 border border-white/10 px-2.5 py-1 rounded-lg">
                 {a.tag_number}
               </span>
             </div>
 
-            <div className="px-6 py-4 grid grid-cols-1 sm:grid-cols-2 gap-x-10">
-              <InfoRow label="رقم التعريف" value={a.tag_number} mono />
-              <InfoRow
-                label="النوع"
-                value={`${species.emoji} ${species.label}`}
-              />
-              <InfoRow label="الجنس" value={gender} />
-              <InfoRow label="السلالة" value={breed} />
-              <InfoRow label="العمر" value={age} />
-              <InfoRow label="الوزن" value={weight} />
-              <InfoRow label="الحالة الصحية" value={healthStatus.label} />
-              <InfoRow label="المزرعة" value={farmName} />
-              {governorate && <InfoRow label="المحافظة" value={governorate} />}
-              <InfoRow label="تاريخ الإضافة" value={createdAt} />
+            <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <InfoRow label="رقم التعريف" value={a.tag_number} mono icon={Tag} />
+              <InfoRow label="النوع" value={species.label} icon={Activity} />
+              <InfoRow label="الجنس" value={gender} icon={User} />
+              <InfoRow label="السلالة" value={breed} icon={ShieldCheck} />
+              <InfoRow label="العمر" value={age} icon={Clock} />
+              <InfoRow label="الوزن" value={weight} icon={Weight} />
+              <InfoRow label="الحالة الصحية" value={healthStatus.label} icon={Heart} />
+              <InfoRow label="المزرعة" value={farmName || '—'} icon={Home} />
+              {governorate && <InfoRow label="المحافظة" value={governorate} icon={MapPin} />}
+              <InfoRow label="تاريخ الإضافة" value={createdAt} icon={Calendar} />
             </div>
           </div>
 
           {/* Notes card — only shown if notes exist */}
           {notes && (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-50 bg-[#2d5a1b]/3">
-                <div className="w-8 h-8 rounded-xl bg-[#2d5a1b]/10 flex items-center justify-center">
-                  <StickyNote className="w-4 h-4 text-[#2d5a1b]" />
+              <div className="flex items-center gap-3 px-6 py-4 bg-gradient-to-l from-[#2d5a1b] to-[#3d7a25] text-white">
+                <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center border border-white/20">
+                  <StickyNote className="w-4 h-4 text-white" />
                 </div>
-                <h2 className="text-sm font-black text-gray-800">ملاحظات</h2>
+                <h2 className="text-sm font-black text-white">ملاحظات</h2>
               </div>
               <div className="px-6 py-4">
                 <p className="text-sm text-gray-600 leading-relaxed">{notes}</p>
@@ -415,11 +394,15 @@ export default function AnimalProfilePage() {
         {/* ── RIGHT: Status + Actions sidebar ── */}
         <div className="space-y-4">
           {/* Health status card */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
-            <h3 className="text-xs font-black text-gray-700 uppercase tracking-wider">
-              الحالة الصحية
-            </h3>
-            <div
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="flex items-center gap-3 px-5 py-4 bg-gradient-to-l from-[#2d5a1b] to-[#3d7a25] text-white">
+              <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center border border-white/20">
+                <Heart className="w-4 h-4 text-white" />
+              </div>
+              <h2 className="text-sm font-black text-white">الحالة الصحية</h2>
+            </div>
+            <div className="p-5 space-y-4">
+              <div
               className={`flex items-center gap-3 p-3 rounded-xl border ${healthStatus.color}`}
             >
               <span
@@ -453,6 +436,7 @@ export default function AnimalProfilePage() {
               )}
             </div>
           </div>
+        </div>
 
           {/* Delete Action */}
           {canManageAnimal && (
@@ -469,45 +453,50 @@ export default function AnimalProfilePage() {
         </div>
       </div>
 
-      {/* ── DELETE MODAL ── */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 font-cairo">
-          <div
-            className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl text-center space-y-4"
-            dir="rtl"
-          >
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-              <AlertTriangle className="w-8 h-8 text-red-500" />
-            </div>
-            <h2 className="text-xl font-bold text-gray-800">تأكيد الحذف</h2>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              حذف الحيوان سيؤدي إلى إزالة جميع سجلاته الطبية والتطعيمات المرتبطة
-              به بشكل نهائي.
-            </p>
-            <div className="flex gap-3 pt-4">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                disabled={isDeleting}
-                className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50"
-              >
-                إلغاء
-              </button>
-              <button
-                onClick={handleDeleteConfirm}
-                disabled={isDeleting}
-                className="flex-1 px-4 py-2.5 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {isDeleting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Trash2 className="w-4 h-4" />
-                )}
-                {isDeleting ? 'جاري الحذف...' : 'تأكيد الحذف'}
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        </main>
+        
+        {/* ── DELETE MODAL ── */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 font-cairo">
+            <div
+              className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl text-center space-y-4"
+              dir="rtl"
+            >
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                <AlertTriangle className="w-8 h-8 text-red-500" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-800">تأكيد الحذف</h2>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                حذف الحيوان سيؤدي إلى إزالة جميع سجلاته الطبية والتطعيمات المرتبطة
+                به بشكل نهائي.
+              </p>
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50"
+                >
+                  إلغاء
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-2.5 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isDeleting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                  {isDeleting ? 'جاري الحذف...' : 'تأكيد الحذف'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

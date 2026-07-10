@@ -6,8 +6,10 @@ import { logoutUser } from '../redux/authSlice'
 import { playNotificationSound } from '../utils/audio'
 import { LogOut, Home, ArrowRight, Bell, MapPin, ChevronLeft, Menu, X } from 'lucide-react'
 
-export default function Topbar() {
-  const { farmId } = useParams()
+export default function Topbar({ farmIdProp, farmNameProp }) {
+  const params = useParams()
+  const activeFarmId = farmIdProp || params.farmId
+  
   const user = useSelector((state) => state.auth.user)
   const unreadCount = useSelector((state) => state.notifications.unread_count)
   const currentFarm = useSelector((state) => state.farm?.currentFarm)
@@ -18,8 +20,9 @@ export default function Topbar() {
   const menuRef = useRef(null)
 
   const displayFarmName =
+    farmNameProp ||
     currentFarm?.name ||
-    farms.find((farm) => farm._id === farmId)?.name ||
+    farms.find((farm) => farm._id === activeFarmId)?.name ||
     'المزرعة'
 
   const goToFarmHome = () => {

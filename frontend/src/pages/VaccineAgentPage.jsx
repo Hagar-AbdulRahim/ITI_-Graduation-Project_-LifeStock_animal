@@ -57,15 +57,6 @@ const VaccineAgentPage = () => {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-white opacity-5 rounded-full blur-3xl translate-y-1/4 -translate-x-1/4" />
 
         <div className="max-w-6xl mx-auto relative z-10 flex flex-col items-center text-center">
-          <div className="w-full flex justify-start mb-8">
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center gap-2 text-white/90 hover:text-white bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full backdrop-blur-sm transition-all text-sm font-bold group border border-white/10"
-            >
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              رجوع
-            </button>
-          </div>
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-4 tracking-tight leading-tight">
             مستشار اللقاحات الذكي
