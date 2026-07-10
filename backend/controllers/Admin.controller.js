@@ -7,30 +7,13 @@ const Notification  = require("../models/notification");
 const Vaccination   = require("../models/vaccination");
 const VeterinaryClinic = require("../models/veterinaryClinic");
 const KnowledgeBase = require("../models/knowledgeBase");
-const mongoose      = require("mongoose");
 const { sendNotification } = require("../services/notificationService");
 const { parsePagination, paginatedResponse, isAdmin } = require("../utils/accessControl");
 const { embeddingModel } = require("../config/gemini");
 const { extractKnowledgeBaseChunks } = require("../scripts/ExtractJsonText");
 const { runOutbreakDetection, OUTBREAK_CASE_THRESHOLD, OUTBREAK_WINDOW_HOURS } = require("../services/outbreakDetection");
 
-// OutbreakReport — لأن ملف Outbreakreport.js الأساسي نسي المطور يعرّف فيه الـ Schema
-let OutbreakModel;
-try {
-  OutbreakModel = mongoose.model("OutbreakReport");
-} catch {
-  const outbreakSchema = new mongoose.Schema({
-    disease_name: { type: String, required: true },
-    governorate: { type: String, required: true },
-    cases_count: { type: Number, required: true },
-    ai_warning_message: { type: String },
-    status: { type: String, enum: ["active", "resolved"], default: "active" },
-    detected_at: { type: Date, default: Date.now },
-    resolved_at: { type: Date }
-  });
-  OutbreakModel = mongoose.model("OutbreakReport", outbreakSchema);
-}
-
+const OutbreakModel = require("../models/Outbreakreport");
 const getOutbreakModel = () => OutbreakModel;
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -128,7 +111,7 @@ const createUser = async (req, res) => {
       return res.status(400).json({ success: false, message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" });
     }
 
-    const allowedRoles = ["user", "sub_admin"];
+    const allowedRoles = isAdmin(req.user) ? ["user", "sub_admin"] : ["user"];
     const assignedRole = allowedRoles.includes(role) ? role : "user";
 
     const normalizedEmail = email.toLowerCase().trim();
@@ -196,6 +179,10 @@ const toggleUser = async (req, res) => {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
 
+    if (user._id.toString() === req.user._id.toString()) {
+      return res.status(400).json({ success: false, message: "لا يمكنك تعطيل حسابك الخاص" });
+    }
+
     if (req.user.role === "sub_admin" && user.role === "admin") {
       return res.status(403).json({ success: false, message: "ليس لديك صلاحية تعديل حساب مدير النظام" });
     }
@@ -215,6 +202,10 @@ const deleteUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
+
+    if (user._id.toString() === req.user._id.toString()) {
+      return res.status(400).json({ success: false, message: "لا يمكنك تعطيل حسابك الخاص" });
+    }
 
     if (req.user.role === "sub_admin" && user.role === "admin") {
       return res.status(403).json({ success: false, message: "ليس لديك صلاحية تعطيل حساب مدير النظام" });
@@ -377,7 +368,7 @@ const updateHealthCase = async (req, res) => {
 
     if (updates.resolved === true) updates.resolved_at = new Date();
 
-    const healthCase = await HealthCase.findByIdAndUpdate(req.params.id, updates, { new: true });
+    const healthCase = await HealthCase.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true });
     if (!healthCase) return res.status(404).json({ success: false, message: "الحالة غير موجودة" });
 
     res.json({ success: true, message: "تم تحديث الحالة", data: healthCase });
@@ -417,12 +408,17 @@ const getOutbreaks = async (req, res) => {
     const OutbreakModel = getOutbreakModel();
     if (!OutbreakModel) return res.json({ success: true, count: 0, data: [] });
 
+    const { page, limit, skip } = parsePagination(req.query);
     const filter = {};
     if (req.query.status) filter.status = req.query.status;
     if (req.query.governorate) filter.governorate = req.query.governorate;
 
-    const outbreaks = await OutbreakModel.find(filter).sort({ detected_at: -1 });
-    res.json({ success: true, count: outbreaks.length, data: outbreaks });
+    const [outbreaks, total] = await Promise.all([
+      OutbreakModel.find(filter).sort({ detected_at: -1 }).skip(skip).limit(limit),
+      OutbreakModel.countDocuments(filter),
+    ]);
+
+    paginatedResponse(res, outbreaks, total, page, limit);
   } catch (err) {
     console.error("getOutbreaks error:", err);
     res.status(500).json({ success: false, message: "خطأ في الخادم" });
@@ -824,7 +820,6 @@ const triggerOutbreakDetection = async (req, res) => {
     console.log(`[AUDIT] Admin ${req.user._id} triggered manual outbreak detection`);
     await runOutbreakDetection();
     // عد الأوبئة النشطة بعد الفحص
-    const OutbreakModel = mongoose.model("OutbreakReport");
     const activeCount = await OutbreakModel.countDocuments({ status: "active" });
     res.json({ success: true, message: "تم تشغيل الفحص بنجاح", data: { active_outbreaks: activeCount } });
   } catch (err) {
@@ -936,4 +931,3 @@ module.exports = {
   getHealthCases,
   updateHealthCase,
 };
-

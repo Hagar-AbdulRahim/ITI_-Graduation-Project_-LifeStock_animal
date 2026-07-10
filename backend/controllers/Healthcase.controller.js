@@ -5,7 +5,7 @@ const Farm          = require("../models/farm");
 const fs            = require("fs");
 const { diagnoseSymptoms } = require("../services/aiagent");
 const { transcribeAudio }   = require("../voiceService");
-const { isAdmin, isDoctor, canAccessGovernorate } = require("../utils/accessControl");
+const { isAdmin, isStaff } = require("../utils/accessControl");
 
 // helper: وصول للحيوان (لم يتغير)
 const verifyAnimalAccess = async (animalId, user, { requireOwnership = false } = {}) => {
@@ -25,7 +25,7 @@ const verifyAnimalAccess = async (animalId, user, { requireOwnership = false } =
   }
 
   if (isOwner) return animal;
-  if (isDoctor(user) && canAccessGovernorate(user, animal.farm_id.governorate)) return animal;
+  if (isStaff(user)) return animal; // admin/sub_admin: وصول للحالات في كل المحافظات
 
   return null;
 };
@@ -493,9 +493,8 @@ const getCaseById = async (req, res) => {
     }
 
     const canRead =
-      isAdmin(req.user) ||
-      healthCase.user_id.toString() === req.user._id.toString() ||
-      (isDoctor(req.user) && canAccessGovernorate(req.user, healthCase.governorate));
+      isStaff(req.user) ||
+      healthCase.user_id.toString() === req.user._id.toString();
 
     if (!canRead) {
       return res.status(403).json({ success: false, message: "غير مصرح" });
