@@ -9,7 +9,7 @@ import { LogOut, Home, ArrowRight, Bell, MapPin, ChevronLeft, Menu, X } from 'lu
 export default function Topbar({ farmIdProp, farmNameProp }) {
   const params = useParams()
   const activeFarmId = farmIdProp || params.farmId
-  
+
   const user = useSelector((state) => state.auth.user)
   const unreadCount = useSelector((state) => state.notifications.unread_count)
   const currentFarm = useSelector((state) => state.farm?.currentFarm)
@@ -100,11 +100,11 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
               <span>الرئيسية</span>
             </button>
 
-            {farmId && (
+            {activeFarmId && (
               <>
                 <ChevronLeft className="w-4 h-4 text-stone-400" />
                 <button
-                  onClick={() => navigate(`/farms/${farmId}/animals`)}
+                  onClick={() => navigate(`/farms/${activeFarmId}/animals`)}
                   className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-stone-600 hover:text-[#2d5a1b] transition-colors"
                   title="عرض حيوانات المزرعة"
                 >
@@ -113,7 +113,7 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
               </>
             )}
 
-            {farmId && (
+            {activeFarmId && (
               <>
                 <ChevronLeft className="w-4 h-4 text-stone-400" />
                 <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold text-[#2d5a1b]">
@@ -222,9 +222,9 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
               <span>الرئيسية</span>
             </button>
 
-            {farmId && (
+            {activeFarmId && (
               <button
-                onClick={() => { navigate(`/farms/${farmId}/animals`); setMobileMenuOpen(false) }}
+                onClick={() => { navigate(`/farms/${activeFarmId}/animals`); setMobileMenuOpen(false) }}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-stone-700 hover:bg-stone-50 transition-colors"
               >
                 <MapPin className="w-4 h-4 text-[#2d5a1b]" />

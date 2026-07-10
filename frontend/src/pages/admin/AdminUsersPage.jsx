@@ -164,7 +164,7 @@ export default function AdminUsersPage() {
       <AdminPageHeader
         title="إدارة المستخدمين"
         subtitle="سجل بجميع المزارعين والأطباء والمديرين."
-        action={<AdminPrimaryButton onClick={() => setModalOpen(true)}>+ مدير جديد</AdminPrimaryButton>}
+        action={<AdminPrimaryButton onClick={() => setModalOpen(true)}>+اضافة مستخدم جديد</AdminPrimaryButton>}
       />
 
       <AdminPanel>

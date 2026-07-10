@@ -253,6 +253,40 @@ const deleteUser = async (req, res) => {
     await session.endSession();
   }
 };
+const broadcastNotification = async (req, res) => {
+  try {
+    const { title, body, governorate, role, type } = req.body;
+
+    const filter = { is_active: { $ne: false }, notifications_enabled: true };
+    if (governorate) filter.governorate = governorate;
+    if (role) filter.role = role;
+
+    const users = await User.find(filter).select("+push_subscription");
+
+    if (users.length === 0) {
+      return res.status(404).json({ success: false, message: "لا يوجد مستخدمين متطابقين" });
+    }
+
+    const notificationType = type || "admin_broadcast";
+
+    let sentCount = 0;
+    for (const user of users) {
+      await sendNotification({
+        user,
+        type: notificationType,
+        title,
+        body,
+        data: { broadcast: "true" },
+      });
+      sentCount++;
+    }
+
+    res.json({ success: true, message: `تم إرسال الإشعار لـ ${sentCount} مستخدم` });
+  } catch (err) {
+    console.error("broadcastNotification error:", err);
+    res.status(500).json({ success: false, message: "خطأ في الخادم" });
+  }
+};
 const getFarms = async (req, res) => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
@@ -894,39 +928,6 @@ const getNotifications = async (req, res) => {
   }
 };
 
-const broadcastNotification = async (req, res) => {
-  try {
-    const { title, body, governorate, role } = req.body;
-
-    const filter = { is_active: { $ne: false }, notifications_enabled: true };
-    if (governorate) filter.governorate = governorate;
-    if (role) filter.role = role;
-
-    const users = await User.find(filter).select("+push_subscription");
-
-    if (users.length === 0) {
-      return res.status(404).json({ success: false, message: "لا يوجد مستخدمين متطابقين" });
-    }
-
-    let sentCount = 0;
-    for (const user of users) {
-      await sendNotification({
-        user,
-        type: "admin_broadcast",
-        title,
-        body,
-        data: { broadcast: "true" },
-      });
-      sentCount++;
-    }
-
-    res.json({ success: true, message: `تم إرسال الإشعار لـ ${sentCount} مستخدم` });
-  } catch (err) {
-    console.error("broadcastNotification error:", err);
-    res.status(500).json({ success: false, message: "خطأ في الخادم" });
-  }
-};
-
 module.exports = {
   getDashboardStats,
   getUsers,
@@ -959,4 +960,3 @@ module.exports = {
   getHealthCases,
   updateHealthCase,
 };
-

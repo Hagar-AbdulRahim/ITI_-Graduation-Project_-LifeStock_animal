@@ -138,7 +138,7 @@ const FeaturesGrid = () => {
 }
   }
 `}</style>
-      <div cclassName="max-w-7xl mx-auto flex flex-col items-center">
+      <div className="max-w-7xl mx-auto flex flex-col items-center">
         <div className="text-center mb-12" data-aos="fade-up" data-aos-duration="700" data-aos-once="true">
           <h2 className="text-3xl md:text-4xl font-extrabold text-[#1a1a1a] mb-2 leading-snug">
             كل ما يحتاجه قطيعك في مكان واحد
