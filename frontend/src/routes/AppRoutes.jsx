@@ -33,6 +33,7 @@ import ReviewsPage from '../pages/Reviews/ReviewsPage'
 import ContactUsPage from '../pages/ContactUs/ContactUsPage'
 
 import ServicesPage from '../pages/ServicesPage'
+import OutbreaksPage from '../pages/Outbreaks/OutbreaksPage'
 
 
 
@@ -260,7 +261,16 @@ const AppRoutes = () => {
         <Route index element={<EmergencyPage />} />
       </Route>
 
-     
+     <Route
+     path="/outbreaks"
+     element={
+       <ProtectedRoute>
+         <MainLayout />
+       </ProtectedRoute>
+     }
+   >
+     <Route index element={<OutbreaksPage />} />
+   </Route>
       {/* Admin Portal */}
       <Route
         path="/admin"
