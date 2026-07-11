@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-<<<<<<< HEAD
 import { X, UserPlus, Lock, Mail, Phone, MapPin, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
-=======
-import { X, UserPlus, Lock, Mail, Phone, ShieldCheck } from 'lucide-react';
->>>>>>> 1d6cde6b63c3a354f99d19b6509925cb05fb1df8
 import Button from '../common/Button';
 import { adminInputClass, adminLabelClass, AdminGovernorateDropdown } from './AdminUI';
 
