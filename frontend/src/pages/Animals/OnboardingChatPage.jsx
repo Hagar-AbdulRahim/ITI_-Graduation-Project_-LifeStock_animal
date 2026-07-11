@@ -21,7 +21,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import onboardingService from '../../../services/onboardingService';
+import onboardingService from '../../services/onboardingService';
 // Tailwind CSS is imported globally via main entry point
 
 

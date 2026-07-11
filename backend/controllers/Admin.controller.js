@@ -1,3 +1,4 @@
+const mongoose      = require("mongoose");
 const User          = require("../models/user");
 const Farm          = require("../models/farm");
 const Animal        = require("../models/animal");
@@ -203,26 +204,15 @@ const deleteUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
-      await session.endSession();
       return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
-    if (!user) return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
-
-    if (user._id.toString() === req.user._id.toString()) {
-      return res.status(400).json({ success: false, message: "لا يمكنك تعطيل حسابك الخاص" });
-    }
-
-    if (req.user.role === "sub_admin" && user.role === "admin") {
-      return res.status(403).json({ success: false, message: "ليس لديك صلاحية تعطيل حساب مدير النظام" });
-    }
-
-    if (req.user.role === "sub_admin" && user.role === "admin") {
-      await session.endSession();
-      return res.status(403).json({ success: false, message: "ليس لديك صلاحية حذف حساب مدير النظام" });
     }
 
     if (req.user._id.toString() === user._id.toString()) {
-      await session.endSession();
       return res.status(400).json({ success: false, message: "لا يمكنك حذف حسابك الخاص" });
+    }
+
+    if (req.user.role === "sub_admin" && user.role === "admin") {
+      return res.status(403).json({ success: false, message: "ليس لديك صلاحية حذف حساب مدير النظام" });
     }
 
     await session.withTransaction(async () => {
