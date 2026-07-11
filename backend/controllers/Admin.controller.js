@@ -112,7 +112,7 @@ const createUser = async (req, res) => {
       return res.status(400).json({ success: false, message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" });
     }
 
-    const allowedRoles = isAdmin(req.user) ? ["user", "sub_admin"] : ["user"];
+    const allowedRoles = isAdmin(req.user) ? ["user"] : ["user"];
     const assignedRole = allowedRoles.includes(role) ? role : "user";
 
     const normalizedEmail = email.toLowerCase().trim();
@@ -184,10 +184,6 @@ const toggleUser = async (req, res) => {
       return res.status(400).json({ success: false, message: "لا يمكنك تعطيل حسابك الخاص" });
     }
 
-    if (req.user.role === "sub_admin" && user.role === "admin") {
-      return res.status(403).json({ success: false, message: "ليس لديك صلاحية تعديل حساب مدير النظام" });
-    }
-
     user.is_active = !user.is_active;
     await user.save();
 
@@ -211,9 +207,6 @@ const deleteUser = async (req, res) => {
       return res.status(400).json({ success: false, message: "لا يمكنك حذف حسابك الخاص" });
     }
 
-    if (req.user.role === "sub_admin" && user.role === "admin") {
-      return res.status(403).json({ success: false, message: "ليس لديك صلاحية حذف حساب مدير النظام" });
-    }
 
     await session.withTransaction(async () => {
       const farmIds = await Farm.find({ user_id: user._id }).distinct("_id").session(session);

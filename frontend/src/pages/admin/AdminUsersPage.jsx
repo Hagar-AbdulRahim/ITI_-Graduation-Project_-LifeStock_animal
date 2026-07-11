@@ -22,7 +22,6 @@ import {
 } from '../../components/admin/AdminUI';
 
 export default function AdminUsersPage() {
-  const currentUserRole = useSelector((state) => state.auth?.user?.role);
   const currentUserId = useSelector((state) => state.auth?.user?._id);
   const [users, setUsers] = useState([]);
   const [pagination, setPagination] = useState(null);
@@ -80,17 +79,8 @@ export default function AdminUsersPage() {
     }
   };
 
-  const canManageUser = (targetUser) =>
-    currentUserRole !== 'sub_admin' || targetUser.role !== 'admin';
-
-
-
   const handleToggleStatus = async (r) => {
 
-    if (!canManageUser(r)) {
-      toast.error('ليس لديك صلاحية تعديل حساب مدير النظام');
-      return;
-    }
     const confirmMsg = r.is_active ? 'هل تريد تعطيل هذا المستخدم؟' : 'هل تريد تنشيط هذا المستخدم؟';
 
     setConfirmData({
@@ -110,6 +100,27 @@ export default function AdminUsersPage() {
 
     setConfirmOpen(true);
 
+  };
+
+  const handleDelete = (r) => {
+    setConfirmData({
+      title: 'حذف المستخدم',
+      message: `هل أنت متأكد من حذف "${r.name}"؟ سيتم حذف كل بياناته المرتبطة نهائيًا ولا يمكن التراجع عن هذا الإجراء.`,
+      type: 'danger',
+      onConfirm: async () => {
+        setDeletingId(r._id);
+        try {
+          await adminService.deleteUser(r._id);
+          toast.success('تم حذف المستخدم وكل بياناته');
+          fetchUsers();
+        } catch (err) {
+          toast.error(err.response?.data?.message || 'فشل حذف المستخدم');
+        } finally {
+          setDeletingId(null);
+        }
+      }
+    });
+    setConfirmOpen(true);
   };
 
 
@@ -153,33 +164,29 @@ export default function AdminUsersPage() {
           <Link to={`/admin/users/${r._id}`}>
             <AdminDetailBtn label="عرض" />
           </Link>
-          {canManageUser(r) && (
-            <button
-              type="button"
-              onClick={() => handleToggleStatus(r)}
+          <button
+            type="button"
+            onClick={() => handleToggleStatus(r)}
 
-              className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all duration-200 shadow-sm ${r.is_active
+            className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all duration-200 shadow-sm ${r.is_active
 
-                ? 'text-red-600 border-red-100 bg-red-50/50 hover:bg-red-100 hover:border-red-200'
+              ? 'text-red-600 border-red-100 bg-red-50/50 hover:bg-red-100 hover:border-red-200'
 
-                : 'text-[#1b4d2c] border-green-100 bg-green-50/50 hover:bg-green-100 hover:border-[#1b4d2c]/20'
+              : 'text-[#1b4d2c] border-green-100 bg-green-50/50 hover:bg-green-100 hover:border-[#1b4d2c]/20'
 
-                }`}
+              }`}
 
-            >
-              {r.is_active ? 'تعطيل' : 'تنشيط'}
-            </button>
-          )}
-          {canManageUser(r) && (
-            <button
-              type="button"
-              onClick={() => handleDelete(r)}
-              disabled={deletingId === r._id}
-              className="text-xs font-bold px-2 py-1 rounded-lg border border-red-200 text-red-700 bg-red-50 hover:bg-red-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {deletingId === r._id ? '...جارٍ الحذف' : 'حذف'}
-            </button>
-          )}
+          >
+            {r.is_active ? 'تعطيل' : 'تنشيط'}
+          </button>
+          <button
+            type="button"
+            onClick={() => handleDelete(r)}
+            disabled={deletingId === r._id}
+            className="text-xs font-bold px-2 py-1 rounded-lg border border-red-200 text-red-700 bg-red-50 hover:bg-red-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {deletingId === r._id ? '...جارٍ الحذف' : 'حذف'}
+          </button>
         </div>
       ),
     },
@@ -229,4 +236,3 @@ export default function AdminUsersPage() {
     </div>
   );
 }
-

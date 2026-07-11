@@ -34,7 +34,7 @@ const {
   updateHealthCase,
 } = require("../controllers/Admin.controller");
 
-router.use(protect, authorize("admin", "sub_admin"));
+router.use(protect, authorize("admin"));
 
 router.get("/dashboard/stats", getDashboardStats);
 router.get("/stats", getDashboardStats);
