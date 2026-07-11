@@ -84,10 +84,14 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
 
           <button
             onClick={() => navigate('/farms')}
+<<<<<<< HEAD
+            className="hidden sm:flex items-center justify-center px-4 h-10 rounded-full border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 hover:text-[#2d5a1b] transition-all shadow-sm font-bold text-sm"
+=======
             className="hidden sm:flex items-center justify-center w-10 h-10 rounded-full border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-all shadow-sm"
+>>>>>>> 1d6cde6b63c3a354f99d19b6509925cb05fb1df8
             title="العودة إلى صفحة المزارع"
           >
-            <ArrowRight className="w-5 h-5" />
+            المزارع
           </button>
 
           <div className="hidden md:flex items-center gap-2 bg-[#143a21] p-1.5 rounded-full border border-[#2a5c2a]">
@@ -105,7 +109,11 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
                 <ChevronLeft className="w-4 h-4 text-white/50" />
                 <button
                   onClick={() => navigate(`/farms/${activeFarmId}/animals`)}
+<<<<<<< HEAD
+                  className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-stone-600 hover:text-[#2d5a1b] transition-colors"
+=======
                   className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-white/90 hover:text-white hover:bg-white/10 transition-colors"
+>>>>>>> 1d6cde6b63c3a354f99d19b6509925cb05fb1df8
                   title="عرض حيوانات المزرعة"
                 >
                   <span>الحيوانات</span>

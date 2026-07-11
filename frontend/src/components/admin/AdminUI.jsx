@@ -4,7 +4,7 @@ import { EGYPTIAN_GOVERNORATES } from '../../constant/adminData';
 
 /* ── Shared class tokens ── */
 export const adminInputClass =
-  'w-full bg-white border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-[#1b4d2c] font-bold outline-none transition-all duration-200 placeholder:text-stone-400 ' +
+  'w-full bg-white border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-[#1b4d2c] font-bold outline-none transition-all duration-200 placeholder:text-stone-400 cursor-pointer ' +
   'hover:border-[#1b4d2c]/40 ' +
   'focus:border-[#1b4d2c] focus:ring-2 focus:ring-[#1b4d2c]/12 focus:shadow-[0_0_0_3px_rgba(27,77,44,0.08)]';
 

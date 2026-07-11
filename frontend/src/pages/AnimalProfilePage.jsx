@@ -107,6 +107,14 @@ export default function AnimalProfilePage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
+  const handleBack = () => {
+    if (userRole === 'admin' || userRole === 'sub_admin') {
+      navigate('/admin/animals')
+    } else {
+      navigate(farmIdForNavigation ? `/farms/${farmIdForNavigation}/animals` : '/farms')
+    }
+  }
+
   useEffect(() => {
     dispatch(clearAnimalState())
     if (id) {
@@ -205,6 +213,16 @@ export default function AnimalProfilePage() {
           <div className="bg-white rounded-[32px] border border-stone-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden min-h-[calc(100vh-140px)] flex flex-col">
             
             <div className="max-w-5xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
+              {/* Back Button */}
+              <div className="flex justify-start">
+                <button
+                  onClick={handleBack}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-white border border-stone-200 text-stone-700 hover:text-[#2d5a1b] hover:border-[#2d5a1b]/30 rounded-xl text-sm font-bold shadow-sm transition-all active:scale-95 font-cairo"
+                >
+                  <ArrowRight className="w-4 h-4" />
+                  <span>رجوع</span>
+                </button>
+              </div>
 
       {/* ── HERO PROFILE CARD ── */}
       <div className="relative overflow-hidden rounded-3xl shadow-lg border border-[#2d5a1b]/15">
