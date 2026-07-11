@@ -15,6 +15,13 @@ import {
 
 const fieldClass = adminInputClass;
 
+const NOTIFICATION_TYPES = [
+  { value: 'general', label: 'عام' },
+  { value: 'outbreak_alert', label: 'تنبيه فاشية' },
+  { value: 'vaccination_reminder', label: 'تذكير تطعيم' },
+  { value: 'health_case', label: 'حالة مرضية' },
+];
+
 export default function AdminNotificationsPage() {
   const [notifications, setNotifications] = useState([]);
   const [pagination, setPagination] = useState(null);
@@ -22,7 +29,7 @@ export default function AdminNotificationsPage() {
   const [page, setPage] = useState(1);
 
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ title: '', body: '', governorate: '', role: '' });
+  const [form, setForm] = useState({ title: '', body: '', governorate: '', type: 'general' });
   const [broadcasting, setBroadcasting] = useState(false);
 
   const fetchNotifications = useCallback(async () => {
@@ -52,10 +59,10 @@ export default function AdminNotificationsPage() {
         title: form.title,
         body: form.body,
         governorate: form.governorate || undefined,
-        role: form.role || undefined,
+        type: form.type,
       });
       toast.success(res.data.message || 'تم الإرسال');
-      setForm({ title: '', body: '', governorate: '', role: '' });
+      setForm({ title: '', body: '', governorate: '', type: 'general' });
       setShowForm(false);
       fetchNotifications();
     } catch {
@@ -76,8 +83,10 @@ export default function AdminNotificationsPage() {
       label: 'النوع',
       render: (r) => {
         const typeMap = {
-          outbreak_alert: { label: 'تحذير وباء', cls: 'bg-red-50 text-red-600 border-red-200' },
-          admin_broadcast: { label: 'إعلان إداري', cls: 'bg-[#f0f8f2] text-[#1b4d2c] border-[#2a5c2a]/20' },
+          outbreak_alert: { label: 'تنبيه فاشية', cls: 'bg-red-50 text-red-600 border-red-200' },
+          vaccination_reminder: { label: 'تذكير تطعيم', cls: 'bg-blue-50 text-blue-600 border-blue-200' },
+          health_case: { label: 'حالة مرضية', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+          general: { label: 'عام', cls: 'bg-[#f0f8f2] text-[#1b4d2c] border-[#2a5c2a]/20' },
         };
         const t = typeMap[r.type] || { label: 'نظام', cls: 'bg-stone-50 text-stone-600 border-stone-200' };
         return (
@@ -174,17 +183,16 @@ export default function AdminNotificationsPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <label className={adminLabelClass}>استهداف دور معين (اختياري)</label>
+              <label className={adminLabelClass}>نوع الإشعار</label>
               <div className="relative">
                 <select
-                  value={form.role}
-                  onChange={(e) => setForm({ ...form, role: e.target.value })}
+                  value={form.type}
+                  onChange={(e) => setForm({ ...form, type: e.target.value })}
                   className={adminSelectClass}
                 >
-                  <option value="">الجميع</option>
-                  <option value="user">مزارع</option>
-                  <option value="sub_admin">مدير</option>
-                  <option value="admin">مدير النظام</option>
+                  {NOTIFICATION_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
                 </select>
                 <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

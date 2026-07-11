@@ -240,11 +240,10 @@ const deleteUser = async (req, res) => {
 };
 const broadcastNotification = async (req, res) => {
   try {
-    const { title, body, governorate, role, type } = req.body;
+    const { title, body, governorate, type } = req.body;
 
     const filter = { is_active: { $ne: false }, notifications_enabled: true };
     if (governorate) filter.governorate = governorate;
-    if (role) filter.role = role;
 
     const users = await User.find(filter).select("+push_subscription");
 
@@ -252,7 +251,7 @@ const broadcastNotification = async (req, res) => {
       return res.status(404).json({ success: false, message: "لا يوجد مستخدمين متطابقين" });
     }
 
-    const notificationType = type || "admin_broadcast";
+    const notificationType = type || "general";
 
     let sentCount = 0;
     for (const user of users) {
