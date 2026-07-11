@@ -329,7 +329,7 @@ const AnimalVaccinationsPage = () => {
                   const status = getStatus(vac);
                   return (
                     <div key={vac._id}
-                      className={`flex-1 min-w-[300px] sm:min-w-[370px] max-w-[420px] bg-white border border-stone-200/80 border-t-4 border-t-[#1b4d2c] rounded-[28px] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_10px_30px_-6px_rgba(0,0,0,0.08)] transition-all duration-300 relative flex flex-col group overflow-hidden min-h-[330px] ${!vac.is_active ? 'opacity-70' : ''}`}>
+                      className={`flex-1 min-w-[300px] sm:min-w-[370px] max-w-[420px] bg-white border border-stone-200/80 border-t-4 border-t-[#1b4d2c] rounded-[28px] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_10px_30px_-6px_rgba(0,0,0,0.08)] transition-all duration-300 relative flex flex-col group overflow-hidden min-h-[326px] ${!vac.is_active ? 'opacity-70' : ''}`}>
 
                       {/* Content Area */}
                       <div className="p-8 flex-1 flex flex-col text-right justify-start gap-4">
