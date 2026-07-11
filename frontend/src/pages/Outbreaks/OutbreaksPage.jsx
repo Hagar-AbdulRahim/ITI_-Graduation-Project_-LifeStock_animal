@@ -404,6 +404,7 @@ const OutbreaksDashboardVersion = () => {
             value={governorateFilter}
             onChange={(e) => setGovernorateFilter(e.target.value)}
             allLabel="كل المحافظات"
+            align="left"
           />
         </div>
 

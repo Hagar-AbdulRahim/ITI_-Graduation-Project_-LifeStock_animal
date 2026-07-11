@@ -152,7 +152,7 @@ export function AdminUserAvatar({ name }) {
 }
 
 /* ── Governorate Dropdown ── */
-export function AdminGovernorateDropdown({ value, onChange, label, allLabel = 'كل المحافظات', className = '' }) {
+export function AdminGovernorateDropdown({ value, onChange, label, allLabel = 'كل المحافظات', className = '', align = 'right' }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -202,10 +202,10 @@ export function AdminGovernorateDropdown({ value, onChange, label, allLabel = '�
       {/* Dropdown panel — opens BELOW */}
       {open && (
         <div
-          className="absolute top-full right-0 min-w-[320px] sm:min-w-[420px] max-w-[90vw] mt-2 z-50
+          className={`absolute top-full ${align === 'left' ? 'left-0 origin-top-left' : 'right-0 origin-top-right'} min-w-[320px] sm:min-w-[420px] max-w-[90vw] mt-2 z-50
                      bg-white rounded-2xl border border-[#1b4d2c]/20
                      shadow-[0_12px_40px_-8px_rgba(27,77,44,0.25)]
-                     overflow-hidden origin-top-right"
+                     overflow-hidden`}
         >
           {/* "All" option */}
           <button

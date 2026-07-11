@@ -82,14 +82,6 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
 
-          <button
-            onClick={() => navigate('/farms')}
-            className="hidden sm:flex items-center justify-center px-4 h-10 rounded-full border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 hover:text-[#2d5a1b] transition-all shadow-sm font-bold text-sm"
-            title="العودة إلى صفحة المزارع"
-          >
-            المزارع
-          </button>
-
           <div className="hidden md:flex items-center gap-2 bg-[#143a21] p-1.5 rounded-full border border-[#2a5c2a]">
             <button
               onClick={goToFarmHome}
@@ -98,6 +90,15 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
             >
               <Home className="w-4 h-4 text-white/90" />
               <span>الرئيسية</span>
+            </button>
+
+            <ChevronLeft className="w-4 h-4 text-white/50" />
+            <button
+              onClick={() => navigate('/farms')}
+              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-white/90 hover:text-white hover:bg-white/10 transition-colors"
+              title="المزارع"
+            >
+              <span>المزارع</span>
             </button>
 
             {activeFarmId && (

@@ -225,9 +225,9 @@ export default function AnimalProfilePage() {
               </div>
 
       {/* ── HERO PROFILE CARD ── */}
-      <div className="relative overflow-hidden rounded-3xl shadow-lg border border-[#2d5a1b]/15">
-        {/* Green gradient header */}
-        <div className="bg-gradient-to-l from-[#2d5a1b] to-[#3d7a25] px-6 pt-8 pb-16 text-white">
+      <div className="relative overflow-hidden rounded-3xl shadow-lg border border-[#1b4d2c]/15">
+        {/* Green header matching topbar */}
+        <div className="bg-[#1b4d2c] px-6 pt-8 pb-16 text-white">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-black leading-tight flex items-center gap-2">
@@ -367,7 +367,7 @@ export default function AnimalProfilePage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             {/* Card header */}
-            <div className="flex items-center gap-3 px-6 py-4 bg-gradient-to-l from-[#2d5a1b] to-[#3d7a25] text-white">
+            <div className="flex items-center gap-3 px-6 py-4 bg-[#1b4d2c] text-white">
               <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center border border-white/20">
                 <Activity className="w-4 h-4 text-white" />
               </div>
@@ -396,7 +396,7 @@ export default function AnimalProfilePage() {
           {/* Notes card — only shown if notes exist */}
           {notes && (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="flex items-center gap-3 px-6 py-4 bg-gradient-to-l from-[#2d5a1b] to-[#3d7a25] text-white">
+              <div className="flex items-center gap-3 px-6 py-4 bg-[#1b4d2c] text-white">
                 <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center border border-white/20">
                   <StickyNote className="w-4 h-4 text-white" />
                 </div>
@@ -413,7 +413,7 @@ export default function AnimalProfilePage() {
         <div className="space-y-4">
           {/* Health status card */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="flex items-center gap-3 px-5 py-4 bg-gradient-to-l from-[#2d5a1b] to-[#3d7a25] text-white">
+            <div className="flex items-center gap-3 px-5 py-4 bg-[#1b4d2c] text-white">
               <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center border border-white/20">
                 <Heart className="w-4 h-4 text-white" />
               </div>
