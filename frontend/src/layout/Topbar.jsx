@@ -109,11 +109,7 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
                 <ChevronLeft className="w-4 h-4 text-white/50" />
                 <button
                   onClick={() => navigate(`/farms/${activeFarmId}/animals`)}
-<<<<<<< HEAD
-                  className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-stone-600 hover:text-[#2d5a1b] transition-colors"
-=======
                   className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-white/90 hover:text-white hover:bg-white/10 transition-colors"
->>>>>>> 1d6cde6b63c3a354f99d19b6509925cb05fb1df8
                   title="عرض حيوانات المزرعة"
                 >
                   <span>الحيوانات</span>
@@ -186,9 +182,8 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
 
       {/* ── Mobile Dropdown Menu ── */}
       <div
-        className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out bg-white/95 backdrop-blur-xl border-b border-stone-200/60 shadow-lg ${
-          mobileMenuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
-        }`}
+        className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out bg-white/95 backdrop-blur-xl border-b border-stone-200/60 shadow-lg ${mobileMenuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+          }`}
       >
         <div className="px-4 py-4 space-y-3">
           {/* User info row */}
