@@ -49,18 +49,18 @@ body {
 /* Admin-specific premium scrollbar */
 .admin-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #d1e8d5 #f6fbf4;
+  scrollbar-color: #2a5c2a #f0f8f2;
 }
 .admin-scrollbar::-webkit-scrollbar {
   height: 6px;
   width: 6px;
 }
 .admin-scrollbar::-webkit-scrollbar-track {
-  background: #f6fbf4;
+  background: #f0f8f2;
   border-radius: 10px;
 }
 .admin-scrollbar::-webkit-scrollbar-thumb {
-  background: #c5ddc9;
+  background: #2a5c2a;
   border-radius: 10px;
 }
 .admin-scrollbar::-webkit-scrollbar-thumb:hover {

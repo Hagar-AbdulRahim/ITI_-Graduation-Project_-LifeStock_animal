@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { X, UserPlus, Lock, Mail, Phone, MapPin, ShieldCheck } from 'lucide-react';
+import toast from 'react-hot-toast';
 import Button from '../common/Button';
 import { EGYPTIAN_GOVERNORATES } from '../../constant/adminData';
 import { adminInputClass, adminSelectClass, adminLabelClass } from './AdminUI';
@@ -15,6 +16,8 @@ const emptyForm = {
 
 export default function UserFormModal({ open, onClose, onSubmit, initialData, loading }) {
   const [form, setForm] = useState(emptyForm);
+  const [showPhoneError, setShowPhoneError] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const modalRef = useRef(null);
   const isEdit = Boolean(initialData?._id);
 
@@ -24,6 +27,7 @@ export default function UserFormModal({ open, onClose, onSubmit, initialData, lo
     } else {
       setForm(emptyForm);
     }
+    setShowPassword(false);
   }, [initialData, open]);
 
   useEffect(() => {
@@ -50,6 +54,10 @@ export default function UserFormModal({ open, onClose, onSubmit, initialData, lo
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (form.phone && form.phone.replace(/\D/g, '').length < 11) {
+      setShowPhoneError(true);
+      return;
+    }
     const payload = { ...form };
     if (isEdit && !payload.password) delete payload.password;
     onSubmit(payload);
@@ -87,7 +95,7 @@ export default function UserFormModal({ open, onClose, onSubmit, initialData, lo
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-xl border border-stone-200 flex items-center justify-center text-stone-400 hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-all duration-200 shadow-sm"
+            className="w-9 h-9 rounded-xl border border-stone-200 flex items-center justify-center text-stone-400 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-200 shadow-sm cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -164,13 +172,22 @@ export default function UserFormModal({ open, onClose, onSubmit, initialData, lo
                 </label>
                 <input
                   name="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={form.password}
                   onChange={handleChange}
                   required
                   className={fieldClass}
                   placeholder="8 أحرف على الأقل"
                 />
+                <label className="flex items-center gap-2 mt-1 text-xs font-bold text-stone-500 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={showPassword}
+                    onChange={(e) => setShowPassword(e.target.checked)}
+                    className="rounded border-stone-300 text-[#1b4d2c] focus:ring-[#1b4d2c] cursor-pointer"
+                  />
+                  عرض كلمة المرور
+                </label>
               </div>
             )}
 
@@ -248,6 +265,41 @@ export default function UserFormModal({ open, onClose, onSubmit, initialData, lo
           </div>
         </form>
       </div>
+
+      {showPhoneError && (
+        <div
+          className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-[4px]"
+          onMouseDown={() => setShowPhoneError(false)}
+        >
+          <div
+            className="bg-white rounded-[32px] w-full max-w-sm p-6 border border-[#2a5c2a]/20 shadow-[0_24px_50px_-12px_rgba(27,77,44,0.3)] text-center space-y-4 admin-modal-enter relative overflow-hidden"
+            onMouseDown={(e) => e.stopPropagation()}
+            dir="rtl"
+          >
+            {/* Top decorative stripe */}
+            <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-[#1b4d2c] to-[#3d7a25]" />
+            
+            <div className="w-16 h-16 bg-[#f0f8f2] border border-[#2a5c2a]/10 rounded-2xl flex items-center justify-center mx-auto text-[#1b4d2c] shadow-sm mt-2">
+              <Phone className="w-8 h-8" />
+            </div>
+            
+            <h3 className="text-lg font-black text-stone-900">تنبيه رقم الهاتف</h3>
+            <p className="text-sm text-stone-600 font-medium leading-relaxed">
+              رقم الهاتف الذي قمت بإدخاله غير مكتمل. يرجى التأكد من كتابة 11 رقماً على الأقل لتسجيل الحساب بنجاح.
+            </p>
+            
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setShowPhoneError(false)}
+                className="w-full py-3 bg-gradient-to-l from-[#1b4d2c] to-[#2a5c2a] text-white rounded-xl text-sm font-bold shadow-md shadow-[#1b4d2c]/20 hover:brightness-105 active:scale-95 transition-all"
+              >
+                موافق، سأقوم بالتعديل
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

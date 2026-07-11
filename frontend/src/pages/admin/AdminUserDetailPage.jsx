@@ -80,12 +80,10 @@ export default function AdminUserDetailPage() {
         </div>
 
         {/* Info Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5">
+        <div className="grid grid-cols-2 gap-4 mt-5">
           {[
             { label: 'المحافظة', value: user.governorate || '—', icon: '📍' },
             { label: 'الهاتف', value: user.phone || '—', icon: '📞' },
-            { label: 'المزارع', value: farms_count, icon: '🏡' },
-            { label: 'الحيوانات', value: animals_count, icon: '🐄' },
           ].map(({ label, value, icon }) => (
             <div
               key={label}

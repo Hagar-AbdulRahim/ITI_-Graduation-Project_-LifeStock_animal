@@ -84,10 +84,10 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
 
           <button
             onClick={() => navigate('/farms')}
-            className="hidden sm:flex items-center justify-center w-10 h-10 rounded-full border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 hover:text-[#2d5a1b] transition-all shadow-sm"
+            className="hidden sm:flex items-center justify-center px-4 h-10 rounded-full border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 hover:text-[#2d5a1b] transition-all shadow-sm font-bold text-sm"
             title="العودة إلى صفحة المزارع"
           >
-            <ArrowRight className="w-5 h-5" />
+            المزارع
           </button>
 
           <div className="hidden md:flex items-center gap-2 bg-stone-100/70 p-1.5 rounded-full border border-stone-200/50">
