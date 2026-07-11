@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, ResponsiveContainer, Cell, Tooltip } from 'recharts';
 import api from '../../services/api';
+import { AdminGovernorateDropdown } from '../../components/admin/AdminUI';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 🔀 السويتش: غيّري القيمة دي بس عشان تبدّلي بين النسختين
@@ -398,16 +399,12 @@ const OutbreaksDashboardVersion = () => {
       <div className="max-w-[1300px] mx-auto px-4 md:px-8 py-8">
         {/* Filter */}
         <div className="mb-6 flex justify-end">
-          <div className="relative">
-            <Filter className="w-4 h-4 text-stone-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="فلترة بمحافظة..."
-              value={governorateFilter}
-              onChange={e => setGovernorateFilter(e.target.value)}
-              className="pr-9 pl-4 py-2.5 bg-white border border-stone-200 rounded-xl text-sm font-bold text-stone-700 shadow-sm focus:outline-none focus:border-[#2a5c2a]/40 w-48 transition-all"
-            />
-          </div>
+          <AdminGovernorateDropdown
+            label="تصفية حسب المحافظة"
+            value={governorateFilter}
+            onChange={(e) => setGovernorateFilter(e.target.value)}
+            allLabel="كل المحافظات"
+          />
         </div>
 
         {/* Loading */}
