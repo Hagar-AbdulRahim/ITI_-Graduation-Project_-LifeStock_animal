@@ -82,10 +82,19 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
 
+          {/* Back button — replaces the old standalone "المزارع" pill */}
+          <button
+            onClick={() => navigate(-1)}
+            className="hidden sm:flex items-center justify-center w-10 h-10 rounded-full border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 hover:text-[#2d5a1b] transition-all shadow-sm"
+            title="رجوع"
+          >
+            <ArrowRight className="w-4 h-4" />
+          </button>
+
           <div className="hidden md:flex items-center gap-2 bg-[#143a21] p-1.5 rounded-full border border-[#2a5c2a]">
             <button
               onClick={goToFarmHome}
-              className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-sm font-semibold text-white hover:bg-white/20 shadow-sm transition-colors"
+              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-white hover:bg-white/10 shadow-sm transition-colors"
               title="الرئيسية"
             >
               <Home className="w-4 h-4 text-white/90" />
@@ -106,7 +115,7 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
                 <ChevronLeft className="w-4 h-4 text-white/50" />
                 <button
                   onClick={() => navigate(`/farms/${activeFarmId}/animals`)}
-                  className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-white/90 hover:text-white hover:bg-white/10 transition-colors"
+                  className="flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors"
                   title="عرض حيوانات المزرعة"
                 >
                   <span>الحيوانات</span>
