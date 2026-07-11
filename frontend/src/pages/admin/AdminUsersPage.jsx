@@ -46,14 +46,7 @@ export default function AdminUsersPage() {
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await adminService.getUsers({
-        page,
-        limit: 15,
-        search: search || undefined,
-        role: role || undefined,
-        is_active: status !== '' ? status : undefined,
-        governorate: governorate || undefined,
-      });
+      const res = await adminService.getUsers({ page, limit: 15, search: search || undefined });
       setUsers(res.data.data);
       setPagination(res.data.pagination);
     } catch {
@@ -216,41 +209,14 @@ export default function AdminUsersPage() {
           <AdminSearchInput
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            placeholder="بحث بالاسم أو البريد الإلكتروني..."
-          />
-
-          <AdminSelect
-            label="الدور"
-            value={role}
-            onChange={(e) => { setRole(e.target.value); setPage(1); }}
-          >
-            <option value="">كل الأدوار</option>
-            <option value="user">مزارع</option>
-            <option value="doctor">طبيب</option>
-            <option value="sub_admin">مدير فرعي</option>
-            <option value="admin">مدير نظام</option>
-          </AdminSelect>
-
-          <AdminSelect
-            label="الحالة"
-            value={status}
-            onChange={(e) => { setStatus(e.target.value); setPage(1); }}
-          >
-            <option value="">كل الحالات</option>
-            <option value="true">نشط</option>
-            <option value="false">معطل</option>
-          </AdminSelect>
-
-          <AdminGovernorateDropdown
-            label="المحافظة (للمزارع)"
-            value={governorate}
-            onChange={(e) => { setGovernorate(e.target.value); setPage(1); }}
+            placeholder="بحث بالاسم أو البريد..."
           />
         </AdminFilterBar>
         <DataTable columns={columns} data={users} loading={loading} pagination={pagination} onPageChange={setPage} />
       </AdminPanel>
 
       <UserFormModal open={modalOpen} onClose={() => setModalOpen(false)} onSubmit={handleSave} initialData={null} loading={saving} />
+
       <ConfirmModal
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}

@@ -202,11 +202,9 @@ const deleteUser = async (req, res) => {
   const session = await mongoose.startSession();
   try {
     const user = await User.findById(req.params.id);
-<<<<<<< HEAD
     if (!user) {
       await session.endSession();
       return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
-=======
     if (!user) return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
 
     if (user._id.toString() === req.user._id.toString()) {
@@ -215,7 +213,6 @@ const deleteUser = async (req, res) => {
 
     if (req.user.role === "sub_admin" && user.role === "admin") {
       return res.status(403).json({ success: false, message: "ليس لديك صلاحية تعطيل حساب مدير النظام" });
->>>>>>> 9de9327912debe8f230bc38f3c34eb746a023fa8
     }
 
     if (req.user.role === "sub_admin" && user.role === "admin") {
