@@ -5,9 +5,11 @@ const User           = require("../models/user");
 const { chatModel }  = require("../config/gemini");
 const { sendNotification } = require("./notificationService");
 
-const OUTBREAK_CASE_THRESHOLD  = parseInt(process.env.OUTBREAK_CASE_THRESHOLD, 10)  || 6;
-const OUTBREAK_WINDOW_HOURS    = parseInt(process.env.OUTBREAK_WINDOW_HOURS, 10)    || 48;
-const CONSULTATION_DEDUP_HOURS = parseInt(process.env.CONSULTATION_DEDUP_HOURS, 10) || 1;
+const OUTBREAK_CASE_THRESHOLD   = parseInt(process.env.OUTBREAK_CASE_THRESHOLD, 10)   || 6;
+const OUTBREAK_WINDOW_HOURS     = parseInt(process.env.OUTBREAK_WINDOW_HOURS, 10)     || 48;
+const CONSULTATION_DEDUP_HOURS  = parseInt(process.env.CONSULTATION_DEDUP_HOURS, 10)  || 1;
+// لو الأدمن رفض نفس {المرض + المحافظة}، متبعتيش تنبيه جديد قبل ما تعدي المدة دي (بالساعات)
+const OUTBREAK_REJECTION_COOLDOWN_HOURS = parseInt(process.env.OUTBREAK_REJECTION_COOLDOWN_HOURS, 10) || 24;
 
 // HealthCase — عدّ حيوانات فريدة (animal_id) لكل {محافظة + تشخيص}
 const getHealthCaseCandidates = async (sinceDate) => {
@@ -75,32 +77,57 @@ const getConsultationCandidates = async (sinceDate) => {
       },
     },
     {
-      $addFields: {
-        independent_sessions: {
-          $size: {
+  $addFields: {
+    independent_sessions: {
+      $let: {
+        vars: {
+          reduced: {
             $reduce: {
               input: {
                 $cond: {
-                  if:   { $gt: [{ $size: "$times" }, 1] },
-                  then: { $slice: ["$times", 1, { $subtract: [{ $size: "$times" }, 1] }] },
+                  if: { $gt: [{ $size: "$times" }, 1] },
+                  then: {
+                    $slice: [
+                      "$times",
+                      1,
+                      { $subtract: [{ $size: "$times" }, 1] }
+                    ]
+                  },
                   else: [],
                 },
               },
-              initialValue: { count: 1, prev: { $arrayElemAt: ["$times", 0] } },
+              initialValue: {
+                count: 1,
+                prev: { $arrayElemAt: ["$times", 0] }
+              },
               in: {
                 count: {
                   $add: [
                     "$$value.count",
-                    { $cond: [{ $gt: [{ $subtract: ["$$this", "$$value.prev"] }, dedupMs] }, 1, 0] },
-                  ],
+                    {
+                      $cond: [
+                        {
+                          $gt: [
+                            { $subtract: ["$$this", "$$value.prev"] },
+                            dedupMs
+                          ]
+                        },
+                        1,
+                        0
+                      ]
+                    }
+                  ]
                 },
-                prev: "$$this",
-              },
-            },
-          },
+                prev: "$$this"
+              }
+            }
+          }
         },
-      },
-    },
+        in: "$$reduced.count"
+      }
+    }
+  }
+},
     {
       $group: {
         _id: { governorate: "$_id.governorate", diagnosis: "$_id.diagnosis" },
@@ -170,7 +197,21 @@ const upsertOutbreakReport = async (diagnosis, governorate, casesCount) => {
   if (existing) {
     existing.cases_count = casesCount;
     await existing.save();
-    return { report: existing, isNewOutbreak: false };
+    return { report: existing, isNewOutbreak: false, skipped: false };
+  }
+
+  // لو الأدمن رفض نفس {المرض + المحافظة} خلال آخر OUTBREAK_REJECTION_COOLDOWN_HOURS ساعة،
+  // متعمليش report جديد ولا تبعتي تنبيه تاني للأدمن — عشان منتزعجوش بنفس التنبيه اللي رفضه.
+  const cooldownSince = new Date(Date.now() - OUTBREAK_REJECTION_COOLDOWN_HOURS * 60 * 60 * 1000);
+  const recentlyRejected = await OutbreakReport.findOne({
+    disease_name: diagnosis,
+    governorate,
+    status: "rejected",
+    updated_at: { $gte: cooldownSince },
+  }).sort({ updated_at: -1 });
+
+  if (recentlyRejected) {
+    return { report: recentlyRejected, isNewOutbreak: false, skipped: true };
   }
 
   const ai_warning_message = await generateOutbreakWarningMessage(diagnosis, governorate, casesCount);
@@ -182,7 +223,7 @@ const upsertOutbreakReport = async (diagnosis, governorate, casesCount) => {
     ai_warning_message,
   });
 
-  return { report, isNewOutbreak: true };
+  return { report, isNewOutbreak: true, skipped: false };
 };
 
 // إشعار الأدمن بالفاشية قيد المراجعة
@@ -220,9 +261,15 @@ const runOutbreakDetection = async () => {
     }
 
     for (const candidate of candidates) {
-      const { report, isNewOutbreak } = await upsertOutbreakReport(
+      const { report, isNewOutbreak, skipped } = await upsertOutbreakReport(
         candidate.diagnosis, candidate.governorate, candidate.cases_count
       );
+
+      if (skipped) {
+        console.log(`⏸️ تجاهل (رُفضت مؤخرًا): ${candidate.diagnosis} | ${candidate.governorate} | ${candidate.cases_count} حالة`);
+        continue;
+      }
+
       console.log(`${isNewOutbreak ? "🆕 وباء جديد" : "🔁 تحديث"}: ${candidate.diagnosis} | ${candidate.governorate} | ${candidate.cases_count} حالة`);
       if (isNewOutbreak) {
         const sentCount = await notifyAdminOfPendingOutbreak(report);

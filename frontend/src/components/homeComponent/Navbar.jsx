@@ -17,6 +17,8 @@ const IconEmergency   = () => <svg className="w-4 h-4" fill="none" stroke="curre
 const IconShieldCheck = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>;
 const IconBriefcase   = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>;
 const IconDashboard   = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h8v8H3V3zm10 0h8v5h-8V3zm0 9h8v9h-8v-9zM3 13h8v8H3v-8z" /></svg>;
+const IconBell        = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>;
+const IconOutbreak = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" /></svg>;
 
 // ─── Nav Links definition ──────────────────────────────────────────────────
 const NAV_LINKS = [
@@ -25,10 +27,10 @@ const NAV_LINKS = [
   { id: 'vaccine-agent',  label: 'مستشار اللقاحات',  icon: <IconShieldCheck />, path: '/vaccine-agent' },
   { id: 'services',       label: 'كيفية الاستخدام',  icon: <IconBriefcase />,   path: '/services' },
   { id: 'emergency',      label: 'الطوارئ',          icon: <IconEmergency />,   path: '/emergencies' },
+  { id: 'outbreaks',      label: 'الفاشيات',         icon: <IconOutbreak />,    path: '/outbreaks' },
 ];
 
-// روابط لازم المستخدم يكون مسجل دخول عشان يدخلها
-const AUTH_PROTECTED_LINKS = ['farms', 'diagnosis', 'vaccine-agent'];
+const AUTH_PROTECTED_LINKS = ['farms', 'diagnosis', 'vaccine-agent', 'outbreaks'];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 const Navbar = () => {
@@ -40,6 +42,7 @@ const Navbar = () => {
 
   const { user, isAuthenticated } = useSelector((state) => state.auth)
   const { farms } = useSelector((state) => state.farm || { farms: [] })
+  const unreadCount = useSelector((state) => state.notifications?.unread_count || 0)
   const firstFarmId = farms && farms.length > 0 ? farms[0]._id : null
   const isAdmin = isStaff(user?.role)
 
@@ -55,6 +58,7 @@ const Navbar = () => {
     if (link.id === 'vaccine-agent') return '/vaccine-agent'
     if (link.id === 'services') return '/services'
     if (link.id === 'emergency') return '/emergencies'
+    if (link.id === 'outbreaks') return '/outbreaks'
     return firstFarmId ? `/farms/${firstFarmId}${link.path}` : '/farms'
   }
 
@@ -154,6 +158,21 @@ const Navbar = () => {
                       لوحة التحكم
                     </button>
                   )}
+                  
+                  {/* Notifications Icon */}
+                  <button
+                    onClick={() => { navigate('/notifications'); setMenuOpen(false) }}
+                    className="relative p-2 rounded-xl text-gray-600 hover:bg-[#f4f8ef] hover:text-[#1b4d2c] transition-colors"
+                    title="الإشعارات"
+                  >
+                    <IconBell />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-red-500 text-white text-[11px] font-black rounded-full flex items-center justify-center shadow-sm border-2 border-white">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
+                  </button>
+
                   <div className="relative">
                     <button
                       onClick={() => setShowDropdown(!showDropdown)}

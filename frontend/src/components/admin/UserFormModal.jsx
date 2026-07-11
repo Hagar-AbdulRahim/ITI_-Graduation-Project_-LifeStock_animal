@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+<<<<<<< HEAD
 import { X, UserPlus, Lock, Mail, Phone, MapPin, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
+=======
+import { X, UserPlus, Lock, Mail, Phone, ShieldCheck } from 'lucide-react';
+>>>>>>> 1d6cde6b63c3a354f99d19b6509925cb05fb1df8
 import Button from '../common/Button';
-import { EGYPTIAN_GOVERNORATES } from '../../constant/adminData';
-import { adminInputClass, adminSelectClass, adminLabelClass } from './AdminUI';
+import { adminInputClass, adminLabelClass, AdminGovernorateDropdown } from './AdminUI';
 
 const emptyForm = {
   name: '',
@@ -11,7 +14,7 @@ const emptyForm = {
   phone: '',
   password: '',
   governorate: 'القاهرة',
-  role: 'sub_admin',
+  role: 'user',
 };
 
 export default function UserFormModal({ open, onClose, onSubmit, initialData, loading }) {
@@ -85,10 +88,10 @@ export default function UserFormModal({ open, onClose, onSubmit, initialData, lo
             </div>
             <div>
               <h3 className="text-base font-black text-stone-800 leading-tight">
-                {isEdit ? 'تعديل بيانات المستخدم' : 'إضافة مدير جديد'}
+                {isEdit ? 'تعديل بيانات المستخدم' : 'إضافة مستخدم جديد'}
               </h3>
               <p className="text-[11px] text-stone-400 font-medium mt-0.5">
-                {isEdit ? 'تحديث معلومات الحساب' : 'إنشاء حساب مدير جديد للمنصة'}
+                {isEdit ? 'تحديث معلومات الحساب' : 'إنشاء حساب مستخدم جديد للمنصة'}
               </p>
             </div>
           </div>
@@ -118,7 +121,7 @@ export default function UserFormModal({ open, onClose, onSubmit, initialData, lo
                 onChange={handleChange}
                 required
                 className={fieldClass}
-                placeholder="اسم المدير كاملاً"
+                placeholder="اسم المستخدم كاملاً"
               />
             </div>
 
@@ -193,27 +196,12 @@ export default function UserFormModal({ open, onClose, onSubmit, initialData, lo
 
             {/* Governorate */}
             <div className="space-y-1.5">
-              <label className={adminLabelClass}>
-                <span className="flex items-center gap-1.5">
-                  <MapPin className="w-3 h-3" />
-                  المحافظة
-                </span>
-              </label>
-              <div className="relative">
-                <select
-                  name="governorate"
-                  value={form.governorate}
-                  onChange={handleChange}
-                  className={adminSelectClass}
-                >
-                  {EGYPTIAN_GOVERNORATES.map((g) => (
-                    <option key={g} value={g}>{g}</option>
-                  ))}
-                </select>
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
+              <AdminGovernorateDropdown
+                label="المحافظة"
+                value={form.governorate}
+                onChange={(e) => setForm((p) => ({ ...p, governorate: e.target.value }))}
+                allLabel="اختر المحافظة"
+              />
             </div>
 
             {/* Role / Status */}
@@ -225,7 +213,7 @@ export default function UserFormModal({ open, onClose, onSubmit, initialData, lo
                 <div>
                   <p className="text-xs font-bold text-stone-500">صلاحية الحساب</p>
                   <span className="inline-flex mt-1 px-3 py-0.5 rounded-full text-xs font-black bg-[#1b4d2c] text-white">
-                    مدير فرعي
+                    مزارع
                   </span>
                 </div>
               </div>
@@ -260,7 +248,7 @@ export default function UserFormModal({ open, onClose, onSubmit, initialData, lo
               إلغاء
             </button>
             <Button type="submit" loading={loading}>
-              {isEdit ? 'حفظ التعديلات' : 'إنشاء المدير'}
+              {isEdit ? 'حفظ التعديلات' : 'إنشاء المستخدم'}
             </Button>
           </div>
         </form>

@@ -21,6 +21,8 @@ const { startOutbreakDetectionJob } = require("./Cron_outbreakdetection");
 const clinicsRoutes = require("./routes/Clinics.routes");
 const reviewRoutes  = require("./routes/Review.routes");
 const contactRoutes = require("./routes/contact.routes");
+const outbreakRoutes = require("./routes/Outbreak.routes");
+
 const app = express();
 
 mongoose
@@ -68,6 +70,7 @@ app.use("/api/veterinary", require("./routes/veterinary.routes"));
 app.use("/api/clinics", clinicsRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/outbreaks", outbreakRoutes);
 app.listen(5000, () => {
   console.log("🚀 Server running on port 5000");
 });

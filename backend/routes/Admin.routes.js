@@ -30,9 +30,11 @@ const {
   getFarmById,
   deleteFarm,
   getAnimals,
+  getHealthCases,
+  updateHealthCase,
 } = require("../controllers/Admin.controller");
 
-router.use(protect, authorize("admin", "sub_admin"));
+router.use(protect, authorize("admin"));
 
 router.get("/dashboard/stats", getDashboardStats);
 router.get("/stats", getDashboardStats);
@@ -61,6 +63,9 @@ router.get("/farms", getFarms);
 router.get("/farms/:id", getFarmById);
 router.delete("/farms/:id", deleteFarm);
 router.get("/animals", getAnimals);
+
+router.get("/health-cases", getHealthCases);
+router.put("/health-cases/:id", updateHealthCase);
 
 router.get("/knowledge/stats", getKnowledgeBaseStats);
 router.post("/knowledge/rebuild", rebuildKnowledgeBase);

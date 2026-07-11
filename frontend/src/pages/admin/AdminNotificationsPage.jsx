@@ -3,30 +3,40 @@ import toast from 'react-hot-toast';
 import { Send } from 'lucide-react';
 import adminService from '../../services/adminService';
 import DataTable from '../../components/admin/DataTable';
-import { EGYPTIAN_GOVERNORATES } from '../../constant/adminData';
 import {
   AdminPageHeader,
   AdminPanel,
   AdminPrimaryButton,
+  AdminGovernorateDropdown,
   adminInputClass,
   adminSelectClass,
   adminLabelClass,
 } from '../../components/admin/AdminUI';
 
+const fieldClass = adminInputClass;
+
+const NOTIFICATION_TYPES = [
+  { value: 'general', label: 'عام' },
+  { value: 'outbreak_alert', label: 'تنبيه فاشية' },
+  { value: 'vaccination_reminder', label: 'تذكير تطعيم' },
+  { value: 'health_case', label: 'حالة مرضية' },
+];
+
 export default function AdminNotificationsPage() {
   const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ title: '', body: '', governorate: '', role: '' });
+  const [form, setForm] = useState({ title: '', body: '', governorate: '', type: 'general' });
   const [broadcasting, setBroadcasting] = useState(false);
 
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
     try {
       const res = await adminService.getNotifications({ page, limit: 15 });
-      setNotifications(res.data.data || []);
+      setNotifications(res.data.data);
       setPagination(res.data.pagination);
     } catch {
       toast.error('فشل تحميل الإشعارات');
@@ -39,15 +49,24 @@ export default function AdminNotificationsPage() {
 
   const handleBroadcast = async (e) => {
     e.preventDefault();
+    if (!form.title || !form.body) {
+      toast.error('العنوان والمحتوى مطلوبان');
+      return;
+    }
     setBroadcasting(true);
     try {
-      const res = await adminService.broadcastNotification(form);
-      toast.success(res.data.message || 'تم إرسال الإشعار بنجاح');
+      const res = await adminService.broadcastNotification({
+        title: form.title,
+        body: form.body,
+        governorate: form.governorate || undefined,
+        type: form.type,
+      });
+      toast.success(res.data.message || 'تم الإرسال');
+      setForm({ title: '', body: '', governorate: '', type: 'general' });
       setShowForm(false);
-      setForm({ title: '', body: '', governorate: '', role: '' });
       fetchNotifications();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'فشل إرسال الإشعار');
+    } catch {
+      toast.error('فشل إرسال الإشعار');
     } finally {
       setBroadcasting(false);
     }
@@ -64,8 +83,10 @@ export default function AdminNotificationsPage() {
       label: 'النوع',
       render: (r) => {
         const typeMap = {
-          outbreak_alert: { label: 'تحذير وباء', cls: 'bg-red-50 text-red-600 border-red-200' },
-          admin_broadcast: { label: 'إعلان إداري', cls: 'bg-[#f0f8f2] text-[#1b4d2c] border-[#2a5c2a]/20' },
+          outbreak_alert: { label: 'تنبيه فاشية', cls: 'bg-red-50 text-red-600 border-red-200' },
+          vaccination_reminder: { label: 'تذكير تطعيم', cls: 'bg-blue-50 text-blue-600 border-blue-200' },
+          health_case: { label: 'حالة مرضية', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+          general: { label: 'عام', cls: 'bg-[#f0f8f2] text-[#1b4d2c] border-[#2a5c2a]/20' },
         };
         const t = typeMap[r.type] || { label: 'نظام', cls: 'bg-stone-50 text-stone-600 border-stone-200' };
         return (
@@ -104,8 +125,6 @@ export default function AdminNotificationsPage() {
     },
   ];
 
-  const fieldClass = `${adminInputClass} hover:shadow-sm`;
-
   return (
     <div dir="rtl">
       <AdminPageHeader
@@ -123,7 +142,6 @@ export default function AdminNotificationsPage() {
 
       {showForm && (
         <div className="bg-white rounded-2xl border border-stone-200/80 shadow-[0_4px_28px_-4px_rgba(27,77,44,0.12)] p-6 mb-6 admin-slide-up">
-          {/* Form header */}
           <div className="flex items-center gap-3 mb-6 pb-4 border-b border-stone-100">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1b4d2c] to-[#2a5c2a] flex items-center justify-center shadow-sm">
               <Send className="w-4 h-4 text-white" />
@@ -157,33 +175,24 @@ export default function AdminNotificationsPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <label className={adminLabelClass}>استهداف محافظة (اختياري)</label>
-              <div className="relative">
-                <select
-                  value={form.governorate}
-                  onChange={(e) => setForm({ ...form, governorate: e.target.value })}
-                  className={adminSelectClass}
-                >
-                  <option value="">الجميع (كل المحافظات)</option>
-                  {EGYPTIAN_GOVERNORATES.map((g) => <option key={g} value={g}>{g}</option>)}
-                </select>
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
+              <AdminGovernorateDropdown
+                label="استهداف محافظة (اختياري)"
+                value={form.governorate}
+                onChange={(e) => setForm({ ...form, governorate: e.target.value })}
+                allLabel="الجميع (كل المحافظات)"
+              />
             </div>
             <div className="space-y-1.5">
-              <label className={adminLabelClass}>استهداف دور معين (اختياري)</label>
+              <label className={adminLabelClass}>نوع الإشعار</label>
               <div className="relative">
                 <select
-                  value={form.role}
-                  onChange={(e) => setForm({ ...form, role: e.target.value })}
+                  value={form.type}
+                  onChange={(e) => setForm({ ...form, type: e.target.value })}
                   className={adminSelectClass}
                 >
-                  <option value="">الجميع</option>
-                  <option value="user">مزارع</option>
-                  <option value="sub_admin">مدير</option>
-                  <option value="admin">مدير النظام</option>
+                  {NOTIFICATION_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
                 </select>
                 <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -204,9 +213,10 @@ export default function AdminNotificationsPage() {
         </div>
       )}
 
-      <AdminPanel>
+      <div>
+        <h3 className="font-bold text-stone-700 mb-3">سجل الإشعارات</h3>
         <DataTable columns={columns} data={notifications} loading={loading} pagination={pagination} onPageChange={setPage} />
-      </AdminPanel>
+      </div>
     </div>
   );
 }

@@ -33,6 +33,7 @@ import ReviewsPage from '../pages/Reviews/ReviewsPage'
 import ContactUsPage from '../pages/ContactUs/ContactUsPage'
 
 import ServicesPage from '../pages/ServicesPage'
+import OutbreaksPage from '../pages/Outbreaks/OutbreaksPage'
 
 
 
@@ -52,6 +53,8 @@ import AdminOutbreaksPage from '../pages/admin/AdminOutbreaksPage'
 import AdminOutbreakAnalyticsPage from '../pages/admin/AdminOutbreakAnalyticsPage'
 import AdminFarmsPage from '../pages/admin/AdminFarmsPage'
 import AdminAnimalsPage from '../pages/admin/AdminAnimalsPage'
+import AdminNotificationsPage from '../pages/admin/AdminNotificationsPage'
+
 
 // Emergency
 import EmergencyPage from '../pages/EmergencyPage'
@@ -260,7 +263,16 @@ const AppRoutes = () => {
         <Route index element={<EmergencyPage />} />
       </Route>
 
-     
+     <Route
+     path="/outbreaks"
+     element={
+       <ProtectedRoute>
+         <MainLayout />
+       </ProtectedRoute>
+     }
+   >
+     <Route index element={<OutbreaksPage />} />
+   </Route>
       {/* Admin Portal */}
       <Route
         path="/admin"
@@ -279,6 +291,7 @@ const AppRoutes = () => {
         <Route path="outbreaks" element={<AdminOutbreaksPage />} />
         <Route path="outbreak-analytics" element={<AdminOutbreakAnalyticsPage />} />
         <Route path="farms" element={<AdminFarmsPage />} />
+        <Route path="notifications" element={<AdminNotificationsPage />} />
         <Route path="animals" element={<AdminAnimalsPage />} />
       </Route>
 

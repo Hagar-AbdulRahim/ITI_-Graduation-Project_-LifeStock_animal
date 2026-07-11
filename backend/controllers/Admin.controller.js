@@ -1,3 +1,4 @@
+const mongoose      = require("mongoose");
 const User          = require("../models/user");
 const Farm          = require("../models/farm");
 const Animal        = require("../models/animal");
@@ -7,30 +8,13 @@ const Notification  = require("../models/notification");
 const Vaccination   = require("../models/vaccination");
 const VeterinaryClinic = require("../models/veterinaryClinic");
 const KnowledgeBase = require("../models/knowledgeBase");
-const mongoose      = require("mongoose");
 const { sendNotification } = require("../services/notificationService");
 const { parsePagination, paginatedResponse, isAdmin } = require("../utils/accessControl");
 const { embeddingModel } = require("../config/gemini");
 const { extractKnowledgeBaseChunks } = require("../scripts/ExtractJsonText");
 const { runOutbreakDetection, OUTBREAK_CASE_THRESHOLD, OUTBREAK_WINDOW_HOURS } = require("../services/outbreakDetection");
 
-// OutbreakReport — لأن ملف Outbreakreport.js الأساسي نسي المطور يعرّف فيه الـ Schema
-let OutbreakModel;
-try {
-  OutbreakModel = mongoose.model("OutbreakReport");
-} catch {
-  const outbreakSchema = new mongoose.Schema({
-    disease_name: { type: String, required: true },
-    governorate: { type: String, required: true },
-    cases_count: { type: Number, required: true },
-    ai_warning_message: { type: String },
-    status: { type: String, enum: ["active", "resolved"], default: "active" },
-    detected_at: { type: Date, default: Date.now },
-    resolved_at: { type: Date }
-  });
-  OutbreakModel = mongoose.model("OutbreakReport", outbreakSchema);
-}
-
+const OutbreakModel = require("../models/Outbreakreport");
 const getOutbreakModel = () => OutbreakModel;
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -128,7 +112,7 @@ const createUser = async (req, res) => {
       return res.status(400).json({ success: false, message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" });
     }
 
-    const allowedRoles = ["user", "sub_admin"];
+    const allowedRoles = isAdmin(req.user) ? ["user"] : ["user"];
     const assignedRole = allowedRoles.includes(role) ? role : "user";
 
     const normalizedEmail = email.toLowerCase().trim();
@@ -196,8 +180,8 @@ const toggleUser = async (req, res) => {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
 
-    if (req.user.role === "sub_admin" && user.role === "admin") {
-      return res.status(403).json({ success: false, message: "ليس لديك صلاحية تعديل حساب مدير النظام" });
+    if (user._id.toString() === req.user._id.toString()) {
+      return res.status(400).json({ success: false, message: "لا يمكنك تعطيل حسابك الخاص" });
     }
 
     user.is_active = !user.is_active;
@@ -212,24 +196,74 @@ const toggleUser = async (req, res) => {
 };
 
 const deleteUser = async (req, res) => {
+  const session = await mongoose.startSession();
   try {
     const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
-
-    if (req.user.role === "sub_admin" && user.role === "admin") {
-      return res.status(403).json({ success: false, message: "ليس لديك صلاحية تعطيل حساب مدير النظام" });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
     }
 
-    await User.findByIdAndUpdate(req.params.id, { is_active: false }, { new: true });
+    if (req.user._id.toString() === user._id.toString()) {
+      return res.status(400).json({ success: false, message: "لا يمكنك حذف حسابك الخاص" });
+    }
 
-    console.log(`[AUDIT] Admin ${req.user._id} deactivated user ${user._id}`);
-    res.json({ success: true, message: "تم تعطيل المستخدم" });
+
+    await session.withTransaction(async () => {
+      const farmIds = await Farm.find({ user_id: user._id }).distinct("_id").session(session);
+      const animalIds = await Animal.find({ farm_id: { $in: farmIds } }).distinct("_id").session(session);
+
+      await Vaccination.deleteMany({ animal_id: { $in: animalIds } }).session(session);
+      await HealthCase.deleteMany({ $or: [{ animal_id: { $in: animalIds } }, { user_id: user._id }] }).session(session);
+      await Animal.deleteMany({ farm_id: { $in: farmIds } }).session(session);
+      await Farm.deleteMany({ user_id: user._id }).session(session);
+      await Consultation.deleteMany({ user_id: user._id }).session(session);
+      await Notification.deleteMany({ user_id: user._id }).session(session);
+
+      await User.findByIdAndDelete(user._id).session(session);
+    });
+
+    console.log(`[AUDIT] Admin ${req.user._id} permanently deleted user ${user._id} and all related data`);
+    res.json({ success: true, message: "تم حذف المستخدم وكل بياناته المرتبطة نهائيًا" });
   } catch (err) {
     console.error("deleteUser error:", err);
+    res.status(500).json({ success: false, message: "خطأ في الخادم أثناء الحذف" });
+  } finally {
+    await session.endSession();
+  }
+};
+const broadcastNotification = async (req, res) => {
+  try {
+    const { title, body, governorate, type } = req.body;
+
+    const filter = { is_active: { $ne: false }, notifications_enabled: true };
+    if (governorate) filter.governorate = governorate;
+
+    const users = await User.find(filter).select("+push_subscription");
+
+    if (users.length === 0) {
+      return res.status(404).json({ success: false, message: "لا يوجد مستخدمين متطابقين" });
+    }
+
+    const notificationType = type || "general";
+
+    let sentCount = 0;
+    for (const user of users) {
+      await sendNotification({
+        user,
+        type: notificationType,
+        title,
+        body,
+        data: { broadcast: "true" },
+      });
+      sentCount++;
+    }
+
+    res.json({ success: true, message: `تم إرسال الإشعار لـ ${sentCount} مستخدم` });
+  } catch (err) {
+    console.error("broadcastNotification error:", err);
     res.status(500).json({ success: false, message: "خطأ في الخادم" });
   }
 };
-
 const getFarms = async (req, res) => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
@@ -377,7 +411,7 @@ const updateHealthCase = async (req, res) => {
 
     if (updates.resolved === true) updates.resolved_at = new Date();
 
-    const healthCase = await HealthCase.findByIdAndUpdate(req.params.id, updates, { new: true });
+    const healthCase = await HealthCase.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true });
     if (!healthCase) return res.status(404).json({ success: false, message: "الحالة غير موجودة" });
 
     res.json({ success: true, message: "تم تحديث الحالة", data: healthCase });
@@ -417,12 +451,17 @@ const getOutbreaks = async (req, res) => {
     const OutbreakModel = getOutbreakModel();
     if (!OutbreakModel) return res.json({ success: true, count: 0, data: [] });
 
+    const { page, limit, skip } = parsePagination(req.query);
     const filter = {};
     if (req.query.status) filter.status = req.query.status;
     if (req.query.governorate) filter.governorate = req.query.governorate;
 
-    const outbreaks = await OutbreakModel.find(filter).sort({ detected_at: -1 });
-    res.json({ success: true, count: outbreaks.length, data: outbreaks });
+    const [outbreaks, total] = await Promise.all([
+      OutbreakModel.find(filter).sort({ detected_at: -1 }).skip(skip).limit(limit),
+      OutbreakModel.countDocuments(filter),
+    ]);
+
+    paginatedResponse(res, outbreaks, total, page, limit);
   } catch (err) {
     console.error("getOutbreaks error:", err);
     res.status(500).json({ success: false, message: "خطأ في الخادم" });
@@ -824,7 +863,6 @@ const triggerOutbreakDetection = async (req, res) => {
     console.log(`[AUDIT] Admin ${req.user._id} triggered manual outbreak detection`);
     await runOutbreakDetection();
     // عد الأوبئة النشطة بعد الفحص
-    const OutbreakModel = mongoose.model("OutbreakReport");
     const activeCount = await OutbreakModel.countDocuments({ status: "active" });
     res.json({ success: true, message: "تم تشغيل الفحص بنجاح", data: { active_outbreaks: activeCount } });
   } catch (err) {
@@ -871,39 +909,6 @@ const getNotifications = async (req, res) => {
   }
 };
 
-const broadcastNotification = async (req, res) => {
-  try {
-    const { title, body, governorate, role } = req.body;
-
-    const filter = { is_active: { $ne: false }, notifications_enabled: true };
-    if (governorate) filter.governorate = governorate;
-    if (role) filter.role = role;
-
-    const users = await User.find(filter).select("+push_subscription");
-
-    if (users.length === 0) {
-      return res.status(404).json({ success: false, message: "لا يوجد مستخدمين متطابقين" });
-    }
-
-    let sentCount = 0;
-    for (const user of users) {
-      await sendNotification({
-        user,
-        type: "admin_broadcast",
-        title,
-        body,
-        data: { broadcast: "true" },
-      });
-      sentCount++;
-    }
-
-    res.json({ success: true, message: `تم إرسال الإشعار لـ ${sentCount} مستخدم` });
-  } catch (err) {
-    console.error("broadcastNotification error:", err);
-    res.status(500).json({ success: false, message: "خطأ في الخادم" });
-  }
-};
-
 module.exports = {
   getDashboardStats,
   getUsers,
@@ -936,4 +941,3 @@ module.exports = {
   getHealthCases,
   updateHealthCase,
 };
-
