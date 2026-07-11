@@ -2,10 +2,32 @@ const HealthCase    = require("../models/healthCase");
 const Consultation  = require("../models/Consultation");
 const Animal        = require("../models/animal");
 const Farm          = require("../models/farm");
+const User          = require("../models/user");
 const fs            = require("fs");
 const { diagnoseSymptoms } = require("../services/aiagent");
 const { transcribeAudio }   = require("../voiceService");
 const { isAdmin, isStaff } = require("../utils/accessControl");
+const { sendNotification }  = require("../services/notificationService");
+
+// ── إشعار صاحب المزرعة لما حالة الحيوان تبقى حرجة (severity = red) ─────────
+const notifyIfCritical = async ({ severity, ownerId, animalId, tagNumber }) => {
+  if (severity !== "red" || !ownerId) return;
+
+  try {
+    const owner = await User.findById(ownerId);
+    if (!owner) return;
+
+    await sendNotification({
+      user:      owner,
+      title:     "⚠️ حالة حرجة",
+      body:      `حيوان رقم ${tagNumber || ""} في حالة صحية حرجة ويحتاج تدخل بيطري فوري`,
+      type:      "health_case",
+      animal_id: animalId,
+    });
+  } catch (err) {
+    console.error("notifyIfCritical error:", err.message);
+  }
+};
 
 // helper: وصول للحيوان (لم يتغير)
 const verifyAnimalAccess = async (animalId, user, { requireOwnership = false } = {}) => {
@@ -171,6 +193,13 @@ const runDiagnosis = async (req, body) => {
       await Animal.findByIdAndUpdate(animal_id, {
         health_status: healthStatusMap[result.severity] || "sick",
       });
+
+      await notifyIfCritical({
+        severity:  result.severity,
+        ownerId:   animal?.farm_id?.user_id,
+        animalId:  animal_id,
+        tagNumber: animal?.tag_number,
+      });
     } else {
       savedRecord = await Consultation.create({
         user_id:           req.user._id,
@@ -243,11 +272,12 @@ const diagnose = async (req, res) => {
 
     let animal      = null;
     let governorate = null;
+    let farm        = null;
 
     if (animal_id) {
       animal = await Animal.findById(animal_id);
       if (animal) {
-        const farm  = await Farm.findById(animal.farm_id);
+        farm        = await Farm.findById(animal.farm_id);
         governorate = farm?.governorate;
       }
     } else {
@@ -305,6 +335,19 @@ const diagnose = async (req, res) => {
         ai_raw_response:  result,
         chat_history:     sanitizedChatHistory,
         clarification_count: clarificationCount,
+      });
+
+      // ── تحديث الحالة الصحية للحيوان حسب severity (كانت ناقصة هنا) ──────────
+      const healthStatusMap = { green: "healthy", yellow: "sick", red: "critical" };
+      await Animal.findByIdAndUpdate(animal_id, {
+        health_status: healthStatusMap[result.severity] || "sick",
+      });
+
+      await notifyIfCritical({
+        severity:  result.severity,
+        ownerId:   farm?.user_id,
+        animalId:  animal_id,
+        tagNumber: animal?.tag_number,
       });
     } else {
       savedRecord = await Consultation.create({
