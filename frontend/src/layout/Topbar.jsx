@@ -137,52 +137,63 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
 
         {/* Left Section: Profile, Notifications & Logout — hidden on mobile (moved to drawer) */}
         <div className="flex items-center gap-4">
-          {/* Notifications */}
-          <button
-            onClick={() => { navigate('/notifications'); setMobileMenuOpen(false) }}
-            className="relative p-2 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white transition-all shadow-sm"
-            title="الإشعارات"
-          >
-            <Bell className="w-5 h-5" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-red-500 text-white text-[11px] font-black rounded-full flex items-center justify-center shadow-sm border-2 border-[#1b4d2c]">
-                {unreadCount > 99 ? '99+' : unreadCount}
-              </span>
-            )}
-          </button>
+          {user ? (
+            <>
+              {/* Notifications */}
+              <button
+                onClick={() => { navigate('/notifications'); setMobileMenuOpen(false) }}
+                className="relative p-2 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white transition-all shadow-sm"
+                title="الإشعارات"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-red-500 text-white text-[11px] font-black rounded-full flex items-center justify-center shadow-sm border-2 border-[#1b4d2c]">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </button>
 
-          {/* User Profile Info — hidden on mobile */}
-          <div className="hidden md:flex items-center gap-3 pl-4 border-l border-white/20">
-            <div className="flex items-center gap-3 bg-[#143a21] border border-[#2a5c2a] rounded-full pr-1 pl-3 py-1">
-              {user?.avatar ? (
-                <img
-                  src={user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000${user.avatar}`}
-                  alt={user.name}
-                  className="w-8 h-8 rounded-full object-cover shadow-sm border border-[#1b4d2c]"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center text-sm font-bold shadow-sm border border-[#1b4d2c]">
-                  {user?.name?.charAt(0) || 'م'}
+              {/* User Profile Info — hidden on mobile */}
+              <div className="hidden md:flex items-center gap-3 pl-4 border-l border-white/20">
+                <div className="flex items-center gap-3 bg-[#143a21] border border-[#2a5c2a] rounded-full pr-1 pl-3 py-1">
+                  {user?.avatar ? (
+                    <img
+                      src={user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000${user.avatar}`}
+                      alt={user.name}
+                      className="w-8 h-8 rounded-full object-cover shadow-sm border border-[#1b4d2c]"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center text-sm font-bold shadow-sm border border-[#1b4d2c]">
+                      {user?.name?.charAt(0) || 'م'}
+                    </div>
+                  )}
+                  <div className="leading-tight hidden sm:block text-right">
+                    <p className="text-[11px] text-white/70 font-medium">مرحباً بك،</p>
+                    <p className="text-sm font-bold text-white truncate max-w-[120px]">
+                      {user?.name?.split(' ')[0] || 'المستخدم'}
+                    </p>
+                  </div>
                 </div>
-              )}
-              <div className="leading-tight hidden sm:block text-right">
-                <p className="text-[11px] text-white/70 font-medium">مرحباً بك،</p>
-                <p className="text-sm font-bold text-white truncate max-w-[120px]">
-                  {user?.name?.split(' ')[0] || 'المستخدم'}
-                </p>
               </div>
-            </div>
-          </div>
 
-          {/* Logout Button — hidden on mobile */}
-          <button
-            onClick={handleLogout}
-            className="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl bg-red-500/20 text-red-100 hover:bg-red-500 hover:text-white transition-all border border-red-500/30 shadow-sm"
-            title="تسجيل الخروج"
-          >
-            <span className="text-sm font-bold hidden md:block">خروج</span>
-            <LogOut className="w-4 h-4" />
-          </button>
+              {/* Logout Button — hidden on mobile */}
+              <button
+                onClick={handleLogout}
+                className="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl bg-red-500/20 text-red-100 hover:bg-red-500 hover:text-white transition-all border border-red-500/30 shadow-sm"
+                title="تسجيل الخروج"
+              >
+                <span className="text-sm font-bold hidden md:block">خروج</span>
+                <LogOut className="w-4 h-4" />
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => navigate('/login')}
+              className="hidden md:flex items-center gap-2 px-5 py-2 rounded-xl bg-white text-[#1b4d2c] hover:bg-stone-100 transition-all shadow-sm font-black text-sm"
+            >
+              تسجيل الدخول
+            </button>
+          )}
         </div>
       </div>
 
@@ -193,25 +204,37 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
       >
         <div className="px-4 py-4 space-y-3">
           {/* User info row */}
-          <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-2xl border border-stone-100">
-            {user?.avatar ? (
-              <img
-                src={user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000${user.avatar}`}
-                alt={user.name}
-                className="w-10 h-10 rounded-full object-cover shadow-sm border-2 border-white"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2d5a1b] to-[#3d7a25] text-white flex items-center justify-center text-base font-bold shadow-sm border-2 border-white">
-                {user?.name?.charAt(0) || 'م'}
+          {user ? (
+            <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-2xl border border-stone-100">
+              {user?.avatar ? (
+                <img
+                  src={user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000${user.avatar}`}
+                  alt={user.name}
+                  className="w-10 h-10 rounded-full object-cover shadow-sm border-2 border-white"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2d5a1b] to-[#3d7a25] text-white flex items-center justify-center text-base font-bold shadow-sm border-2 border-white">
+                  {user?.name?.charAt(0) || 'م'}
+                </div>
+              )}
+              <div className="text-right flex-1">
+                <p className="text-[11px] text-stone-400 font-medium">مرحباً بك،</p>
+                <p className="text-sm font-bold text-stone-800 truncate">
+                  {user?.name || 'المستخدم'}
+                </p>
               </div>
-            )}
-            <div className="text-right flex-1">
-              <p className="text-[11px] text-stone-400 font-medium">مرحباً بك،</p>
-              <p className="text-sm font-bold text-stone-800 truncate">
-                {user?.name || 'المستخدم'}
-              </p>
             </div>
-          </div>
+          ) : (
+            <div className="p-2 text-center border-b border-stone-100 pb-4 mb-2">
+              <p className="text-xs font-bold text-stone-500 mb-3">يرجى تسجيل الدخول للوصول لكافة الميزات</p>
+              <button
+                onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}
+                className="w-full py-2.5 rounded-xl bg-[#1b4d2c] text-white text-sm font-black shadow-sm"
+              >
+                تسجيل الدخول
+              </button>
+            </div>
+          )}
 
           {/* Navigation links */}
           <div className="space-y-1">
@@ -246,13 +269,15 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
           <div className="h-px bg-stone-200 mx-2" />
 
           {/* Logout */}
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition-all border border-red-100 text-sm font-bold"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>تسجيل الخروج</span>
-          </button>
+          {user && (
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition-all border border-red-100 text-sm font-bold"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>تسجيل الخروج</span>
+            </button>
+          )}
         </div>
       </div>
     </header>

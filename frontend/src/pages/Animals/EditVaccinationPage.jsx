@@ -43,8 +43,6 @@ const EditVaccinationPage = () => {
       setValue('scheduled_date', vaccination.scheduled_date
         ? new Date(vaccination.scheduled_date).toISOString().split('T')[0] : '');
       setValue('dose_ml', vaccination.dose_ml || '');
-      setValue('administered_by', vaccination.administered_by || '');
-      setValue('batch_number', vaccination.batch_number || '');
       setValue('notes', vaccination.notes || '');
       setValue('completed', vaccination.completed || false);
       trigger();
@@ -59,8 +57,6 @@ const EditVaccinationPage = () => {
       vaccine_name: data.vaccine_name.trim(),
       notes: data.notes ? data.notes.trim() : null,
       dose_ml: data.dose_ml ? Number(data.dose_ml) : null,
-      administered_by: data.administered_by ? data.administered_by.trim() : null,
-      batch_number: data.batch_number ? data.batch_number.trim() : null,
       completed: data.completed,
     };
 
@@ -294,28 +290,6 @@ const EditVaccinationPage = () => {
                   className={inputCls(errors.dose_ml)}
                 />
                 {errors.dose_ml && <p className="text-[11px] text-rose-500 mt-1">{errors.dose_ml.message}</p>}
-              </div>
-
-              {/* رقم التشغيلة */}
-              <div>
-                <label className={labelCls}>رقم التشغيلة (Batch Number)</label>
-                <input
-                  type="text"
-                  placeholder="مثال: BN-2026-V8"
-                  {...register('batch_number')}
-                  className={inputCls(errors.batch_number)}
-                />
-              </div>
-
-              {/* أعطيت بواسطة */}
-              <div className="md:col-span-2">
-                <label className={labelCls}>أعطيت بواسطة (اسم الطبيب/المشرف)</label>
-                <input
-                  type="text"
-                  placeholder="مثال: د. أحمد خالد"
-                  {...register('administered_by')}
-                  className={inputCls(errors.administered_by)}
-                />
               </div>
             </div>
 

@@ -373,10 +373,6 @@ const OutbreaksPage = () => {
   );
 };
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 9e25ee91f566664f86fd637cbf5709776d15aeda
 
 
 export default OutbreaksPage;
