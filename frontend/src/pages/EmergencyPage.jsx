@@ -156,6 +156,12 @@ export default function EmergencyPage() {
     try {
     const payload = { message: text }
 
+    // نبعت تاريخ المحادثة (بدون رسالة الترحيب) عشان الباك إند يقدر يفهم
+    // أسئلة المتابعة زي "مواعيد العمل؟" بعد ما يكون سأل عن عيادة معينة
+    payload.history = messages
+      .filter((m) => m.id !== 'welcome')
+      .map((m) => ({ sender: m.sender, text: m.text, clinics: m.clinics }))
+
     if (governorate) {
       // لو المستخدم اختار محافظة يدويًا، الأولوية له دايمًا حتى لو GPS اشتغل في الخلفية
       const coords = GOVERNORATE_COORDS[governorate]
@@ -377,9 +383,20 @@ export default function EmergencyPage() {
                       isAi && msg.clinics?.length > 0 ? (
                         /* ── Clinic Cards Grid ── */
                         <div className="w-full space-y-2">
-                          <p className="text-xs text-stone-400 font-bold mb-3">
-                            وجدنا <span className="text-[#1b4d2c] font-black">{msg.clinics.length}</span> عيادة بيطرية قريبة منك:
-                          </p>
+                          {/* الرد الفعلي على سؤال اليوزر — ده كان بيتجاهله قبل كده
+                             وبيعرض جملة ثابتة بدل الإجابة الحقيقية */}
+                          {msg.text && (
+                            <div className="bg-white border border-stone-200 rounded-2xl px-4 py-3 mb-3 text-[13.5px] leading-7 text-stone-700">
+                              <p className="whitespace-pre-line break-words">{renderFormattedText(msg.text)}</p>
+                            </div>
+                          )}
+
+                          {/* الكروت — عنوان العدّاد بيبان بس لو أكتر من نتيجة */}
+                          {msg.clinics.length > 1 && (
+                            <p className="text-xs text-stone-400 font-bold mb-3">
+                              <span className="text-[#1b4d2c] font-black">{msg.clinics.length}</span> نتيجة:
+                            </p>
+                          )}
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {msg.clinics.map((c) => (
                               <div
@@ -390,7 +407,9 @@ export default function EmergencyPage() {
                                 <div className="space-y-2 pr-1.5">
                                   <div className="font-extrabold text-stone-900 flex items-start justify-between gap-2">
                                     <span className="group-hover:text-[#1b4d2c] transition-colors leading-snug">{c.name}</span>
-                                    <span className="text-[10px] text-[#1b4d2c] font-black bg-[#1b4d2c]/5 px-2.5 py-1 rounded-full flex-shrink-0 border border-[#1b4d2c]/10">{c.distance_km} كم</span>
+                                    {c.distance_km != null && (
+                                      <span className="text-[10px] text-[#1b4d2c] font-black bg-[#1b4d2c]/5 px-2.5 py-1 rounded-full flex-shrink-0 border border-[#1b4d2c]/10">{c.distance_km} كم</span>
+                                    )}
                                   </div>
                                   {c.address && (
                                     <div className="flex items-center gap-2 text-[11px] text-stone-500">

@@ -66,7 +66,6 @@ app.use("/api/health-cases", healthCaseRoutes);
 app.use("/api/onboarding",   onboardingRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/admin",         adminRoutes);
-app.use("/api/veterinary", require("./routes/veterinary.routes"));
 app.use("/api/clinics", clinicsRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/contact", contactRoutes);

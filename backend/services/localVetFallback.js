@@ -56,7 +56,18 @@ async function getGovernorateFromCoords(lat, lng) {
   }
 }
 
-/** بيحول working_hours (سترنج أو أوبچكت أيام) لسترنج مقروءة زي opening_hours بتاع Geoapify */
+const DAY_NAME_AR = {
+  Mon: "الإثنين", Monday: "الإثنين",
+  Tue: "الثلاثاء", Tuesday: "الثلاثاء",
+  Wed: "الأربعاء", Wednesday: "الأربعاء",
+  Thu: "الخميس", Thursday: "الخميس",
+  Fri: "الجمعة", Friday: "الجمعة",
+  Sat: "السبت", Saturday: "السبت",
+  Sun: "الأحد", Sunday: "الأحد",
+};
+const arDayName = (d) => DAY_NAME_AR[d] || DAY_NAME_AR[d?.trim()] || d;
+
+/** بيحول working_hours (سترنج أو أوبچكت أيام) لسترنج مقروءة بالعربي زي opening_hours بتاع Geoapify */
 function formatWorkingHours(working_hours) {
   if (!working_hours) return null;
   if (typeof working_hours === "string") return working_hours;
@@ -68,11 +79,11 @@ function formatWorkingHours(working_hours) {
   const uniqueHours = [...new Set(openDays.map(([, v]) => v))];
   if (uniqueHours.length === 1 && closedDays.length <= 1) {
     const closedNote = closedDays.length
-      ? ` (ماعدا ${closedDays.map(([d]) => d).join(", ")})`
+      ? ` (ماعدا ${closedDays.map(([d]) => arDayName(d)).join("، ")})`
       : "";
     return `${uniqueHours[0]}${closedNote}`;
   }
-  return days.map(([d, v]) => `${d}: ${v}`).join(" | ");
+  return days.map(([d, v]) => `${arDayName(d)}: ${v}`).join(" | ");
 }
 
 function normalizeEntry(entry, distance_km) {
@@ -103,24 +114,23 @@ function governoratesMatch(entryGov, targetGov) {
  * @param {number} params.lng
  * @param {string} [params.governorate] - عربي أو إنجليزي، اختياري
  * @param {number} [params.limit=10]
+ * @param {number} [params.maxDistanceKm] - لو اتبعتت، بيرجع بس العيادات اللي مسافتها
+ *   الفعلية (Haversine) <= القيمة دي، مرتبة من الأقرب للأبعد. أي عيادة من غير
+ *   إحداثيات معروفة بتتستبعد تلقائيًا في الحالة دي لأننا مش هنقدر نتأكد من مسافتها.
  */
-async function findNearbyFromLocalDB({ lat, lng, governorate, limit = 10 }) {
+async function findNearbyFromLocalDB({ lat, lng, governorate, limit = 10, maxDistanceKm = null }) {
   const data = loadLocalVetData();
 
-  console.log('DEBUG governorate raw:', governorate);
   let enGovernorate = toEnglishGovernorate(governorate);
   if (!enGovernorate && lat && lng) {
     const geocoded = await getGovernorateFromCoords(lat, lng);
     enGovernorate = canonicalizeEnglishGovernorate(geocoded);
   }
-  console.log('DEBUG enGovernorate:', enGovernorate);
-  console.log('DEBUG total data length:', data.length);
 
   // 1) نفلتر بالمحافظة الأول (لو معروفة) — مطابقة مرنة عشان اختلاف الصيغ.
   const pool = enGovernorate
     ? data.filter((e) => governoratesMatch(e.governorate, enGovernorate))
     : data;
-  console.log('DEBUG pool length after filter:', pool.length);
 
   // 2) جوه نفس المحافظة: اللي عندهم إحداثيات نرتبهم بالمسافة الفعلية،
   //    واللي مالهومش إحداثيات نضيفهم في الآخر من غير مسافة.
@@ -136,11 +146,20 @@ async function findNearbyFromLocalDB({ lat, lng, governorate, limit = 10 }) {
   }
 
   const MAX_KM_WHEN_NO_GOVERNORATE = 150;
-  const filteredWithDistance = enGovernorate
+  let filteredWithDistance = enGovernorate
     ? withDistance
     : withDistance.filter((c) => c.distance_km == null || c.distance_km <= MAX_KM_WHEN_NO_GOVERNORATE);
 
   filteredWithDistance.sort((a, b) => (a.distance_km ?? Infinity) - (b.distance_km ?? Infinity));
+
+  // 3) فلترة بمسافة قصوى محددة (اختياري) — بترجع بس اللي جوه النطاق ده فعلاً،
+  //    وبتستبعد أي حد من غير مسافة معروفة عشان منرجعش نتايج مش متأكدين منها.
+  if (maxDistanceKm != null) {
+    filteredWithDistance = filteredWithDistance.filter(
+      (c) => c.distance_km != null && c.distance_km <= maxDistanceKm
+    );
+    return filteredWithDistance.slice(0, limit);
+  }
 
   return [...filteredWithDistance, ...withoutDistance].slice(0, limit);
 }
