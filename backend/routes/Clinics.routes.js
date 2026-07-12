@@ -108,6 +108,15 @@ const lastUserMessage = (history = []) => {
   return "";
 };
 
+/** آخر رسالة AI في المحادثة (مش أي رسالة قديمة) — دي المرجع الوحيد لفهم "قصدك مين؟" */
+const lastAiMessage = (history = []) => {
+  for (let i = history.length - 1; i >= 0; i--) {
+    const h = history[i];
+    if ((h?.sender || h?.role) === "ai") return h;
+  }
+  return null;
+};
+
 /** بيدور على نية "نوع الجهة" (مديرية / عيادة خاصة) في الرسالة الحالية، وبعدين في آخر رسالة يوزر */
 const detectRequestedFacilityType = (message, history = []) => {
   const check = (text) => {
@@ -146,27 +155,55 @@ const DETAIL_FIELD_MAP = {
 const containsLatinLetters = (s) => /[A-Za-z]/.test(s || "");
 const translationCache = new Map(); // original string → ترجمة عربي
 
-async function translateStrings(strings) {
-  if (strings.length === 0) return {};
-  const list = strings.map((s, i) => `${i + 1}. ${s}`).join("\n");
+/** بيستخرج أول JSON array موجود في النص، حتى لو الموديل زوّد كلام أو fences حواليه */
+function extractJsonArray(raw) {
+  const cleaned = raw.trim().replace(/^```json\s*|^```\s*|```\s*$/g, "");
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    const match = cleaned.match(/\[[\s\S]*\]/);
+    if (match) {
+      try { return JSON.parse(match[0]); } catch { /* هنرجع تحت */ }
+    }
+  }
+  return null;
+}
+
+async function translateStringsOnce(list) {
+  const numbered = list.map((s, i) => `${i + 1}. ${s}`).join("\n");
   const prompt = `ترجم كل سطر من العناوين أو أوقات العمل دي للعربي:
 - اسم الشارع/المنطقة: ترجمة طبيعية للعربي (مش نقل حرفي بالحروف).
 - اختصارات الأيام بالإنجليزي (Fri, Sat, Mon...) حوّلها لاسم اليوم بالعربي.
 - الأرقام وتنسيق الوقت (زي 00:00-24:00) سيبها زي ما هي بدون تغيير.
 أرجع فقط JSON array من النصوص المترجمة بنفس الترتيب، بدون أي شرح أو نص إضافي:
 
-${list}`;
-  try {
-    const result = await chatModel.generateContent([{ text: prompt }]);
-    const raw = result.response.text().trim().replace(/^```json\s*|```\s*$/g, "");
-    const arr = JSON.parse(raw);
-    const map = {};
-    strings.forEach((s, i) => { if (typeof arr[i] === "string" && arr[i].trim()) map[s] = arr[i].trim(); });
-    return map;
-  } catch (err) {
-    console.error("translateStrings error:", err.message);
-    return {}; // فشل الترجمة → نسيب النصوص الأصلية زي ما هي، منكسرش الفيتشر
+${numbered}`;
+
+  const result = await chatModel.generateContent([{ text: prompt }]);
+  const raw = result.response.text();
+  const arr = extractJsonArray(raw);
+  if (!Array.isArray(arr) || arr.length !== list.length) {
+    throw new Error(`رد الترجمة مش JSON array سليم (طول متوقع ${list.length}): ${raw.slice(0, 200)}`);
   }
+  return arr;
+}
+
+async function translateStrings(strings) {
+  if (strings.length === 0) return {};
+
+  // بنحاول مرتين قبل ما نستسلم، لأن أخطاء الشبكة/الفورمات بتحصل أحيانًا لمرة واحدة بس
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const arr = await translateStringsOnce(strings);
+      const map = {};
+      strings.forEach((s, i) => { if (typeof arr[i] === "string" && arr[i].trim()) map[s] = arr[i].trim(); });
+      return map;
+    } catch (err) {
+      console.error(`translateStrings error (محاولة ${attempt}):`, err.message);
+      if (attempt === 2) return {}; // فشلنا مرتين → نسيب النصوص الأصلية زي ما هي، منكسرش الفيتشر
+    }
+  }
+  return {};
 }
 
 /** بيرجع نفس مصفوفة العيادات بس بعنوان ومواعيد مترجمة للعربي */
@@ -217,8 +254,9 @@ const meaningfulTokens = (text) =>
  * حتى لو الصياغة مختلفة، لأننا بنقارن الكلمات المميزة (أسماء/كلمات أجنبية)
  * مش الجملة كلها.
  * 1) لو فيه تطابق كافي في الكلمات المميزة، بناخد أعلى نتيجة (وأقرب مسافة عند التعادل).
- * 2) لو مفيش ذكر صريح، وآخر رد من الـ AI كان مركّز على عيادة واحدة بس
- *    (سؤال متابعة زي "مواعيدها إيه؟")، بناخدها هي.
+ * 2) لو مفيش ذكر صريح، بنبص بس على آخر رسالة AI في المحادثة (مش أي رسالة قديمة):
+ *    لو كانت مركّزة على عيادة واحدة بس (سؤال متابعة زي "مواعيدها إيه؟")، بناخدها هي.
+ *    غير كده بنرجّع null، والراوت هو اللي يقرر يسأل اليوزر يقصد مين.
  */
 const resolveTargetClinic = (message, clinics, history = []) => {
   const msgTokens = meaningfulTokens(message);
@@ -238,24 +276,23 @@ const resolveTargetClinic = (message, clinics, history = []) => {
     if (bestScore > 0) return best;
   }
 
-  for (let i = history.length - 1; i >= 0; i--) {
-    const h = history[i];
-    if ((h?.sender || h?.role) === "ai" && Array.isArray(h.clinics) && h.clinics.length === 1) {
-      return h.clinics[0];
-    }
+  // ⚠️ بس آخر رسالة AI في المحادثة، مش أي رسالة قديمة — عشان منجيبش سياق باين
+  const lastAi = lastAiMessage(history);
+  if (lastAi && Array.isArray(lastAi.clinics) && lastAi.clinics.length === 1) {
+    return lastAi.clinics[0];
   }
   return null;
 };
 
 /**
  * POST /api/clinics/emergency
- * بيوجّه الرد حسب نية اليوزر:
- *   - عيادة محددة + سؤال تفصيلة (مواعيد/تليفون/عنوان)  → رد مباشر من الداتا (بدون Gemini)
- *   - عيادة محددة بدون سؤال تفصيلة                       → ملخص من Gemini عن العيادة دي بس
- *   - سؤال تفصيلة عام (بدون عيادة محددة)                  → قائمة مباشرة للحقل المطلوب لكل العيادات
+ * بيوجّه الرد حسب نية اليوزر — قاعدة أساسية: النص والكاردات مايرجعوش مع بعض أبداً:
+ *   - سؤال تفصيلة (مواعيد/تليفون/عنوان) لعيادة محددة بوضوح → رد نصي بس (clinics: [])
+ *   - سؤال تفصيلة + مفيش عيادة واحدة واضحة ومفيش لبس (نتيجة واحدة بس متاحة) → رد نصي بس
+ *   - سؤال تفصيلة + فيه أكتر من عيادة ومفيش تحديد واضح → نسأل اليوزر يحدد مين (بدل ما نخمّن)
+ *   - بدون سؤال تفصيلة (زي "أقرب عيادة" أو ذِكر عيادة من غير سؤال تفصيلة) → كاردات بس (reply: "")
  *   - نوع منشأة محدد (مديرية / عيادة خاصة)                 → فلترة القائمة قبل أي حاجة تانية
  *   - مسافة محددة ("5 كم")                                → فلترة فعلية بالمسافة
- *   - غير كده (سؤال عام / أقرب عيادات)                     → ملخص عام من Gemini
  */
 router.post("/emergency", async (req, res) => {
   try {
@@ -309,57 +346,47 @@ router.post("/emergency", async (req, res) => {
       });
     }
 
-    // 5. تحديد العيادة اللي اليوزر بيقصدها (لو موجودة)
+    // 5. تحديد العيادة اللي اليوزر بيقصدها (لو موجودة وواضحة)
     const targetClinic = resolveTargetClinic(message, clinics, history);
 
-    // ── الحالة أ: عيادة محددة + سؤال تفصيلة → رد مباشر من الداتا ──────────
+    // ── الحالة أ: عيادة محددة بوضوح + سؤال تفصيلة → رد نصي بس، من غير كارد ─
     if (targetClinic && detailIntent) {
       const field = DETAIL_FIELD_MAP[detailIntent];
       const value = field.get(targetClinic);
       const reply = value
         ? `${field.label} بتاعة ${targetClinic.name}: ${value}`
         : `للأسف ${field.label} بتاعة ${targetClinic.name} مش متاحة عندنا دلوقتي — ممكن تتأكدي بالاتصال المباشر.`;
-      return res.json({ success: true, reply, clinics: [targetClinic] });
+      return res.json({ success: true, reply, clinics: [] });
     }
 
-    // ── الحالة ب: سؤال تفصيلة عام (بدون عيادة محددة) → قائمة مباشرة ──────
+    // ── الحالة ب: سؤال تفصيلة بدون عيادة محددة ──────────────────────────
     if (!targetClinic && detailIntent) {
       const field = DETAIL_FIELD_MAP[detailIntent];
+
+      // ب.1: نتيجة واحدة بس أصلاً متاحة → مفيش لبس، نرد عليها مباشرة
+      if (clinics.length === 1) {
+        const only = clinics[0];
+        const value = field.get(only);
+        const reply = value
+          ? `${field.label} بتاعة ${only.name}: ${value}`
+          : `للأسف ${field.label} بتاعة ${only.name} مش متاحة عندنا دلوقتي.`;
+        return res.json({ success: true, reply, clinics: [] });
+      }
+
+      // ب.2: فيه أكتر من عيادة ومفيش تحديد واضح → نسأل اليوزر يحدد مين بدل ما نخمّن
       const top = clinics.slice(0, 5);
-      const lines = top.map((c) => `• ${c.name}: ${field.get(c) || "غير متاح"}`).join("\n");
+      const options = top.map((c, i) => `${i + 1}. ${c.name}`).join("\n");
       return res.json({
         success: true,
-        reply: `${field.label} لأقرب ${top.length} عيادات:\n${lines}`,
-        clinics: top,
+        reply: `تقصدي أي عيادة بالظبط؟ من فضلك اكتبي الاسم أو رقمها:\n${options}`,
+        clinics: [],
       });
     }
 
-    // ── الحالة ج: عيادة محددة بدون سؤال تفصيلة → ملخص Gemini عنها بس ──────
-    let prompt;
-    let clinicsToReturn = clinics;
-
-    if (targetClinic) {
-      prompt = `أجب على هذا السؤال: "${message}"
-      بناءً على بيانات هذه العيادة فقط:
-      الاسم: ${targetClinic.name}، العنوان: ${targetClinic.address || "غير متاح"}،
-      التليفون: ${targetClinic.phone || "غير متاح"}، مواعيد العمل: ${targetClinic.opening_hours || "غير متاح"}.
-      تعليمات: أجب مباشرة وبشكل مختصر. لا تذكر أي عيادات أخرى في ردك النصي.`;
-      clinicsToReturn = [targetClinic];
-    } else {
-      // ── الحالة د: سؤال عام / أقرب عيادات → ملخص عام من Gemini ──────────
-      const clinicsText = clinics
-        .map((c, i) => `${i + 1}. ${c.name} (${facilityTypeLabel(c)}), العنوان: ${c.address || "غير متاح"}, المسافة: ${c.distance_km ?? "غير معروفة"} كم`)
-        .join("\n");
-      prompt = `المزارع يسأل: "${message}".
-      العيادات المتاحة:
-      ${clinicsText}
-      تعليمات: اعرض العيادات بشكل مختصر ومفيد، مرتبة من الأقرب.`;
-    }
-
-    const result = await chatModel.generateContent([{ text: prompt }]);
-    const reply = result.response.text().trim();
-
-    res.json({ success: true, reply, clinics: clinicsToReturn });
+    // ── الحالة ج/د: مفيش سؤال تفصيلة → كاردات بس، من غير رد نصي ───────────
+    // (سواء عيادة محددة أو قائمة عامة زي "أقرب عيادة بيطرية")
+    const clinicsToReturn = targetClinic ? [targetClinic] : clinics;
+    return res.json({ success: true, reply: "", clinics: clinicsToReturn });
   } catch (err) {
     console.error("Error:", err.message);
     res.status(500).json({ success: false, message: "حدث خطأ." });

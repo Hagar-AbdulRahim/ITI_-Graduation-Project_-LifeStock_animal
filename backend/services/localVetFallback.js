@@ -65,7 +65,14 @@ const DAY_NAME_AR = {
   Sat: "السبت", Saturday: "السبت",
   Sun: "الأحد", Sunday: "الأحد",
 };
-const arDayName = (d) => DAY_NAME_AR[d] || DAY_NAME_AR[d?.trim()] || d;
+
+/** مطابقة case-insensitive عشان "fri" و"Fri" و"FRIDAY" كلهم يترجموا صح */
+const arDayName = (d) => {
+  if (!d) return d;
+  const key = String(d).trim();
+  const match = Object.keys(DAY_NAME_AR).find((k) => k.toLowerCase() === key.toLowerCase());
+  return match ? DAY_NAME_AR[match] : d;
+};
 
 /** بيحول working_hours (سترنج أو أوبچكت أيام) لسترنج مقروءة بالعربي زي opening_hours بتاع Geoapify */
 function formatWorkingHours(working_hours) {
