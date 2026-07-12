@@ -373,76 +373,88 @@ export default function EmergencyPage() {
                     </div>
 
                     {/* Chat Bubble */}
-                    <div className={`px-5 py-3.5 text-[13.5px] leading-7 shadow-sm border ${isAi
-                      ? 'bg-white border-stone-200 text-stone-850 rounded-3xl rounded-tr-md'
-                      : 'bg-[#1b4d2c] border-[#1b4d2c] text-white rounded-3xl rounded-tl-md font-medium'
-                      }`}>
-                      <p className="whitespace-pre-line break-words leading-relaxed">{renderFormattedText(msg.text)}</p>
-
-                      {/* Clinics Cards */}
-                      {isAi && msg.clinics?.length > 0 && (
-                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {msg.clinics.map((c) => (
-                            <div
-                              key={c.place_id}
-                              className="p-4 rounded-2xl bg-white border border-stone-200 hover:border-emerald-500/40 hover:shadow-md transition-all duration-300 flex flex-col justify-between group relative overflow-hidden text-right"
-                            >
-                              <div className="absolute top-0 right-0 w-1.5 h-full bg-[#1b4d2c] group-hover:bg-emerald-500 transition-colors"></div>
-                              <div className="space-y-2">
-                                <div className="font-extrabold text-stone-900 flex items-start justify-between gap-2 pr-1.5">
-                                  <span className="group-hover:text-[#1b4d2c] transition-colors">{c.name}</span>
-                                  <span className="text-[10px] text-[#1b4d2c] font-black bg-[#1b4d2c]/5 px-2.5 py-1 rounded-full flex-shrink-0 border border-[#1b4d2c]/10">{c.distance_km} كم</span>
+                    {isAi ? (
+                      isAi && msg.clinics?.length > 0 ? (
+                        /* ── Clinic Cards Grid ── */
+                        <div className="w-full space-y-2">
+                          <p className="text-xs text-stone-400 font-bold mb-3">
+                            وجدنا <span className="text-[#1b4d2c] font-black">{msg.clinics.length}</span> عيادة بيطرية قريبة منك:
+                          </p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {msg.clinics.map((c) => (
+                              <div
+                                key={c.place_id}
+                                className="p-4 rounded-2xl bg-white border border-stone-200 hover:border-emerald-500/40 hover:shadow-md transition-all duration-300 flex flex-col justify-between group relative overflow-hidden text-right"
+                              >
+                                <div className="absolute top-0 right-0 w-1.5 h-full bg-[#1b4d2c] group-hover:bg-emerald-500 transition-colors" />
+                                <div className="space-y-2 pr-1.5">
+                                  <div className="font-extrabold text-stone-900 flex items-start justify-between gap-2">
+                                    <span className="group-hover:text-[#1b4d2c] transition-colors leading-snug">{c.name}</span>
+                                    <span className="text-[10px] text-[#1b4d2c] font-black bg-[#1b4d2c]/5 px-2.5 py-1 rounded-full flex-shrink-0 border border-[#1b4d2c]/10">{c.distance_km} كم</span>
+                                  </div>
+                                  {c.address && (
+                                    <div className="flex items-center gap-2 text-[11px] text-stone-500">
+                                      <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-stone-400" />
+                                      <span className="truncate">{c.address}</span>
+                                    </div>
+                                  )}
+                                  {c.phone && (
+                                    <div className="flex items-center gap-2 text-[11px] text-[#1b4d2c]">
+                                      <Phone className="w-3.5 h-3.5 flex-shrink-0" />
+                                      <a href={`tel:${c.phone}`} className="hover:underline font-bold">{c.phone}</a>
+                                    </div>
+                                  )}
+                                  {c.opening_hours && (
+                                    <div className="flex items-center gap-2 text-[11px] text-stone-500">
+                                      <Clock className="w-3.5 h-3.5 flex-shrink-0 text-stone-400" />
+                                      <span>{c.opening_hours}</span>
+                                    </div>
+                                  )}
                                 </div>
-
-                                {c.address && (
-                                  <div className="flex items-center gap-2 text-[11px] text-stone-500 pr-1">
-                                    <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-stone-400" />
-                                    <span className="truncate">{c.address}</span>
-                                  </div>
-                                )}
-
-                                {c.phone && (
-                                  <div className="flex items-center gap-2 text-[11px] text-[#1b4d2c] pr-1">
-                                    <Phone className="w-3.5 h-3.5 flex-shrink-0 text-[#1b4d2c]" />
-                                    <a href={`tel:${c.phone}`} className="hover:underline font-bold">{c.phone}</a>
-                                  </div>
-                                )}
-
-                                {c.opening_hours && (
-                                  <div className="flex items-center gap-2 text-[11px] text-stone-500 pr-1">
-                                    <Clock className="w-3.5 h-3.5 flex-shrink-0 text-stone-400" />
-                                    <span>{c.opening_hours}</span>
-                                  </div>
-                                )}
-                              </div>
-
-                              <div className="mt-4 pt-3 border-t border-stone-100 flex items-center gap-2">
-                                {c.phone ? (
+                                <div className="mt-3 pt-3 border-t border-stone-100 flex items-center gap-2">
+                                  {c.phone ? (
+                                    <a
+                                      href={`tel:${c.phone}`}
+                                      className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-[#1b4d2c] hover:bg-emerald-600 text-white rounded-xl text-[11px] font-black transition-colors"
+                                    >
+                                      <Phone className="w-3 h-3" />
+                                      اتصال سريع
+                                    </a>
+                                  ) : (
+                                    <div className="flex-1 text-[11px] text-stone-400 italic text-center py-2">الهاتف غير متوفر</div>
+                                  )}
                                   <a
-                                    href={`tel:${c.phone}`}
-                                    className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-[#1b4d2c] hover:bg-emerald-600 text-white rounded-xl text-[11px] font-black transition-colors"
+                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.name + ' ' + (c.address || ''))}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center p-2 bg-stone-100 hover:bg-[#1b4d2c]/10 text-stone-700 hover:text-[#1b4d2c] rounded-xl transition-colors"
+                                    title="الاتجاهات على الخريطة"
                                   >
-                                    <Phone className="w-3 h-3" />
-                                    اتصال سريع
+                                    <Navigation className="w-3.5 h-3.5" />
                                   </a>
-                                ) : (
-                                  <div className="flex-1 text-[11px] text-stone-400 italic text-center py-2">الهاتف غير متوفر</div>
-                                )}
-                                <a
-                                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.name + ' ' + (c.address || ''))}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center justify-center p-2 bg-stone-100 hover:bg-[#1b4d2c]/10 text-stone-700 hover:text-[#1b4d2c] rounded-xl transition-colors"
-                                  title="الاتجاهات على الخريطة"
-                                >
-                                  <Navigation className="w-3.5 h-3.5" />
-                                </a>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      )}
-                    </div>
+                      ) : (
+                        /* ── Normal AI Text Card ── */
+                        <div className="bg-white border border-stone-200 rounded-3xl rounded-tr-md shadow-sm overflow-hidden">
+                          <div className="flex items-center gap-2 px-4 py-2.5 bg-[#1b4d2c]/5 border-b border-stone-100">
+                            <Stethoscope className="w-3.5 h-3.5 text-[#1b4d2c]" />
+                            <span className="text-[11px] font-black text-[#1b4d2c]">طبيب الطوارئ الذكي</span>
+                          </div>
+                          <div className="px-5 py-4 text-[13.5px] leading-8 text-stone-700">
+                            <p className="whitespace-pre-line break-words">{renderFormattedText(msg.text)}</p>
+                          </div>
+                        </div>
+                      )
+                    ) : (
+                      /* ── User Bubble ── */
+                      <div className="bg-[#1b4d2c] border border-[#1b4d2c] text-white rounded-3xl rounded-tl-md px-5 py-3.5 text-[13.5px] leading-7 shadow-sm font-medium">
+                        <p className="whitespace-pre-line break-words leading-relaxed">{renderFormattedText(msg.text)}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )
