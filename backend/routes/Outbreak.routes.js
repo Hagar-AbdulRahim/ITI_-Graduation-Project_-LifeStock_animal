@@ -1,11 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { protect } = require("../middelwares/Auth.middleware");
 const { getPublicOutbreaks, getPublicOutbreakById } = require("../controllers/Outbreak.controller");
 
-// أي مستخدم مسجل دخول (مش شرط أدمن) يقدر يشوف الفاشيات النشطة
-router.use(protect);
-
+// عام بالكامل — أي زائر (مسجل دخول أو لأ) يقدر يشوف الفاشيات النشطة
+// (الدالتين مش بيستخدموا req.user خالص، فمفيش داعي لـ protect هنا)
 router.get("/", getPublicOutbreaks);
 router.get("/:id", getPublicOutbreakById);
 

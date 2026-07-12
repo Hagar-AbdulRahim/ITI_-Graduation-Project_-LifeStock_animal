@@ -30,7 +30,7 @@ const NAV_LINKS = [
   { id: 'outbreaks',      label: 'الفاشيات',         icon: <IconOutbreak />,    path: '/outbreaks' },
 ];
 
-const AUTH_PROTECTED_LINKS = ['farms', 'diagnosis', 'vaccine-agent', 'outbreaks'];
+const AUTH_PROTECTED_LINKS = ['farms', 'diagnosis', 'vaccine-agent'];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 const Navbar = () => {
