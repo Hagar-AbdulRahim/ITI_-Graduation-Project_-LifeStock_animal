@@ -18,7 +18,7 @@ import { fetchFarmById, fetchFarmAnimals } from '../../redux/farmSlice';
 const SPECIES_MAP = { cattle: 'أبقار', sheep: 'أغنام', goat: 'ماعز' };
 const GENDER_MAP = { male: 'ذكر', female: 'أنثى' };
 const SPECIES_IMAGE = { cattle: cowImg, sheep: sheepImg, goat: goatImg };
-const SPECIES_EMOJI = { cattle: '🐄', sheep: '🐑', goat: '🐐', horse: '🐎', pig: '🐷' };
+const SPECIES_EMOJI = { cattle: '🐄', sheep: '🐑', goat: '🐐' };
 
 const formatAge = (animal) => {
   if (animal?.age_value != null && animal?.age_unit) {
@@ -373,7 +373,7 @@ const AnimalsListPage = () => {
                 { value: 'cattle', label: 'أبقار' },
                 { value: 'sheep', label: 'أغنام' },
                 { value: 'goat', label: 'ماعز' },
-                { value: 'horse', label: 'خيل' },
+                
               ]} />
             </div>
           </div>
