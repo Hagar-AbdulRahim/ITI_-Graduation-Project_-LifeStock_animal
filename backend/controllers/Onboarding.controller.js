@@ -64,20 +64,28 @@ const confirm = async (req, res) => {
 
     const savedHealthCases  = [];
     const savedVaccinations = [];
+    let anyStillAffected = false;
 
     // ── حفظ التاريخ المرضي ───────────────────────────────────────────────────
     if (Array.isArray(medical_history)) {
       for (const entry of medical_history) {
         if (!entry.disease_or_symptom) continue;
 
+        // still_affected جايه من رد المزارع على سؤال "لسه مصاب ولا خف" —
+        // لو true يبقى الحالة لسه مفتوحة (resolved=false)، لو false أو مش
+        // متحدد نعتبرها اتقفلت زي قبل كده (سلوك افتراضي آمن)
+        const stillAffected = entry.still_affected === true;
+        if (stillAffected) anyStillAffected = true;
+
         const healthCase = await HealthCase.create({
           animal_id:    animal._id,
           user_id:      req.user._id,
           governorate:  animal.farm_id.governorate,
-          symptoms:     [entry.disease_or_symptom],
+          symptoms:     entry.confirmed_symptoms?.length ? entry.confirmed_symptoms : [entry.disease_or_symptom],
           ai_diagnosis: entry.disease_or_symptom,
           is_historical: true,
-          resolved:      true,
+          resolved:      !stillAffected,
+          resolved_at:   stillAffected ? null : new Date(),
           reported_date: parseApproximateDate(entry.approximate_date),
         });
 
@@ -130,6 +138,13 @@ const confirm = async (req, res) => {
         const vaccination = await Vaccination.create(vaccinationData);
         savedVaccinations.push(vaccination);
       }
+    }
+
+    // ── لو فيه مرض لسه مصاب بيه الحيوان (still_affected=true)، حدّث حالته ─────
+    // الصحية بدل ما تفضل "سليم" وهو فعلياً لسه مريض. منخليش الترقية تنزل حالة
+    // أخطر (critical) لـ sick لو أصلاً محدثة من تشخيص حقيقي قبل كده.
+    if (anyStillAffected && animal.health_status === "healthy") {
+      await Animal.findByIdAndUpdate(animal._id, { health_status: "sick" });
     }
 
     return res.status(201).json({

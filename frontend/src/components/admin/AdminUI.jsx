@@ -4,7 +4,7 @@ import { EGYPTIAN_GOVERNORATES } from '../../constant/adminData';
 
 /* ── Shared class tokens ── */
 export const adminInputClass =
-  'w-full bg-white border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-[#1b4d2c] font-bold outline-none transition-all duration-200 placeholder:text-stone-400 ' +
+  'w-full bg-white border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-[#1b4d2c] font-bold outline-none transition-all duration-200 placeholder:text-stone-400 cursor-pointer ' +
   'hover:border-[#1b4d2c]/40 ' +
   'focus:border-[#1b4d2c] focus:ring-2 focus:ring-[#1b4d2c]/12 focus:shadow-[0_0_0_3px_rgba(27,77,44,0.08)]';
 
@@ -152,7 +152,7 @@ export function AdminUserAvatar({ name }) {
 }
 
 /* ── Governorate Dropdown ── */
-export function AdminGovernorateDropdown({ value, onChange, label, allLabel = 'كل المحافظات', className = '' }) {
+export function AdminGovernorateDropdown({ value, onChange, label, allLabel = 'كل المحافظات', className = '', align = 'right' }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -202,10 +202,10 @@ export function AdminGovernorateDropdown({ value, onChange, label, allLabel = '�
       {/* Dropdown panel — opens BELOW */}
       {open && (
         <div
-          className="absolute top-full right-0 min-w-[320px] sm:min-w-[420px] max-w-[90vw] mt-2 z-50
+          className={`absolute top-full ${align === 'left' ? 'left-0 origin-top-left' : 'right-0 origin-top-right'} min-w-[320px] sm:min-w-[420px] max-w-[90vw] mt-2 z-50
                      bg-white rounded-2xl border border-[#1b4d2c]/20
                      shadow-[0_12px_40px_-8px_rgba(27,77,44,0.25)]
-                     overflow-hidden origin-top-right"
+                     overflow-hidden`}
         >
           {/* "All" option */}
           <button

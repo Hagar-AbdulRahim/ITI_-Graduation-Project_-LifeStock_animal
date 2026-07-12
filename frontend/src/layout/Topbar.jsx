@@ -82,22 +82,32 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
 
+          {/* Back button — replaces the old standalone "المزارع" pill */}
           <button
-            onClick={() => navigate('/farms')}
-            className="hidden sm:flex items-center justify-center w-10 h-10 rounded-full border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-all shadow-sm"
-            title="العودة إلى صفحة المزارع"
+            onClick={() => navigate(-1)}
+            className="hidden sm:flex items-center justify-center w-10 h-10 rounded-full border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 hover:text-[#2d5a1b] transition-all shadow-sm"
+            title="رجوع"
           >
-            <ArrowRight className="w-5 h-5" />
+            <ArrowRight className="w-4 h-4" />
           </button>
 
           <div className="hidden md:flex items-center gap-2 bg-[#143a21] p-1.5 rounded-full border border-[#2a5c2a]">
             <button
               onClick={goToFarmHome}
-              className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-sm font-semibold text-white hover:bg-white/20 shadow-sm transition-colors"
+              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-white hover:bg-white/10 shadow-sm transition-colors"
               title="الرئيسية"
             >
               <Home className="w-4 h-4 text-white/90" />
               <span>الرئيسية</span>
+            </button>
+
+            <ChevronLeft className="w-4 h-4 text-white/50" />
+            <button
+              onClick={() => navigate('/farms')}
+              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-white/90 hover:text-white hover:bg-white/10 transition-colors"
+              title="المزارع"
+            >
+              <span>المزارع</span>
             </button>
 
             {activeFarmId && (
@@ -105,7 +115,7 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
                 <ChevronLeft className="w-4 h-4 text-white/50" />
                 <button
                   onClick={() => navigate(`/farms/${activeFarmId}/animals`)}
-                  className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-white/90 hover:text-white hover:bg-white/10 transition-colors"
+                  className="flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors"
                   title="عرض حيوانات المزرعة"
                 >
                   <span>الحيوانات</span>
@@ -178,9 +188,8 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
 
       {/* ── Mobile Dropdown Menu ── */}
       <div
-        className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out bg-white/95 backdrop-blur-xl border-b border-stone-200/60 shadow-lg ${
-          mobileMenuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
-        }`}
+        className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out bg-white/95 backdrop-blur-xl border-b border-stone-200/60 shadow-lg ${mobileMenuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+          }`}
       >
         <div className="px-4 py-4 space-y-3">
           {/* User info row */}

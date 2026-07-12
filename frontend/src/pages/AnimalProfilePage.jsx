@@ -107,6 +107,14 @@ export default function AnimalProfilePage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
+  const handleBack = () => {
+    if (userRole === 'admin' || userRole === 'sub_admin') {
+      navigate('/admin/animals')
+    } else {
+      navigate(farmIdForNavigation ? `/farms/${farmIdForNavigation}/animals` : '/farms')
+    }
+  }
+
   useEffect(() => {
     dispatch(clearAnimalState())
     if (id) {
@@ -205,11 +213,21 @@ export default function AnimalProfilePage() {
           <div className="bg-white rounded-[32px] border border-stone-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden min-h-[calc(100vh-140px)] flex flex-col">
             
             <div className="max-w-5xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
+              {/* Back Button */}
+              <div className="flex justify-start">
+                <button
+                  onClick={handleBack}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-white border border-stone-200 text-stone-700 hover:text-[#2d5a1b] hover:border-[#2d5a1b]/30 rounded-xl text-sm font-bold shadow-sm transition-all active:scale-95 font-cairo"
+                >
+                  <ArrowRight className="w-4 h-4" />
+                  <span>رجوع</span>
+                </button>
+              </div>
 
       {/* ── HERO PROFILE CARD ── */}
-      <div className="relative overflow-hidden rounded-3xl shadow-lg border border-[#2d5a1b]/15">
-        {/* Green gradient header */}
-        <div className="bg-gradient-to-l from-[#2d5a1b] to-[#3d7a25] px-6 pt-8 pb-16 text-white">
+      <div className="relative overflow-hidden rounded-3xl shadow-lg border border-[#1b4d2c]/15">
+        {/* Green header matching topbar */}
+        <div className="bg-[#1b4d2c] px-6 pt-8 pb-16 text-white">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-black leading-tight flex items-center gap-2">
@@ -349,7 +367,7 @@ export default function AnimalProfilePage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             {/* Card header */}
-            <div className="flex items-center gap-3 px-6 py-4 bg-gradient-to-l from-[#2d5a1b] to-[#3d7a25] text-white">
+            <div className="flex items-center gap-3 px-6 py-4 bg-[#1b4d2c] text-white">
               <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center border border-white/20">
                 <Activity className="w-4 h-4 text-white" />
               </div>
@@ -378,7 +396,7 @@ export default function AnimalProfilePage() {
           {/* Notes card — only shown if notes exist */}
           {notes && (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="flex items-center gap-3 px-6 py-4 bg-gradient-to-l from-[#2d5a1b] to-[#3d7a25] text-white">
+              <div className="flex items-center gap-3 px-6 py-4 bg-[#1b4d2c] text-white">
                 <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center border border-white/20">
                   <StickyNote className="w-4 h-4 text-white" />
                 </div>
@@ -395,7 +413,7 @@ export default function AnimalProfilePage() {
         <div className="space-y-4">
           {/* Health status card */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="flex items-center gap-3 px-5 py-4 bg-gradient-to-l from-[#2d5a1b] to-[#3d7a25] text-white">
+            <div className="flex items-center gap-3 px-5 py-4 bg-[#1b4d2c] text-white">
               <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center border border-white/20">
                 <Heart className="w-4 h-4 text-white" />
               </div>

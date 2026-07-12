@@ -418,6 +418,7 @@ const AddVaccinationPage = () => {
               }`}
             >
               {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+              
               حفظ سجل التطعيم
             </button>
           </div>

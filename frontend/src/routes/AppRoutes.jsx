@@ -263,16 +263,12 @@ const AppRoutes = () => {
         <Route index element={<EmergencyPage />} />
       </Route>
 
-     <Route
-     path="/outbreaks"
-     element={
-       <ProtectedRoute>
-         <MainLayout />
-       </ProtectedRoute>
-     }
-   >
-     <Route index element={<OutbreaksPage />} />
-   </Route>
+    {/* Public: accessible without login */}
+<Route path="/outbreaks" element={<MainLayout />}>
+  <Route index element={<OutbreaksPage />} />
+</Route>
+
+
       {/* Admin Portal */}
       <Route
         path="/admin"

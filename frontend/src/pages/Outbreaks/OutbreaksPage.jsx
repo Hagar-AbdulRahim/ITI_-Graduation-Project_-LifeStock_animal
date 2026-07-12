@@ -146,7 +146,6 @@ const OutbreaksPage = () => {
 
   const filteredOutbreaks = useMemo(() => {
     if (!searchQuery) return outbreaks;
-    
     // دالة لتوحيد النصوص العربية عشان السيرش يشتغل حتى لو اتكتب (ا) بدل (أ) أو (ه) بدل (ة)
     const normalize = (str) => {
       if (!str) return '';
@@ -156,9 +155,9 @@ const OutbreaksPage = () => {
     };
 
     const query = normalize(searchQuery.trim());
-    
-    return outbreaks.filter(o => 
-      normalize(o.governorate).includes(query) || 
+
+    return outbreaks.filter(o =>
+      normalize(o.governorate).includes(query) ||
       normalize(o.disease_name).includes(query)
     );
   }, [outbreaks, searchQuery]);
@@ -374,6 +373,10 @@ const OutbreaksPage = () => {
   );
 };
 
+<<<<<<< HEAD
+
+=======
+>>>>>>> 9e25ee91f566664f86fd637cbf5709776d15aeda
 
 
 export default OutbreaksPage;
