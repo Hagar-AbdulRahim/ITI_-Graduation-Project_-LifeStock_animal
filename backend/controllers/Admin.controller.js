@@ -100,58 +100,6 @@ const getUsers = async (req, res) => {
   }
 };
 
-const createUser = async (req, res) => {
-  try {
-    const { name, email, phone, password, governorate, role } = req.body;
-
-    if (!name?.trim() || !email?.trim() || !password || !governorate?.trim()) {
-      return res.status(400).json({ success: false, message: "الاسم والبريد وكلمة المرور والمحافظة مطلوبة" });
-    }
-
-    if (password.length < 8) {
-      return res.status(400).json({ success: false, message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" });
-    }
-
-    const allowedRoles = isAdmin(req.user) ? ["user"] : ["user"];
-    const assignedRole = allowedRoles.includes(role) ? role : "user";
-
-    const normalizedEmail = email.toLowerCase().trim();
-    const existing = await User.findOne({ email: normalizedEmail });
-    if (existing) {
-      return res.status(409).json({ success: false, message: "البريد الإلكتروني مسجل بالفعل" });
-    }
-
-    const user = new User({
-      name: name.trim(),
-      email: normalizedEmail,
-      phone: phone?.trim() || null,
-      password,
-      governorate: governorate.trim(),
-      role: assignedRole,
-      auth_provider: "local",
-      is_email_verified: true,
-      is_active: true,
-    });
-
-    await user.save();
-
-    console.log(`[AUDIT] Admin ${req.user._id} created user ${user._id} with role ${assignedRole}`);
-
-    const safeUser = await User.findById(user._id).select("-password -email_verification_token -password_reset_otp");
-
-    res.status(201).json({
-      success: true,
-      message: "تم إنشاء المستخدم بنجاح",
-      data: safeUser,
-    });
-  } catch (err) {
-    console.error("createUser error:", err);
-    if (err.code === 11000) {
-      return res.status(409).json({ success: false, message: "البريد الإلكتروني مسجل بالفعل" });
-    }
-    res.status(500).json({ success: false, message: "خطأ في الخادم" });
-  }
-};
 
 const getUserById = async (req, res) => {
   try {
@@ -316,22 +264,7 @@ const getFarmById = async (req, res) => {
   }
 };
 
-const deleteFarm = async (req, res) => {
-  try {
-    if (!isAdmin(req.user)) {
-      return res.status(403).json({ success: false, message: "ليس لديك صلاحية حذف المزارع" });
-    }
 
-    const farm = await Farm.findByIdAndUpdate(req.params.id, { is_active: false }, { new: true });
-    if (!farm) return res.status(404).json({ success: false, message: "المزرعة غير موجودة" });
-
-    console.log(`[AUDIT] Admin ${req.user._id} deleted farm ${farm._id}`);
-    res.json({ success: true, message: "تم حذف المزرعة" });
-  } catch (err) {
-    console.error("deleteFarm error:", err);
-    res.status(500).json({ success: false, message: "خطأ في الخادم" });
-  }
-};
 
 // ════════════════════════════════════════════════════════════════════════════
 // Animals
@@ -912,7 +845,6 @@ const getNotifications = async (req, res) => {
 module.exports = {
   getDashboardStats,
   getUsers,
-  createUser,
   getUserById,
   toggleUser,
   deleteUser,
@@ -936,7 +868,6 @@ module.exports = {
   broadcastNotification,
   getFarms,
   getFarmById,
-  deleteFarm,
   getAnimals,
   getHealthCases,
   updateHealthCase,

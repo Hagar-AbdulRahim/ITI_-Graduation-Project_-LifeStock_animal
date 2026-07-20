@@ -154,7 +154,10 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
               </button>
 
               {/* User Profile Info — hidden on mobile */}
-              <div className="hidden md:flex items-center gap-3 pl-4 border-l border-white/20">
+              <button
+                onClick={() => { navigate('/profile'); setMobileMenuOpen(false); }}
+                className="hidden md:flex items-center gap-3 pl-4 border-l border-white/20 hover:opacity-80 transition-opacity cursor-pointer text-right"
+              >
                 <div className="flex items-center gap-3 bg-[#143a21] border border-[#2a5c2a] rounded-full pr-1 pl-3 py-1">
                   {user?.avatar ? (
                     <img
@@ -174,7 +177,7 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
                     </p>
                   </div>
                 </div>
-              </div>
+              </button>
 
               {/* Logout Button — hidden on mobile */}
               <button
@@ -205,7 +208,10 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
         <div className="px-4 py-4 space-y-3">
           {/* User info row */}
           {user ? (
-            <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-2xl border border-stone-100">
+            <button
+              onClick={() => { navigate('/profile'); setMobileMenuOpen(false); }}
+              className="w-full flex items-center gap-3 p-3 bg-stone-50 rounded-2xl border border-stone-100 text-right hover:bg-stone-100 transition-colors cursor-pointer"
+            >
               {user?.avatar ? (
                 <img
                   src={user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000${user.avatar}`}
@@ -223,7 +229,7 @@ export default function Topbar({ farmIdProp, farmNameProp }) {
                   {user?.name || 'المستخدم'}
                 </p>
               </div>
-            </div>
+            </button>
           ) : (
             <div className="p-2 text-center border-b border-stone-100 pb-4 mb-2">
               <p className="text-xs font-bold text-stone-500 mb-3">يرجى تسجيل الدخول للوصول لكافة الميزات</p>

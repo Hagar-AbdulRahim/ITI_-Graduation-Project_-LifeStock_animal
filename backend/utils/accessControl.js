@@ -2,7 +2,7 @@ const isAdmin = (user) => user?.role === "admin";
 const isSubAdmin = (user) => user?.role === "sub_admin";
 const isStaff = (user) => isAdmin(user) || isSubAdmin(user);
 const isFarmer = (user) => !user?.role || user.role === "user";
-const canModifyLivestock = (user) => isAdmin(user);
+const canModifyLivestock = (user) => false;
 
 const parsePagination = (query) => {
   const page  = Math.max(1, parseInt(query.page, 10) || 1);

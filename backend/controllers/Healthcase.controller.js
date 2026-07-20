@@ -29,15 +29,12 @@ const notifyIfCritical = async ({ severity, ownerId, animalId, tagNumber }) => {
   }
 };
 
-// helper: وصول للحيوان (لم يتغير)
 const verifyAnimalAccess = async (animalId, user, { requireOwnership = false } = {}) => {
   const animal = await Animal.findOne({ _id: animalId, is_active: true }).populate(
     "farm_id",
     "user_id governorate"
   );
   if (!animal) return null;
-
-  if (isAdmin(user)) return animal;
 
   const isOwner = animal.farm_id.user_id.toString() === user._id.toString();
 

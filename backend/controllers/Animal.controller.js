@@ -4,6 +4,7 @@ const Animal = require("../models/animal");
 const Farm   = require("../models/farm");
 const fs     = require("fs");
 const path   = require("path");
+const { parseAndValidateAnimalsSheet, buildAnimalImportTemplate } = require("../utils/animalImportParser");
 
 // helper: verify farm belongs to the current user
 const userOwnsFarm = async (farmId, userId) => {
@@ -248,6 +249,112 @@ const deleteAnimal = async (req, res) => {
   }
 };
 
+// ── تحميل قالب Excel فاضي لإضافة الحيوانات دفعة واحدة ──────────────────────
+const downloadAnimalImportTemplate = (req, res) => {
+  try {
+    const buffer = buildAnimalImportTemplate();
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", 'attachment; filename="animals_import_template.xlsx"');
+    return res.send(buffer);
+  } catch (err) {
+    console.error("downloadAnimalImportTemplate error:", err);
+    return res.status(500).json({ success: false, message: "خطأ في الخادم" });
+  }
+};
+
+// ── استيراد جماعي للحيوانات من ملف Excel/CSV ────────────────────────────────
+// بيحفظ الصفوف الصح ويرفض الصفوف الغلط بس (مش بيرفض الملف كله)
+const bulkImportAnimals = async (req, res) => {
+  try {
+    const { farm_id } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "لازم ترفعي ملف Excel أو CSV" });
+    }
+
+    const farm = await userOwnsFarm(farm_id, req.user._id);
+    if (!farm) {
+      return res.status(404).json({ success: false, message: "المزرعة غير موجودة" });
+    }
+
+    let parsed;
+    try {
+      parsed = parseAndValidateAnimalsSheet(req.file.buffer);
+    } catch (parseErr) {
+      return res.status(400).json({
+        success: false,
+        message: parseErr.isEmptySheet
+          ? "الملف فاضي أو مفيش صفوف بيانات فيه"
+          : "تعذّر قراءة الملف — تأكدي إنه Excel أو CSV صحيح",
+      });
+    }
+
+    const { validRows, invalidRows, totalRows } = parsed;
+
+    // منع تكرار رقم الوسم داخل نفس الملف نفسه (قبل ما نوصل لقاعدة البيانات أصلاً)
+    const seenTags = new Map();
+    const dedupedValidRows = [];
+    validRows.forEach((r) => {
+      if (seenTags.has(r.data.tag_number)) {
+        invalidRows.push({
+          valid: false,
+          row: r.row,
+          errors: [`رقم الوسم "${r.data.tag_number}" مكرر داخل نفس الملف (اتاخد في الصف ${seenTags.get(r.data.tag_number)})`],
+          raw: r.data,
+        });
+      } else {
+        seenTags.set(r.data.tag_number, r.row);
+        dedupedValidRows.push(r);
+      }
+    });
+
+    const created = [];
+    const failed = [...invalidRows.map((r) => ({ row: r.row, tag_number: r.raw?.tag_number || null, errors: r.errors }))];
+
+    for (const { row, data } of dedupedValidRows) {
+      try {
+        const animal = await Animal.create({
+          farm_id,
+          tag_number: data.tag_number,
+          species:    data.species,
+          gender:     data.gender,
+          age_value:  data.age_value,
+          age_unit:   data.age_unit,
+          weight_kg:  data.weight_kg,
+          breed:      data.breed,
+          notes:      data.notes,
+        });
+        created.push(animal);
+      } catch (err) {
+        // رقم وسم مكرر فعليًا في نفس المزرعة (موجود من قبل في الداتابيز)
+        const message = err.code === 11000
+          ? `رقم الوسم "${data.tag_number}" مستخدم بالفعل في هذه المزرعة`
+          : "تعذّر حفظ هذا الصف";
+        failed.push({ row, tag_number: data.tag_number, errors: [message] });
+      }
+    }
+
+    if (created.length > 0) {
+      await Farm.findByIdAndUpdate(farm_id, { $inc: { total_animals: created.length } });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `تم استيراد ${created.length} من أصل ${totalRows} حيوان`,
+      summary: {
+        total_rows: totalRows,
+        imported:   created.length,
+        failed:     failed.length,
+      },
+      imported: created,
+      errors:   failed.sort((a, b) => a.row - b.row),
+    });
+  } catch (err) {
+    console.error("bulkImportAnimals error:", err);
+    return res.status(500).json({ success: false, message: "خطأ في الخادم" });
+  }
+};
+
 module.exports = {
   createAnimal,
   getAnimalsByFarm,
@@ -255,4 +362,6 @@ module.exports = {
   updateAnimal,
   deleteAnimal,
   searchAnimals,
+  downloadAnimalImportTemplate,
+  bulkImportAnimals,
 };

@@ -47,6 +47,15 @@ farmSchema.index({ user_id: 1, name: 1, governorate: 1 }, { unique: true });
 farmSchema.pre("findOneAndDelete", async function () {
   const farm = await this.model.findOne(this.getQuery());
   if (farm) {
+    const animals = await mongoose.model("Animal").find({ farm_id: farm._id });
+    const animalIds = animals.map(a => a._id);
+
+    if (animalIds.length > 0) {
+      await Promise.all([
+        mongoose.model("HealthCase").deleteMany({ animal_id: { $in: animalIds } }),
+        mongoose.model("Vaccination").deleteMany({ animal_id: { $in: animalIds } }),
+      ]);
+    }
     await mongoose.model("Animal").deleteMany({ farm_id: farm._id });
   }
 });

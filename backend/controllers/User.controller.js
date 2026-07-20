@@ -1,4 +1,9 @@
 const User  = require("../models/user");
+const Farm = require("../models/farm");
+const Animal = require("../models/animal");
+const HealthCase = require("../models/healthCase");
+const Vaccination = require("../models/vaccination");
+const Consultation = require("../models/Consultation");
 const bcrypt = require("bcryptjs");
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -106,17 +111,43 @@ const updateFcmToken = async (req, res) => {
 };
 
 // ════════════════════════════════════════════════════════════════════════════
-// DELETE /api/users/me  — حذف الحساب (soft delete)
-// بنخلي is_active = false بدل ما نحذف فعلاً — عشان نحتفظ بالبيانات التاريخية
+// DELETE /api/users/me  — حذف الحساب (Hard Delete with Cascade)
+// يتم حذف المستخدم وكافة بياناته المرتبطة به نهائياً بناءً على طلب المستخدم
 // ════════════════════════════════════════════════════════════════════════════
 const deleteMe = async (req, res) => {
   try {
-    await User.findByIdAndUpdate(req.user._id, { is_active: false });
+    const userId = req.user._id;
+
+    // 1. Delete all consultations requested by the user
+    await Consultation.deleteMany({ user_id: userId });
+
+    // 2. Find all farms for this user
+    const farms = await Farm.find({ user_id: userId });
+    const farmIds = farms.map((f) => f._id);
+
+    if (farmIds.length > 0) {
+      // 3. Find all animals for these farms
+      const animals = await Animal.find({ farm_id: { $in: farmIds } });
+      const animalIds = animals.map((a) => a._id);
+
+      if (animalIds.length > 0) {
+        // 4. Delete all health cases and vaccinations for these animals
+        await HealthCase.deleteMany({ animal_id: { $in: animalIds } });
+        await Vaccination.deleteMany({ animal_id: { $in: animalIds } });
+      }
+
+      // 5. Delete all animals and farms
+      await Animal.deleteMany({ farm_id: { $in: farmIds } });
+      await Farm.deleteMany({ user_id: userId });
+    }
+
+    // 6. Delete the user completely
+    await User.findByIdAndDelete(userId);
 
     // مسح الـ refresh token cookie
     res.clearCookie("refreshToken", { path: "/api/auth" });
 
-    res.json({ success: true, message: "تم حذف الحساب. يمكنك التواصل معنا لاستعادته خلال 30 يوماً." });
+    res.json({ success: true, message: "تم حذف الحساب وكافة المزارع والحيوانات الخاصة بك نهائياً." });
   } catch (err) {
     res.status(500).json({ success: false, message: "خطأ في الخادم", error: err.message });
   }

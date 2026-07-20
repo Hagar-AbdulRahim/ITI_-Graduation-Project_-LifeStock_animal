@@ -3,11 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion, useInView } from 'framer-motion';
 import {
-  Search, Plus, ArrowRight,
+  Search, Plus, ArrowRight, Upload,
   ChevronRight, ChevronLeft, ChevronDown, Loader2, MoreVertical,
   PawPrint, Syringe, AlertTriangle, CheckCircle,
   CalendarDays, Weight, User, HeartPulse, X
 } from 'lucide-react';
+
+import { animalService } from '../../features/animals/services/animalService';
 
 import cowImg from '../../assets/images/Profile/cow.png';
 import goatImg from '../../assets/images/Profile/goat.png';
@@ -245,14 +247,17 @@ const AnimalsListPage = () => {
   const { farmId } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
   const { farmAnimals, loading } = useSelector((state) => state.farm);
+  const userRole = useSelector((state) => state.auth?.user?.role);
+  const canManageAnimals = userRole !== 'admin' && userRole !== 'sub_admin';
 
   const [filterSpecies, setFilterSpecies] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterAge, setFilterAge] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
   const ITEMS_PER_PAGE = 12;
 
   useEffect(() => {
@@ -282,6 +287,39 @@ const AnimalsListPage = () => {
     }
     return matchSpecies && matchStatus && matchSearch && matchAge;
   });
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const targetFarmId = farmId || (rawAnimals.length > 0 ? (rawAnimals[0].farm_id?._id || rawAnimals[0].farm_id) : null);
+
+    if (!targetFarmId) {
+      alert("تعذر تحديد المزرعة. الرجاء المحاولة من صفحة المزرعة.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('farm_id', targetFarmId);
+
+    try {
+      setIsUploading(true);
+      const res = await animalService.bulkImportAnimals(formData);
+      alert(res.message || "تم استيراد الحيوانات بنجاح!");
+      if (targetFarmId) {
+        dispatch(fetchFarmAnimals(targetFarmId));
+        dispatch(fetchFarmById(targetFarmId));
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || "حدث خطأ أثناء استيراد الملف");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
 
   const hasFilters = filterSpecies !== 'all' || filterStatus !== 'all' || filterAge !== 'all' || !!searchTerm;
   const totalPages = Math.max(1, Math.ceil(displayAnimals.length / ITEMS_PER_PAGE));
@@ -320,15 +358,34 @@ const AnimalsListPage = () => {
         <div className="max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 pb-4 sm:pb-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
 
-            {/* Add button */}
-            <div className="w-full lg:w-auto">
-              <button
-                onClick={() => navigate(farmId ? `/farms/${farmId}/animals/add` : '/animals/add')}
-                className="w-full lg:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-[#1b4d2c] rounded-xl text-sm font-bold hover:bg-stone-50 transition-colors shadow-sm"
-              >
-                <Plus className="w-4 h-4" />
-                إضافة حيوان
-              </button>
+            {/* Add & Upload buttons */}
+            <div className="w-full lg:w-auto flex flex-col sm:flex-row items-center gap-2">
+              {canManageAnimals && (
+                <>
+                  <button
+                    onClick={() => navigate(farmId ? `/farms/${farmId}/animals/add` : '/animals/add')}
+                    className="w-full lg:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-[#1b4d2c] rounded-xl text-sm font-bold hover:bg-stone-50 transition-colors shadow-sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                    إضافة حيوان
+                  </button>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="w-full lg:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-[#2a5c2a] text-white border border-[#2a5c2a] rounded-xl text-sm font-bold hover:bg-[#1e4520] hover:border-[#1e4520] transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                    استيراد شيت
+                  </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                    className="hidden"
+                  />
+                </>
+              )}
             </div>
 
             {/* Search */}

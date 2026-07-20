@@ -150,4 +150,16 @@ export const animalService = {
     const response = await api.post(`${BASE_URL}/${id}/health-cases`, data);
     return response.data;
   },
+
+  /**
+   * POST /api/animals/bulk-import
+   * Bulk import animals from an Excel/CSV file.
+   * @param {FormData} formData - form data containing 'farm_id' and 'file'
+   */
+  bulkImportAnimals: async (formData) => {
+    const response = await api.post(`${BASE_URL}/bulk-import`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
 };

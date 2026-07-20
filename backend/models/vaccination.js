@@ -75,6 +75,8 @@ const vaccinationSchema = new mongoose.Schema(
     reminder_sent_at:       { type: Date, default: null },
     day_of_reminder_sent:   { type: Boolean, default: false },
     day_of_reminder_sent_at:{ type: Date, default: null },
+    overdue_reminder_sent:   { type: Boolean, default: false },
+    overdue_reminder_sent_at:{ type: Date, default: null },
   },
   {
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
@@ -108,8 +110,10 @@ vaccinationSchema.set("toObject", { virtuals: true });
 
 vaccinationSchema.index({ next_due_date: 1, reminder_sent: 1 });
 vaccinationSchema.index({ next_due_date: 1, day_of_reminder_sent: 1 });
+vaccinationSchema.index({ next_due_date: 1, overdue_reminder_sent: 1 });
 vaccinationSchema.index({ scheduled_date: 1, reminder_sent: 1 });
 vaccinationSchema.index({ scheduled_date: 1, day_of_reminder_sent: 1 });
+vaccinationSchema.index({ scheduled_date: 1, overdue_reminder_sent: 1 });
 vaccinationSchema.index({ animal_id: 1, next_due_date: 1 });
 vaccinationSchema.index({ animal_id: 1, scheduled_date: 1 });
 vaccinationSchema.index({ is_active: 1 });

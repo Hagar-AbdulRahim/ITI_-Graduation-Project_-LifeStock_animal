@@ -8,7 +8,11 @@ const {
   updateAnimal,
   deleteAnimal,
   searchAnimals,
+  downloadAnimalImportTemplate,
+  bulkImportAnimals,
 } = require("../controllers/Animal.controller");
+
+const uploadSpreadsheet = require("../middelwares/UploadSpreadsheet");
 
 const {
   createAnimalValidator,
@@ -27,6 +31,12 @@ router.get("/search", searchAnimals);
 
 // مسار جلب كافة الحيوانات داخل مزرعة محددة
 router.get("/farm/:farmId", getAnimalsByFarm);
+
+// تحميل قالب Excel فاضي لإضافة الحيوانات دفعة واحدة
+router.get("/bulk-import/template", downloadAnimalImportTemplate);
+
+// استيراد جماعي للحيوانات من ملف Excel/CSV — الصفوف الصح بتتحفظ والغلط بيترفض بس
+router.post("/bulk-import", uploadSpreadsheet.single("file"), bulkImportAnimals);
 
 // مسار إضافة حيوان جديد
 router.post(

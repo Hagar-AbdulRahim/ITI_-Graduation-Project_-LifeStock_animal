@@ -93,7 +93,7 @@ export default function AnimalProfilePage() {
 
   const { animal, loading, error } = useSelector((state) => state.animal)
   const userRole = useSelector((state) => state.auth?.user?.role)
-  const canManageAnimal = userRole !== 'sub_admin'
+  const canManageAnimal = userRole !== 'sub_admin' && userRole !== 'admin'
   const fallbackAnimal = useSelector((state) =>
     state.farm?.farmAnimals?.find((a) => a._id === id),
   )
@@ -318,11 +318,11 @@ export default function AnimalProfilePage() {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {[
-          {
+          ...(canManageAnimal ? [{
             label: 'استشارة بيطرية',
             icon: Stethoscope,
             action: () => navigate(aiAssistantPath),
-          },
+          }] : []),
           {
             label: 'السجل الطبي',
             icon: ClipboardList,

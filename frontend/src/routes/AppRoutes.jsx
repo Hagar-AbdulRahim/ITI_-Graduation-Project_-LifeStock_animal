@@ -34,8 +34,7 @@ import ContactUsPage from '../pages/ContactUs/ContactUsPage'
 
 import ServicesPage from '../pages/ServicesPage'
 import OutbreaksPage from '../pages/Outbreaks/OutbreaksPage'
-
-
+import UserProfilePage from '../pages/UserProfilePage'
 
 // Dashboard & Layout Pages
 import MainLayout from '../layout/MainLayout'
@@ -106,6 +105,16 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<UserProfilePage />} />
+      </Route>
 
       {/* Nested Farm Dashboard Routes (all render inside MainLayout with Sidebar/Topbar) */}
       <Route

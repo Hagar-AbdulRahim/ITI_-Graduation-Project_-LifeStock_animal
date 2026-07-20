@@ -176,10 +176,12 @@ const updateVaccination = async (req, res) => {
 
     // ── reset reminder flags لما الموعد يتغير ────────────────────────────────
     if (updates.next_due_date || updates.scheduled_date || updates.administration_date) {
-      updates.reminder_sent           = false;
-      updates.day_of_reminder_sent    = false;
-      updates.reminder_sent_at        = null;
-      updates.day_of_reminder_sent_at = null;
+      updates.reminder_sent            = false;
+      updates.day_of_reminder_sent     = false;
+      updates.overdue_reminder_sent    = false;
+      updates.reminder_sent_at         = null;
+      updates.day_of_reminder_sent_at  = null;
+      updates.overdue_reminder_sent_at = null;
     }
 
     // ── تسجيل وقت إتمام الجرعة ───────────────────────────────────────────────
@@ -230,10 +232,14 @@ const confirmVaccinationDose = async (req, res) => {
     if (existing.vaccine_type === "recurring" && existing.repeat_every_months) {
       existing.next_due_date = calcNextDueDate(doseDate, existing.repeat_every_months);
       existing.next_due_date_auto_calculated = true;
+      existing.completed = false; // Reset for the next cycle
+      existing.completed_at = null; // Reset for the next cycle
       existing.reminder_sent = false;
       existing.day_of_reminder_sent = false;
+      existing.overdue_reminder_sent = false;
       existing.reminder_sent_at = null;
       existing.day_of_reminder_sent_at = null;
+      existing.overdue_reminder_sent_at = null;
     }
 
     await existing.save();

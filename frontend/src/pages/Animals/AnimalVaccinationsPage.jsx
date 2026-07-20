@@ -20,6 +20,7 @@ const AnimalVaccinationsPage = () => {
   const dispatch = useDispatch();
 
   const { animal, vaccinations, loading, error } = useSelector((state) => state.animal);
+  const userRole = useSelector((state) => state.auth?.user?.role);
   const [deletingId, setDeletingId] = useState(null);
 
   // Details modal
@@ -278,12 +279,14 @@ const AnimalVaccinationsPage = () => {
                   </div>
                 )}
               </div>
-              <button onClick={() => navigate(`/animals/${id}/vaccinations/add`)}
-                className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-[#2a5c2a] text-white rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold hover:bg-[#1f451f] transition-colors shadow-sm whitespace-nowrap">
-                <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                <span className="sm:hidden">إضافة تطعيم</span>
-                <span className="hidden sm:inline">إضافة تطعيم جديد</span>
-              </button>
+              {userRole !== 'admin' && (
+                <button onClick={() => navigate(`/animals/${id}/vaccinations/add`)}
+                  className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-[#2a5c2a] text-white rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold hover:bg-[#1f451f] transition-colors shadow-sm whitespace-nowrap">
+                  <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                  <span className="sm:hidden">إضافة تطعيم</span>
+                  <span className="hidden sm:inline">إضافة تطعيم جديد</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -309,10 +312,12 @@ const AnimalVaccinationsPage = () => {
               </div>
               <p className="font-bold text-stone-800 text-lg">لا توجد تطعيمات مسجلة بعد</p>
               <p className="text-xs text-stone-400 mt-2 leading-relaxed">سجل تطعيمات الحيوان يساعد على حمايته وتجنب انتشار الأوبئة.</p>
-              <button onClick={() => navigate(`/animals/${id}/vaccinations/add`)}
-                className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 bg-[#2a5c2a] text-white rounded-xl text-xs font-bold hover:bg-[#1f451f] transition-all">
-                <Plus className="w-4 h-4" />سجل أول تطعيم الآن
-              </button>
+              {userRole !== 'admin' && (
+                <button onClick={() => navigate(`/animals/${id}/vaccinations/add`)}
+                  className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 bg-[#2a5c2a] text-white rounded-xl text-xs font-bold hover:bg-[#1f451f] transition-all">
+                  <Plus className="w-4 h-4" />سجل أول تطعيم الآن
+                </button>
+              )}
             </div>
           ) : (
             <div className="flex flex-wrap gap-6 justify-start">
@@ -390,7 +395,7 @@ const AnimalVaccinationsPage = () => {
                             <span>التفاصيل</span>
                           </button>
 
-                          {vac.is_active && !vac.completed && (
+                          {userRole !== 'admin' && vac.is_active && !vac.completed && (
                             <button onClick={() => handleConfirmCompleted(vac)}
                               className="flex items-center justify-center px-4 py-2.5 bg-[#1b4d2c] hover:bg-[#2d5a1b] text-white rounded-xl text-xs font-black transition-all shadow-sm">
                               <span>تأكيد</span>
@@ -400,22 +405,24 @@ const AnimalVaccinationsPage = () => {
 
                         {/* Left side: Icon Buttons */}
                         <div className="flex items-center gap-2">
-                          {vac.is_active && !vac.completed && (
+                          {userRole !== 'admin' && vac.is_active && !vac.completed && (
                             <button onClick={() => handleOpenPostpone(vac)}
                               className="p-2 text-blue-600 hover:bg-white rounded-xl border border-stone-200 bg-white transition-all shadow-xs" title="تأجيل الموعد">
                               <CalendarDays className="w-4 h-4" />
                             </button>
                           )}
-                          {vac.is_active && vac.vaccine_type === 'recurring' && (
+                          {userRole !== 'admin' && vac.is_active && vac.vaccine_type === 'recurring' && (
                             <button onClick={() => handleStop(vac._id)}
                               className="p-2 text-amber-600 hover:bg-white rounded-xl border border-stone-200 bg-white transition-all shadow-xs" title="إيقاف متابعة اللقاح">
                               <PauseCircle className="w-4 h-4" />
                             </button>
                           )}
-                          <button onClick={() => handleDelete(vac._id)}
-                            className="p-2 text-rose-600 hover:bg-white rounded-xl border border-stone-200 bg-white transition-all shadow-xs" title="حذف السجل">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          {userRole !== 'admin' && (
+                            <button onClick={() => handleDelete(vac._id)}
+                              className="p-2 text-rose-600 hover:bg-white rounded-xl border border-stone-200 bg-white transition-all shadow-xs" title="حذف السجل">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -603,26 +610,28 @@ const AnimalVaccinationsPage = () => {
                       </div>
                     )}
 
-                    <div className="pt-2 flex flex-wrap items-center justify-between gap-3">
-                      <button onClick={() => { setIsDetailsOpen(false); navigate(`/animals/${id}/vaccinations/edit/${selectedVaccination._id}`); }}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-3 bg-white hover:bg-gray-50 text-[#1b4d2c] rounded-xl text-[13px] font-bold transition-all border border-[#154b23]/10 shadow-sm">
-                        <Edit className="w-4 h-4" />تعديل
-                      </button>
-                      <button onClick={() => handleOpenPostpone(selectedVaccination)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-[13px] font-bold transition-all border border-blue-200 shadow-sm">
-                        <CalendarDays className="w-4 h-4" />تأجيل
-                      </button>
-                      {selectedVaccination.is_active && !selectedVaccination.completed && (
-                        <button onClick={() => handleConfirmCompleted(selectedVaccination)}
-                          className="flex-1 flex items-center justify-center gap-1.5 py-3 bg-[#154b23] hover:bg-[#0f3619] text-white rounded-xl text-[13px] font-bold transition-all shadow-md">
-                          <Check className="w-4 h-4" />تأكيد الإعطاء
+                    {userRole !== 'admin' && (
+                      <div className="pt-2 flex flex-wrap items-center justify-between gap-3">
+                        <button onClick={() => { setIsDetailsOpen(false); navigate(`/animals/${id}/vaccinations/edit/${selectedVaccination._id}`); }}
+                          className="flex-1 flex items-center justify-center gap-1.5 py-3 bg-white hover:bg-gray-50 text-[#1b4d2c] rounded-xl text-[13px] font-bold transition-all border border-[#154b23]/10 shadow-sm">
+                          <Edit className="w-4 h-4" />تعديل
                         </button>
-                      )}
-                      <button onClick={() => handleDelete(selectedVaccination._id)} disabled={deletingId === selectedVaccination._id}
-                        className="px-4 py-3 border border-red-200 hover:bg-red-50 text-red-600 rounded-xl text-[13px] font-bold transition-all disabled:opacity-50 bg-white shadow-sm" title="حذف">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                        <button onClick={() => handleOpenPostpone(selectedVaccination)}
+                          className="flex-1 flex items-center justify-center gap-1.5 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-[13px] font-bold transition-all border border-blue-200 shadow-sm">
+                          <CalendarDays className="w-4 h-4" />تأجيل
+                        </button>
+                        {selectedVaccination.is_active && !selectedVaccination.completed && (
+                          <button onClick={() => handleConfirmCompleted(selectedVaccination)}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-3 bg-[#154b23] hover:bg-[#0f3619] text-white rounded-xl text-[13px] font-bold transition-all shadow-md">
+                            <Check className="w-4 h-4" />تأكيد الإعطاء
+                          </button>
+                        )}
+                        <button onClick={() => handleDelete(selectedVaccination._id)} disabled={deletingId === selectedVaccination._id}
+                          className="px-4 py-3 border border-red-200 hover:bg-red-50 text-red-600 rounded-xl text-[13px] font-bold transition-all disabled:opacity-50 bg-white shadow-sm" title="حذف">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div className="text-center py-6 text-stone-500">فشل تحميل التفاصيل.</div>

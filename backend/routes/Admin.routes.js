@@ -4,7 +4,6 @@ const { protect, authorize } = require("../middelwares/Auth.middleware");
 const {
   getDashboardStats,
   getUsers,
-  createUser,
   getUserById,
   toggleUser,
   deleteUser,
@@ -28,7 +27,6 @@ const {
   broadcastNotification,
   getFarms,
   getFarmById,
-  deleteFarm,
   getAnimals,
   getHealthCases,
   updateHealthCase,
@@ -40,7 +38,6 @@ router.get("/dashboard/stats", getDashboardStats);
 router.get("/stats", getDashboardStats);
 
 router.get("/users", getUsers);
-router.post("/users", createUser);
 router.get("/users/:id", getUserById);
 router.put("/users/:id/toggle", toggleUser);
 router.delete("/users/:id", deleteUser);
@@ -61,7 +58,6 @@ router.get("/consultations", getConsultations);
 // Farms & Animals
 router.get("/farms", getFarms);
 router.get("/farms/:id", getFarmById);
-router.delete("/farms/:id", deleteFarm);
 router.get("/animals", getAnimals);
 
 router.get("/health-cases", getHealthCases);

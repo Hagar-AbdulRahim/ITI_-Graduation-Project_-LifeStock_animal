@@ -5,7 +5,6 @@ import toast from 'react-hot-toast';
 import adminService from '../../services/adminService';
 import DataTable from '../../components/admin/DataTable';
 import RoleBadge from '../../components/admin/RoleBadge';
-import UserFormModal from '../../components/admin/UserFormModal';
 import ConfirmModal from '../../components/admin/ConfirmModal';
 
 import {
@@ -63,21 +62,6 @@ export default function AdminUsersPage() {
     return () => clearTimeout(t);
   }, [fetchUsers, search]);
 
-
-
-  const handleSave = async (form) => {
-    setSaving(true);
-    try {
-      await adminService.createUser(form);
-      toast.success('تم إنشاء المستخدم');
-      setModalOpen(false);
-      fetchUsers();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'فشل الحفظ');
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const handleToggleStatus = async (r) => {
 
@@ -198,16 +182,7 @@ export default function AdminUsersPage() {
         title="إدارة المستخدمين"
         subtitle="سجل بجميع المزارعين والأطباء والمديرين."
 
-        action={
-          <AdminPrimaryButton onClick={() => setModalOpen(true)}>
-            <span className="flex items-center gap-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-              </svg>
-             اضافة مستخدم جديد 
-            </span>
-          </AdminPrimaryButton>
-        }
+
 
       />
 
@@ -222,7 +197,6 @@ export default function AdminUsersPage() {
         <DataTable columns={columns} data={users} loading={loading} pagination={pagination} onPageChange={setPage} />
       </AdminPanel>
 
-      <UserFormModal open={modalOpen} onClose={() => setModalOpen(false)} onSubmit={handleSave} initialData={null} loading={saving} />
 
       <ConfirmModal
         open={confirmOpen}

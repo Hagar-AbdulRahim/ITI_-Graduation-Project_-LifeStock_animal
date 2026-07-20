@@ -19,6 +19,7 @@ const IconBriefcase   = () => <svg className="w-4 h-4" fill="none" stroke="curre
 const IconDashboard   = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h8v8H3V3zm10 0h8v5h-8V3zm0 9h8v9h-8v-9zM3 13h8v8H3v-8z" /></svg>;
 const IconBell        = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>;
 const IconOutbreak = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" /></svg>;
+const IconUser        = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>;
 
 // ─── Nav Links definition ──────────────────────────────────────────────────
 const NAV_LINKS = [
@@ -228,6 +229,17 @@ const Navbar = () => {
                         </button>
                         <hr className="my-1.5 border-gray-100" />
                         <button
+                          onClick={() => {
+                            navigate('/profile')
+                            setShowDropdown(false)
+                          }}
+                          className="flex items-center gap-2.5 w-full px-4 py-2.5 text-base text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <IconUser />
+                          الملف الشخصي
+                        </button>
+                        <hr className="my-1.5 border-gray-100" />
+                        <button
                           onClick={handleLogout}
                           className="flex items-center gap-2.5 w-full px-4 py-2.5 text-base text-red-600 hover:bg-red-50 transition-colors"
                         >
@@ -312,6 +324,16 @@ const Navbar = () => {
                       لوحة التحكم
                     </button>
                   )}
+                  <button
+                    onClick={() => {
+                      navigate('/profile')
+                      setMenuOpen(false)
+                    }}
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-base font-semibold text-[#1b4d2c] border border-[#2d5a1b]/20 bg-white/80 hover:bg-[#f4f8ef] transition-colors"
+                  >
+                    <IconUser />
+                    الملف الشخصي
+                  </button>
                   <button
                     onClick={handleLogout}
                     className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-base font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
