@@ -44,7 +44,6 @@ farmSchema.index({ user_id: 1 });
 farmSchema.index({ governorate: 1 });
 farmSchema.index({ user_id: 1, name: 1, governorate: 1 }, { unique: true });
 
-// لما المزرعة تتحذف، امسح حيواناتها وكل اللي مرتبط بيهم
 farmSchema.pre("findOneAndDelete", async function () {
   const farm = await this.model.findOne(this.getQuery());
   if (farm) {
@@ -55,7 +54,6 @@ farmSchema.pre("findOneAndDelete", async function () {
       await Promise.all([
         mongoose.model("HealthCase").deleteMany({ animal_id: { $in: animalIds } }),
         mongoose.model("Vaccination").deleteMany({ animal_id: { $in: animalIds } }),
-        mongoose.model("Notification").deleteMany({ animal_id: { $in: animalIds } }),
       ]);
     }
     await mongoose.model("Animal").deleteMany({ farm_id: farm._id });

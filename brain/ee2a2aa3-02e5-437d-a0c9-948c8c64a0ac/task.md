@@ -1,0 +1,4 @@
+- [x] Update `backend/models/farm.js` to handle deep cascade deletion (HealthCases & Vaccinations) before deleting Animals.
+- [x] Update `backend/controllers/User.controller.js` -> `deleteMe` to hard delete the user and all their related data (Farms, Animals, Consultations, HealthCases, Vaccinations).
+- [x] Verify Admin deactivation logic is unaffected (Admin just sets `is_active: false`).
+- [x] Update `walkthrough.md` to summarize the changes made.
