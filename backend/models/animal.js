@@ -29,7 +29,7 @@ const animalSchema = new mongoose.Schema(
       enum: ["male", "female"],
     },
 
-    // ── العمر كقيمة + وحدة بدل تاريخ الميلاد ────────────────────────────────
+    // العمر رقم + وحدة (شهور أو سنين) مش تاريخ ميلاد
     age_value: {
       type: Number,
       required: true,
@@ -69,22 +69,19 @@ const animalSchema = new mongoose.Schema(
   }
 );
 
-// ── Compound unique index: منع تكرار رقم الوسم في نفس المزرعة فقط ──────────
-// (نفس رقم الوسم ممكن يتكرر في مزرعة تانية بدون مشكلة)
+// رقم الوسم unique جوه المزرعة بس
 animalSchema.index({ farm_id: 1, tag_number: 1 }, { unique: true });
 animalSchema.index({ farm_id: 1, health_status: 1 });
 animalSchema.index({ farm_id: 1, species: 1 });
 
-// ── Virtual: عمر الحيوان بالشهور دايماً (للمقارنات الداخلية لو احتجناها) ───
+// بيحول العمر لشهور عشان التطعيمات والمقارنات
 animalSchema.virtual("age_in_months").get(function () {
   if (this.age_value == null) return null;
   return this.age_unit === "years" ? this.age_value * 12 : this.age_value;
 });
 
 
-// ── Cascade: لو الحيوان اتحذف، احذف حالاته وتطعيماته ───────────────────────
-
-
+// لما الحيوان يتحذف، امسح حالاته وتطعيماته وإشعاراته
 animalSchema.pre("findOneAndDelete", async function () {
   const animal = await this.model.findOne(this.getQuery());
 
@@ -92,6 +89,7 @@ animalSchema.pre("findOneAndDelete", async function () {
     await Promise.all([
       mongoose.model("HealthCase").deleteMany({ animal_id: animal._id }),
       mongoose.model("Vaccination").deleteMany({ animal_id: animal._id }),
+      mongoose.model("Notification").deleteMany({ animal_id: animal._id }),
     ]);
   }
 });

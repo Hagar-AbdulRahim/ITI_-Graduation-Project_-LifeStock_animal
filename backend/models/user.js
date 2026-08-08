@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
       type: String, required: true, trim: true,
     },
 
-    // ── Email Verification ────────────────────────────────────────────────
+    // تأكيد الإيميل
     is_email_verified: {
       type: Boolean, default: false,
     },
@@ -34,7 +34,7 @@ const userSchema = new mongoose.Schema(
       type: Date, select: false, default: null,
     },
 
-    // ── Password Reset OTP ────────────────────────────────────────────────
+    // OTP لنسيان كلمة المرور
     password_reset_otp: {
       type: String, select: false, default: null,
     },
@@ -42,7 +42,7 @@ const userSchema = new mongoose.Schema(
       type: Date, select: false, default: null,
     },
 
-    // ── Google OAuth ──────────────────────────────────────────────────────
+    // تسجيل الدخول بجوجل
     google_id: {
       type: String, unique: true, sparse: true, default: null,
     },
@@ -53,14 +53,12 @@ const userSchema = new mongoose.Schema(
       type: String, enum: ["local", "google"], default: "local",
     },
 
-    // ── Role-Based Access ─────────────────────────────────────────────────────
     role: {
       type: String,
-      enum: ["user", "admin", "sub_admin"],
+      enum: ["user", "admin"],
       default: "user",
     },
 
-    // ── Notifications ─────────────────────────────────────────────────────
    notifications_enabled: { type: Boolean, default: true },
    fcm_token:             { type: String,  default: null  },
    push_subscription:     { type: mongoose.Schema.Types.Mixed, default: null },
@@ -69,7 +67,7 @@ const userSchema = new mongoose.Schema(
   { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } }
 );
 
-// ── Hash password ─────────────────────────────────────────────────────────────
+// يشفر الباسورد قبل الحفظ
 userSchema.pre("save", async function () {
   if (!this.isModified("password") || !this.password) return;
   this.password = await bcrypt.hash(this.password, 12);
@@ -80,7 +78,7 @@ userSchema.methods.comparePassword = async function (candidate) {
   return bcrypt.compare(candidate, this.password);
 };
 
-// ── توليد token التحقق من الإيميل ────────────────────────────────────────────
+// token يتبعت في لينك تأكيد الإيميل (صالح ساعة)
 userSchema.methods.generateVerificationToken = function () {
   const rawToken = crypto.randomBytes(32).toString("hex");
   this.email_verification_token   = crypto.createHash("sha256").update(rawToken).digest("hex");
@@ -89,7 +87,7 @@ userSchema.methods.generateVerificationToken = function () {
   return rawToken;
 };
 
-// ── توليد OTP إعادة تعيين كلمة المرور ────────────────────────────────────────
+// OTP لإعادة تعيين الباسورد (صالح 10 دقايق)
 userSchema.methods.generatePasswordResetOtp = function () {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   this.password_reset_otp         = crypto.createHash("sha256").update(otp).digest("hex");
@@ -97,7 +95,6 @@ userSchema.methods.generatePasswordResetOtp = function () {
   return otp;
 };
 
-// ── Indexes ───────────────────────────────────────────────────────────────────
 userSchema.index({ governorate: 1 });
 userSchema.index({ role: 1 });
 
